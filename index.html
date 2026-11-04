@@ -253,6 +253,40 @@ svg.chart .b1{fill:var(--line2)}svg.chart .b2{fill:var(--accent)}
   #print-root.per2 .paper{height:136mm;overflow:hidden;margin-bottom:5mm;page-break-inside:avoid}
   #print-root.per1 .paper{page-break-after:always;font-size:15px}
 }
+
+/* v4.1: nhập theo từng dòng */
+.rlist{display:flex;flex-direction:column;gap:6px}
+.rhead,.rrow{display:grid;grid-template-columns:64px minmax(80px,1fr) minmax(220px,1.9fr) minmax(220px,1.9fr) 92px 112px 64px;gap:10px;align-items:center}
+.rhead{position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 12px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)}
+.rhead .r{text-align:right}
+.rrow{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;min-width:0;transition:border-color .15s,box-shadow .15s}
+.rrow:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.rrow.done{border-color:color-mix(in srgb,var(--ok) 35%,var(--line))}
+.rrow.leaving{opacity:0;transform:scale(.97);transition:opacity .28s,transform .28s}
+.rrow .rno{justify-self:start}
+.rm{display:grid;grid-template-columns:20px minmax(0,1fr) 14px minmax(0,1fr);gap:6px;align-items:center;min-width:0}
+.rm .ml{display:flex;align-items:center}
+.rm.elec .ml{color:var(--elec)}.rm.water .ml{color:var(--water)}
+.rm .mres{grid-column:2/5;margin-top:0;font-size:11.5px}
+.rrow .meter{min-height:32px;padding:4px 8px}
+.rtot{text-align:right;min-width:0}
+.rtot .tot{font-size:15px}
+.rflags{grid-column:1/-1}.rflags:empty{display:none}
+.rrow .step{justify-self:start}
+.rrow .rdet{justify-self:end}
+.rpeople{display:flex;align-items:center;gap:6px}
+.rpeople>span{display:none}
+@media (max-width:900px){
+ .rhead{display:none}
+ .rrow{grid-template-columns:56px minmax(0,1fr) auto;row-gap:8px}
+ .rrow .rm{grid-column:1/-1}
+ .rrow .rpeople{grid-column:1/3}
+ .rrow .rpeople>span{display:inline}
+ .rrow .rdet{grid-column:3}
+}
+.mgr-sec{border:1px solid var(--line);border-radius:12px;padding:12px;margin:0 0 12px;display:flex;flex-direction:column;gap:8px}
+.mgr-sec h4{margin:0;font-size:14px}.mgr-sec p{margin:0}
+.mgr-sec.dng{border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 #login{position:fixed;inset:0;z-index:9999;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
 #login .box{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:28px 24px;text-align:center}
@@ -640,15 +674,16 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4 · tự ẩn phòng đã nhập đủ</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4.1 · nhập theo dòng · sửa/xóa tháng</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
   $('#top').innerHTML=`<button class="btn icon ghost" id="menuBtn" data-act="menu" aria-label="Mở menu">${icon('menu',20)}</button><h1>${cur.title}</h1>`+
     (showM?`<div class="mswitch"><button data-act="mprev" ${i<=0?'disabled':''} aria-label="Tháng trước">${icon('l')}</button>
       <select id="mSel" data-change="msel" aria-label="Chọn tháng">${ks.slice().reverse().map(x=>`<option value="${x}" ${x===k?'selected':''}>${monthLabel(x)}</option>`).join('')}</select>
-      <button data-act="mnext" aria-label="Tháng sau">${icon('r')}</button></div>
+      <button data-act="mnext" ${i>=ks.length-1?'disabled':''} aria-label="Tháng sau">${icon('r')}</button></div>
       <button class="btn sm" data-act="newmonth">${icon('plus',14)}Tháng mới</button>
+      <button class="btn sm" data-act="monthmgr" title="Sửa / xóa tháng này">${icon('edit',14)}Sửa / xóa tháng</button>
       ${m.locked?`<span class="chip warn">${icon('lock',12)}Đã chốt</span>`:''}`:'')+
     `<span class="syncslot">${syncChip()}</span>`;
 }
@@ -737,6 +772,25 @@ function entryCard(room,k){
       <div class="right" style="flex:1;min-width:0"><div class="muted sm nowrap">Phòng <span class="mono" data-out="rent">${money(c.rent)}</span></div><div class="tot nowrap"><span data-out="total">${money(c.total)}</span>đ</div></div>
       <button class="btn sm" data-act="detail" data-room="${esc(room.id)}">Chi tiết</button></footer></article>`;
 }
+
+function entryRow(room,k){
+  const m=DB.months[k],rec=m.recs[room.id],c=calc(room,rec,m),dis=m.locked?'disabled':'',done=rec.eNew!=null&&rec.wNew!=null;
+  return `<article class="rrow ${done?'done':''}" data-card="${esc(room.id)}">
+    <div class="rno">${esc(room.id)}</div><div class="rname">${esc(room.tenant.name)||'<span class="muted">Chưa có khách</span>'}</div>
+    <div class="rm elec"><span class="ml" title="Điện">${icon('bolt',14)}</span>${mIn(room.id,'eOld',rec.eOld,'old',dis)}<span class="arrow">→</span>${mIn(room.id,'eNew',rec.eNew,'',dis,'số mới')}
+      <div class="mres"><span><b data-out="eUse">${c.eUse}</b> kWh</span><i data-out="eAmt">${money(c.eAmt)}đ</i></div></div>
+    <div class="rm water"><span class="ml" title="Nước">${icon('drop',14)}</span>${mIn(room.id,'wOld',rec.wOld,'old',dis)}<span class="arrow">→</span>${mIn(room.id,'wNew',rec.wNew,'',dis,'số mới')}
+      <div class="mres"><span><b data-out="wUse">${c.wUse}</b> m³</span><i data-out="wAmt">${money(c.wAmt)}đ</i></div></div>
+    <div class="rpeople"><div class="step" title="Số người ở"><button data-act="ppl" data-room="${esc(room.id)}" data-d="-1" aria-label="Bớt một người" ${dis}>−</button><b data-out="people">${rec.people||0}</b><button data-act="ppl" data-room="${esc(room.id)}" data-d="1" aria-label="Thêm một người" ${dis}>+</button></div><span class="muted sm nowrap">người ở</span></div>
+    <div class="rtot"><div class="muted sm nowrap">Phòng <span class="mono" data-out="rent">${money(c.rent)}</span></div><div class="tot nowrap"><span data-out="total">${money(c.total)}</span>đ</div></div>
+    <button class="btn sm rdet" data-act="detail" data-room="${esc(room.id)}">Chi tiết</button>
+    <div data-flags class="stack rflags" style="gap:6px">${flagsHTML(flagsOf(k,room))}</div></article>`;
+}
+const entryMode=()=>CFG.entryView||'rows';
+const entryItems=(list,k)=>entryMode()==='rows'
+  ?`<div class="rlist"><div class="rhead"><span>Phòng</span><span>Khách</span><span>Điện: cũ → mới</span><span>Nước: cũ → mới</span><span>Số người</span><span class="r">Tổng thu</span><span></span></div>${list.map(r=>entryRow(r,k)).join('')}</div>`
+  :list.map(r=>entryCard(r,k)).join('');
+function entryHTML(k){const list=entryList(k);return list.length?entryItems(list,k):'<p class="muted">Không có phòng phù hợp.</p>'}
 function entryList(k){
   const m=DB.months[k],q=UI.entryQ.trim().toLowerCase();
   return monthRooms(k).filter(r=>{
@@ -746,12 +800,13 @@ function entryList(k){
   });
 }
 function vEntry(){
-  const k=UI.month,m=DB.months[k],list=entryList(k);
+  const k=UI.month,m=DB.months[k];
   return `${m.locked?`<div class="banner">${icon('lock',20)}<div class="grow">Tháng này đã chốt nên không sửa được số liệu. Bấm <b>Mở khóa</b> nếu cần chỉnh.</div><button class="btn" data-act="unlock">Mở khóa</button></div>`:''}
   <div class="card"><div class="row sp"><div style="flex:1;min-width:200px"><div class="row sp"><b data-kpi="progtxt"></b><span class="muted sm">Gõ số mới rồi nhấn Enter để sang ô kế tiếp</span></div><div class="bar"><i data-kpi="progbar" style="width:0"></i></div></div>
     <div class="tools"><div class="seg" role="group" aria-label="Lọc phòng">${[['all','Tất cả'],['todo','Chưa nhập'],['flag','Cần kiểm tra']].map(([v,l])=>`<button data-act="efilter" data-v="${v}" aria-pressed="${UI.entryFilter===v}">${l}</button>`).join('')}</div>
+    <div class="seg" role="group" aria-label="Kiểu hiển thị">${[['rows','Dòng'],['cards','Thẻ']].map(([v,l])=>`<button data-act="eview" data-v="${v}" aria-pressed="${entryMode()===v}">${l}</button>`).join('')}</div>
     <input type="search" id="entryQ" placeholder="Tìm phòng hoặc tên" value="${esc(UI.entryQ)}" style="width:180px" aria-label="Tìm phòng"></div></div></div>
-  <div class="cards" id="cards">${list.map(r=>entryCard(r,k)).join('')||'<p class="muted">Không có phòng phù hợp.</p>'}</div>`;
+  <div class="${entryMode()==='rows'?'':'cards'}" id="cards">${entryHTML(k)}</div>`;
 }
 function refreshEntryHead(){
   const k=UI.month,m=DB.months[k],rooms=monthRooms(k),n=rooms.filter(r=>{const x=m.recs[r.id];return x.eNew!=null&&x.wNew!=null}).length;
@@ -1362,11 +1417,11 @@ document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.c
 function pruneDone(){
   if(UI.view!=='entry'||UI.entryFilter!=='todo')return;
   const box=$('#cards');if(!box)return;const act=document.activeElement;
-  $$('.rcard.done:not(.leaving)',box).forEach(c=>{
+  $$('.rcard.done:not(.leaving),.rrow.done:not(.leaving)',box).forEach(c=>{
     if(act&&c.contains(act))return;
     if(_downCard===c&&Date.now()-_downAt<1200){setTimeout(pruneDone,1250-(Date.now()-_downAt));return}
     c.classList.add('leaving');
-    setTimeout(()=>{c.remove();refreshEntryHead();if(!$('.rcard',box))box.innerHTML='<p class="muted">Đã nhập đủ số điện nước cho tất cả phòng.</p>'},300);
+    setTimeout(()=>{c.remove();refreshEntryHead();if(!$('.rcard,.rrow',box))box.innerHTML='<p class="muted">Đã nhập đủ số điện nước cho tất cả phòng.</p>'},300);
   });
 }
 const prunePoll=()=>setTimeout(pruneDone,60);
@@ -1375,12 +1430,13 @@ const prunePoll=()=>setTimeout(pruneDone,60);
 document.addEventListener('input',e=>{
   const t=e.target;
   if(t.dataset.room&&t.dataset.f){setField(t.dataset.room,t.dataset.f,t.value);refreshCard(t.dataset.room);scheduleSave();return}
-  if(t.id==='entryQ'){UI.entryQ=t.value;$('#cards').innerHTML=entryList(UI.month).map(r=>entryCard(r,UI.month)).join('')||'<p class="muted">Không có phòng phù hợp.</p>';refreshEntryHead()}
+  if(t.id==='entryQ'){UI.entryQ=t.value;$('#cards').innerHTML=entryHTML(UI.month);refreshEntryHead()}
   if(t.id==='payQ'){UI.payQ=t.value;$('#payList').innerHTML=payListOnly()}
 });
 let saveT=null;function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(()=>{saveT=null;save()},400)}
 function flushAll(){if(saveT){clearTimeout(saveT);saveT=null;save()}clearTimeout(persistTimer);persistLocal();Sync.flush()}
 function payListOnly(){const d=document.createElement('div');d.innerHTML=vPay();return $('#payList',d).innerHTML}
+document.addEventListener('focusin',e=>{const t=e.target;if(t.classList&&t.classList.contains('meter')&&!t.classList.contains('old')){const v0=t.value;setTimeout(()=>{if(document.activeElement===t&&t.value===v0){try{t.select()}catch(x){}}},0)}});
 document.addEventListener('focusout',e=>{
   const t=e.target;prunePoll();
   if(t.dataset&&t.dataset.money&&t.tagName==='INPUT'&&!t.dataset.set&&!t.dataset.m){const v=parseInt0(t.value);t.value=v==null?'':money(v)}
@@ -1413,12 +1469,14 @@ document.addEventListener('click',async e=>{
    case 'nav':UI.view=el.dataset.v;CFG.view=UI.view;saveCfg();if(UI.view==='settings')await loadSnaps();render();window.scrollTo(0,0);break;
    case 'mclose':closeModal();break;
    case 'mprev':{const ks=monthKeys(),i=ks.indexOf(UI.month);if(i>0)setMonth(ks[i-1]);break}
-   case 'mnext':{const ks=monthKeys(),i=ks.indexOf(UI.month);if(i<ks.length-1)setMonth(ks[i+1]);else newMonthModal();break}
+   case 'mnext':{const ks=monthKeys(),i=ks.indexOf(UI.month);if(i<ks.length-1)setMonth(ks[i+1]);break}
    case 'newmonth':newMonthModal();break;
+   case 'monthmgr':monthMgrModal();break;
    case 'gomonth':UI.view='dash';setMonth(el.dataset.m);break;
    case 'lock':confirmBox('Chốt '+monthLabel(UI.month).toLowerCase(),'Sau khi chốt, số điện nước và các khoản phí của tháng không sửa được nữa (vẫn ghi nhận thu tiền). Tiền phòng đang tự tính sẽ được cố định lại để các thay đổi giá sau này không làm lệch tháng cũ.','Chốt tháng',()=>{
       DB.rooms.forEach(r=>{const rec=m.recs[r.id];if(rec&&rec.rent==null)rec.rent=rentAuto(r,rec.people,m)});m.locked=true;save();render();toast('Đã chốt tháng');if(CFG.driver&&Sync.driver)Sync.driver.backup(JSON.stringify(DB),`TienTro_backup_${UI.month}_chot.json`,true).catch(()=>{})},false);break;
    case 'unlock':m.locked=false;save();render();toast('Đã mở khóa tháng');break;
+   case 'eview':CFG.entryView=el.dataset.v;saveCfg();render();break;
    case 'efilter':UI.entryFilter=el.dataset.v;render();break;
    case 'pfilter':UI.payFilter=el.dataset.v;render();break;
    case 'ppl':{const rec=m.recs[id];if(m.locked)break;rec.people=Math.max(0,(rec.people||0)+(+el.dataset.d));refreshCard(id);scheduleSave();break}
@@ -1480,6 +1538,34 @@ function saveRoom(oldId){
   Object.assign(r,{type:$('#rtype').value,rentMode:$('#rmode').value,base:g('rbase'),fixed:g('rfixed'),trash:g('rtrash'),anqp:g('ranqp'),internet:g('rnet'),cable:g('rcable'),occupants:Math.max(0,g('rocc')),status:$('#rstatus').value});
   r.tenant={name:$('#tname').value.trim(),phone:$('#tphone').value.trim(),idNo:$('#tid').value.trim(),moveIn:$('#tdate').value,deposit:g('tdep'),note:$('#tnote').value.trim()};
   if(isNew)DB.rooms.push(r);sortRooms();syncRecs(UI.month);save();closeModal(true);render();toast(isNew?'Đã thêm phòng '+id:'Đã lưu phòng '+id);
+}
+
+function monthMgrModal(){
+  const k=UI.month,m=DB.months[k],ks=monthKeys(),pk=prevKey(k);
+  const nPay=Object.values(m.payments||{}).reduce((a,l)=>a+(l||[]).length,0),nIn=Object.values(m.recs||{}).filter(r=>r.eNew!=null||r.wNew!=null).length;
+  openModal('Sửa / xóa '+monthLabel(k).toLowerCase(),`
+    <p class="muted" style="margin:0 0 12px">Tháng này có <b>${Object.keys(m.recs).length}</b> phòng, đã nhập số cho <b>${nIn}</b> phòng, <b>${nPay}</b> lần thu tiền${m.locked?', <b>đã chốt</b>':''}.</p>
+    <div class="mgr-sec"><h4>1. Đổi sang tháng khác</h4><p class="muted sm">Dùng khi tạo nhầm tháng (ví dụ lẽ ra là 11 nhưng lại tạo 12). Toàn bộ số liệu giữ nguyên, chỉ đổi tên tháng.</p>
+      <div class="row" style="gap:8px"><input type="month" id="mmk" value="${k}" style="flex:1"><button class="btn primary" id="mmRen">Đổi tháng</button></div></div>
+    <div class="mgr-sec"><h4>2. Làm lại tháng này từ đầu</h4><p class="muted sm">${pk?`Xóa mọi số đã nhập và tiền đã thu của tháng này, rồi tạo lại từ ${monthLabel(pk).toLowerCase()} (số cũ, nợ, đơn giá cập nhật lại).`:'Không có tháng trước để lấy số cũ.'}</p>
+      <div><button class="btn danger" id="mmReset" ${pk?'':'disabled'}>${icon('refresh',14)}Làm lại tháng này</button></div></div>
+    <div class="mgr-sec dng"><h4>3. Xóa tháng này</h4><p class="muted sm">${ks.length<2?'Đây là tháng duy nhất nên chưa thể xóa.':'Xóa hẳn tháng này cùng số điện nước và tiền đã thu. Bản lưu tự động được tạo ngay trước khi xóa nên vẫn khôi phục được ở Cài đặt.'}</p>
+      <div><button class="btn danger" id="mmDel" ${ks.length<2?'disabled':''}>${icon('trash',14)}Xóa ${monthLabel(k).toLowerCase()}</button></div></div>`,
+    `<button class="btn" data-act="mclose">Đóng</button>`);
+  $('#mmRen').onclick=async()=>{const nk=$('#mmk').value;
+    if(!/^\d{4}-\d{2}$/.test(nk))return toast('Hãy chọn tháng','bad');
+    if(nk===k){closeModal(true);return}
+    if(DB.months[nk])return toast(monthLabel(nk)+' đã tồn tại, hãy chọn tháng khác hoặc xóa tháng đó trước','bad');
+    await snapshot('Trước khi đổi '+monthLabel(k).toLowerCase()+' sang '+monthLabel(nk).toLowerCase());
+    DB.months[nk]=m;delete DB.months[k];closeModal(true);save();setMonth(nk);toast('Đã đổi thành '+monthLabel(nk).toLowerCase())};
+  $('#mmReset').onclick=()=>{closeModal(true);confirmBox('Làm lại '+monthLabel(k).toLowerCase(),
+    `Mọi số điện nước đã nhập (${nIn} phòng) và ${nPay} lần thu tiền của tháng này sẽ bị xóa, tháng được tạo lại từ ${pk?monthLabel(pk).toLowerCase():'đầu'}. Bản lưu tự động được tạo trước khi làm.`,'Làm lại',async()=>{
+      await snapshot('Trước khi làm lại '+monthLabel(k).toLowerCase());createMonth(k);save();UI.view='entry';setMonth(k);toast('Đã làm lại '+monthLabel(k).toLowerCase())})};
+  $('#mmDel').onclick=()=>{closeModal(true);confirmBox('Xóa '+monthLabel(k).toLowerCase(),
+    `Xóa hẳn ${monthLabel(k).toLowerCase()}${m.locked?' (đã chốt)':''}: ${nIn} phòng đã nhập số, ${nPay} lần thu tiền sẽ mất. Bản lưu tự động được tạo trước khi xóa.`,'Xóa tháng',async()=>{
+      await snapshot('Trước khi xóa '+monthLabel(k).toLowerCase());
+      const rest=monthKeys().filter(x=>x!==k),go=rest.filter(x=>x<k).pop()||rest[0];
+      delete DB.months[k];save();setMonth(go);toast('Đã xóa '+monthLabel(k).toLowerCase())})};
 }
 function newMonthModal(){
   const ks=monthKeys(),next=addMonths(ks[ks.length-1],1);
