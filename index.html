@@ -253,6 +253,16 @@ svg.chart .b1{fill:var(--line2)}svg.chart .b2{fill:var(--accent)}
   #print-root.per1 .paper{page-break-after:always;font-size:15px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+#login{position:fixed;inset:0;z-index:9999;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
+#login .box{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:28px 24px;text-align:center}
+#login img{width:72px;height:72px;border-radius:16px}
+#login h1{margin:12px 0 2px;font-size:20px;color:var(--ink)}#login p{margin:0 0 16px;color:var(--muted);font-size:13px}
+#login .em{font-family:var(--mono);font-size:13px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin:0 0 14px;color:var(--ink)}
+#login input{width:100%;box-sizing:border-box;margin:0 0 12px;padding:10px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:var(--ink);font:13px var(--mono)}
+#login .go{width:100%;padding:12px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font:600 15px var(--font);cursor:pointer}
+#login .go[disabled]{opacity:.6;cursor:wait}
+#login .err{margin:12px 0 0;padding:9px 10px;border-radius:10px;background:var(--bad-soft);color:var(--bad);font-size:13px;text-align:left}
+#login .hint{margin:14px 0 0;font-size:11.5px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -629,7 +639,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
@@ -1429,6 +1439,7 @@ document.addEventListener('click',async e=>{
    case 'disconnect':confirmBox('Ngắt kết nối','Ứng dụng sẽ ngừng ghi lên '+DRIVER_NAME[CFG.driver]+'. Tệp đã có trên đó vẫn được giữ nguyên.','Ngắt kết nối',()=>{Sync.driver&&Sync.driver.disconnect();Sync.driver=null;CFG.driver=null;CFG.syncPid=null;saveCfg();setSync('local');render()});break;
    case 'backupcloud':if(Sync.driver){try{await Sync.driver.backup(JSON.stringify(DB),`TienTro_backup_${todayISO()}_${new Date().toTimeString().slice(0,5).replace(':','h')}.json`);toast('Đã tạo bản sao lưu có ngày')}catch(x){toast(x.message,'bad')}}break;
    case 'exportjson':exportJSON();break;
+   case 'logout':authClear();try{GD.token=null;GD.exp=0;localStorage.removeItem('tientro.gd')}catch(e){}location.reload();break;
    case 'importjson':$('#fileJson').click();break;
    case 'exportxlsx':exportXLSX();break;
    case 'importxlsx':$('#fileXlsx').click();break;
@@ -1464,7 +1475,47 @@ function newMonthModal(){
 }
 
 /* ---------- khởi động ---------- */
+/* ---------- Đăng nhập: chỉ cho vào khi tài khoản Google đúng ---------- */
+const AUTH_EMAIL='hoangvucntt@gmail.com',AUTH_KEY='tientro.auth',AUTH_TTL=12*3600*1000;
+function authOK(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');return !!a&&a.email===AUTH_EMAIL&&Date.now()<a.exp}catch(e){return false}}
+function authSet(){try{localStorage.setItem(AUTH_KEY,JSON.stringify({email:AUTH_EMAIL,exp:Date.now()+AUTH_TTL}))}catch(e){}}
+function authClear(){try{localStorage.removeItem(AUTH_KEY)}catch(e){}}
+async function googleLogin(){
+  if(!CFG.gClientId)throw new Error('Chưa có Google Client ID');
+  if(location.protocol!=='https:'&&location.hostname!=='localhost')throw new Error('Cần mở app bằng địa chỉ https:// (không mở trực tiếp tệp)');
+  await loadScript('https://accounts.google.com/gsi/client');
+  const r=await new Promise((res,rej)=>{
+    const tc=google.accounts.oauth2.initTokenClient({client_id:CFG.gClientId.trim(),scope:'openid email profile https://www.googleapis.com/auth/drive.file',
+      callback:x=>x.error?rej(new Error(x.error_description||x.error)):res(x),
+      error_callback:e=>rej(new Error(e.type==='popup_closed'?'Bạn đã đóng cửa sổ đăng nhập':e.type==='popup_failed_to_open'?'Trình duyệt chặn cửa sổ đăng nhập, hãy cho phép cửa sổ bật lên':(e.message||e.type||'Đăng nhập thất bại')))});
+    tc.requestAccessToken({prompt:'select_account',login_hint:AUTH_EMAIL});
+  });
+  let u;try{u=await (await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+r.access_token}})).json()}catch(e){throw new Error('Không xác thực được tài khoản, kiểm tra kết nối mạng')}
+  const em=String(u&&u.email||'').toLowerCase();
+  if(em!==AUTH_EMAIL||u.email_verified===false){try{google.accounts.oauth2.revoke(r.access_token)}catch(e){}throw new Error(em?`Tài khoản ${em} không được phép sử dụng ứng dụng này`:'Không xác định được tài khoản Google')}
+  GD.token=r.access_token;GD.exp=Date.now()+(r.expires_in-120)*1000;GD.saveTok();authSet();
+}
+function loginScreen(){return new Promise(done=>{
+  const el=document.createElement('div');el.id='login';
+  const draw=(err)=>{el.innerHTML=`<div class="box"><img src="${BRAND.logo}" alt=""><h1>${esc(BRAND.name)}</h1><p>Đăng nhập để sử dụng ứng dụng</p>
+    <div class="em">${esc(AUTH_EMAIL)}</div>
+    ${CFG.gClientId?'':'<input id="lgcid" type="text" placeholder="Dán Google Client ID (làm một lần)" autocomplete="off" spellcheck="false">'}
+    <button class="go" id="lggo">Đăng nhập bằng Google</button>
+    ${err?`<div class="err" role="alert">${esc(err)}</div>`:''}
+    <p class="hint">Google sẽ yêu cầu bạn nhập email và mật khẩu (kèm xác minh 2 bước nếu có). Ứng dụng không nhìn thấy mật khẩu của bạn.</p></div>`;
+    $('#lggo',el).onclick=async()=>{
+      const ci=$('#lgcid',el);if(ci){const v=ci.value.trim();if(!/\.apps\.googleusercontent\.com$/.test(v))return draw('Client ID không đúng định dạng (phải kết thúc bằng .apps.googleusercontent.com)');CFG.gClientId=v;saveCfg()}
+      const b=$('#lggo',el);b.disabled=true;b.textContent='Đang xác thực…';
+      try{await googleLogin();el.remove();done()}catch(e){draw(e.message||String(e))}
+    };
+  };
+  draw('');document.body.appendChild(el);
+})}
 async function boot(){
+  if(!authOK())await loginScreen();
+  return boot0();
+}
+async function boot0(){
   DB=loadLocal();
   if(!DB){DB=makeSeed();persistLocal()}else if(fillCCCD(DB)){persistLocal()}
   sortRooms();UI.view=NAV.some(n=>n.id===CFG.view)?CFG.view:'dash';ensureMonthSelected();
