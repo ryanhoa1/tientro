@@ -1,0 +1,24 @@
+{
+ "name": "Quản Lý Tiền Trọ",
+ "short_name": "Tiền Trọ",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#edf1ef",
+ "theme_color": "#0a6c5a",
+ "lang": "vi",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any maskable"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any maskable"
+  }
+ ]
+}
