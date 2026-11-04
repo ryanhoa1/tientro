@@ -1480,36 +1480,49 @@ const AUTH_EMAIL='hoangvucntt@gmail.com',AUTH_KEY='tientro.auth',AUTH_TTL=12*360
 function authOK(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');return !!a&&a.email===AUTH_EMAIL&&Date.now()<a.exp}catch(e){return false}}
 function authSet(){try{localStorage.setItem(AUTH_KEY,JSON.stringify({email:AUTH_EMAIL,exp:Date.now()+AUTH_TTL}))}catch(e){}}
 function authClear(){try{localStorage.removeItem(AUTH_KEY)}catch(e){}}
-async function googleLogin(){
-  if(!CFG.gClientId)throw new Error('Chưa có Google Client ID');
-  if(location.protocol!=='https:'&&location.hostname!=='localhost')throw new Error('Cần mở app bằng địa chỉ https:// (không mở trực tiếp tệp)');
-  await loadScript('https://accounts.google.com/gsi/client');
-  const r=await new Promise((res,rej)=>{
-    const tc=google.accounts.oauth2.initTokenClient({client_id:CFG.gClientId.trim(),scope:'openid email profile https://www.googleapis.com/auth/drive.file',
-      callback:x=>x.error?rej(new Error(x.error_description||x.error)):res(x),
-      error_callback:e=>rej(new Error(e.type==='popup_closed'?'Bạn đã đóng cửa sổ đăng nhập':e.type==='popup_failed_to_open'?'Trình duyệt chặn cửa sổ đăng nhập, hãy cho phép cửa sổ bật lên':(e.message||e.type||'Đăng nhập thất bại')))});
-    tc.requestAccessToken({prompt:'select_account',login_hint:AUTH_EMAIL});
-  });
-  let u;try{u=await (await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+r.access_token}})).json()}catch(e){throw new Error('Không xác thực được tài khoản, kiểm tra kết nối mạng')}
-  const em=String(u&&u.email||'').toLowerCase();
-  if(em!==AUTH_EMAIL||u.email_verified===false){try{google.accounts.oauth2.revoke(r.access_token)}catch(e){}throw new Error(em?`Tài khoản ${em} không được phép sử dụng ứng dụng này`:'Không xác định được tài khoản Google')}
-  GD.token=r.access_token;GD.exp=Date.now()+(r.expires_in-120)*1000;GD.saveTok();authSet();
+const DEFAULT_OTP_URL=''; // Dán sẵn địa chỉ Apps Script (…/exec) vào đây nếu muốn, khỏi nhập ở màn hình đăng nhập
+const OTP_KEY='tientro.otpurl';
+function otpUrl(){let u='';try{u=localStorage.getItem(OTP_KEY)||''}catch(e){}return u||DEFAULT_OTP_URL}
+async function otpCall(a,extra){
+  const u=otpUrl();if(!u)throw new Error('Chưa có địa chỉ dịch vụ gửi mã');
+  let r;try{r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({a},extra||{}))})}catch(e){throw new Error('Không kết nối được dịch vụ gửi mã, kiểm tra mạng và địa chỉ đã dán')}
+  let j;try{j=await r.json()}catch(e){throw new Error('Địa chỉ dịch vụ không đúng hoặc chưa triển khai "Bất kỳ ai"')}
+  if(!j.ok)throw new Error(j.error||'Có lỗi xảy ra');return j;
 }
 function loginScreen(){return new Promise(done=>{
   const el=document.createElement('div');el.id='login';
-  const draw=(err)=>{el.innerHTML=`<div class="box"><img src="${BRAND.logo}" alt=""><h1>${esc(BRAND.name)}</h1><p>Đăng nhập để sử dụng ứng dụng</p>
+  let step='start',err='',info='',cool=0,tick=null;
+  const draw=()=>{
+    const needUrl=!otpUrl();
+    el.innerHTML=`<div class="box"><img src="${BRAND.logo}" alt=""><h1>${esc(BRAND.name)}</h1><p>Đăng nhập để sử dụng ứng dụng</p>
     <div class="em">${esc(AUTH_EMAIL)}</div>
-    ${CFG.gClientId?'':'<input id="lgcid" type="text" placeholder="Dán Google Client ID (làm một lần)" autocomplete="off" spellcheck="false">'}
-    <button class="go" id="lggo">Đăng nhập bằng Google</button>
+    ${step==='start'?`${needUrl?'<input id="lurl" type="text" placeholder="Dán địa chỉ dịch vụ gửi mã (làm một lần)" autocomplete="off" spellcheck="false">':''}
+      <button class="go" id="lgsend">Gửi mã xác minh về Gmail</button>`
+    :`<input id="lcode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="Nhập mã 6 số" style="text-align:center;font-size:20px;letter-spacing:4px">
+      <button class="go" id="lgok">Xác nhận</button>
+      <button class="go" id="lgre" style="background:transparent;color:var(--accent);margin-top:8px;font-weight:500" ${cool>0?'disabled':''}>${cool>0?`Gửi lại mã sau ${cool}s`:'Gửi lại mã'}</button>`}
     ${err?`<div class="err" role="alert">${esc(err)}</div>`:''}
-    <p class="hint">Google sẽ yêu cầu bạn nhập email và mật khẩu (kèm xác minh 2 bước nếu có). Ứng dụng không nhìn thấy mật khẩu của bạn.</p></div>`;
-    $('#lggo',el).onclick=async()=>{
-      const ci=$('#lgcid',el);if(ci){const v=ci.value.trim();if(!/\.apps\.googleusercontent\.com$/.test(v))return draw('Client ID không đúng định dạng (phải kết thúc bằng .apps.googleusercontent.com)');CFG.gClientId=v;saveCfg()}
-      const b=$('#lggo',el);b.disabled=true;b.textContent='Đang xác thực…';
-      try{await googleLogin();el.remove();done()}catch(e){draw(e.message||String(e))}
-    };
+    ${info?`<p class="hint">${esc(info)}</p>`:''}
+    <p class="hint">${step==='start'?'Mã xác minh 6 số sẽ được gửi tới email trên. Kiểm tra cả mục Thư rác nếu chưa thấy.':'Mã có hiệu lực 10 phút.'}</p></div>`;
+    const b=$('#lgsend',el);if(b)b.onclick=()=>send(b);
+    const ok=$('#lgok',el);if(ok){ok.onclick=()=>verify(ok);const c=$('#lcode',el);c.focus();c.oninput=()=>{c.value=c.value.replace(/\D/g,'');if(c.value.length===6)verify(ok)}}
+    const re=$('#lgre',el);if(re)re.onclick=()=>send(re);
   };
-  draw('');document.body.appendChild(el);
+  const startCool=()=>{cool=45;clearInterval(tick);tick=setInterval(()=>{cool--;if(cool<=0){clearInterval(tick);cool=0}const re=$('#lgre',el);if(re){re.disabled=cool>0;re.textContent=cool>0?`Gửi lại mã sau ${cool}s`:'Gửi lại mã'}},1000)};
+  const send=async(b)=>{
+    const ui=$('#lurl',el);
+    if(ui){const v=ui.value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/[^\s]+\/exec$/.test(v)){err='Địa chỉ không đúng định dạng (phải bắt đầu bằng https://script.google.com/macros/s/ và kết thúc bằng /exec)';return draw()}try{localStorage.setItem(OTP_KEY,v)}catch(e){}}
+    b.disabled=true;b.textContent='Đang gửi mã…';
+    try{await otpCall('send');err='';info='Đã gửi mã tới '+AUTH_EMAIL;step='code';startCool();draw()}
+    catch(e){err=e.message;draw()}
+  };
+  const verify=async(b)=>{
+    const code=($('#lcode',el).value||'').trim();if(code.length!==6){err='Hãy nhập đủ 6 số';return draw()}
+    b.disabled=true;b.textContent='Đang xác nhận…';
+    try{await otpCall('verify',{code});authSet();clearInterval(tick);el.remove();done()}
+    catch(e){err=e.message;info='';draw()}
+  };
+  draw();document.body.appendChild(el);
 })}
 async function boot(){
   if(!authOK())await loginScreen();
