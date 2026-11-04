@@ -118,6 +118,7 @@ label.f>input,label.f>select,label.f>textarea{color:var(--ink);font-size:14px;fo
 /* entry cards */
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
 .rcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow);min-width:0}
+.rcard.leaving{opacity:0;transform:scale(.94);transition:opacity .28s,transform .28s}
 .rcard.done{border-color:color-mix(in srgb,var(--ok) 35%,var(--line))}
 .rcard header{display:flex;align-items:center;gap:10px;min-width:0}
 .rno{font-family:var(--mono);font-weight:600;font-size:15px;background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:2px 9px;white-space:nowrap}
@@ -639,7 +640,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4 · tự ẩn phòng đã nhập đủ</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
@@ -1355,6 +1356,21 @@ function addPayment(id,method,amount,date,batch,note){
   (m.payments[id]=m.payments[id]||[]).push({id:uid(),date,method,amount:Math.round(amount),note:note||'',batch:batch||1});save();return true;
 }
 
+/* Ở bộ lọc "Chưa nhập": phòng nhập đủ điện + nước và đã rời ô nhập thì tự biến mất, bộ đếm tăng lên */
+let _downCard=null,_downAt=0;
+document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.closest('[data-card]');_downCard=c;_downAt=Date.now()},true);
+function pruneDone(){
+  if(UI.view!=='entry'||UI.entryFilter!=='todo')return;
+  const box=$('#cards');if(!box)return;const act=document.activeElement;
+  $$('.rcard.done:not(.leaving)',box).forEach(c=>{
+    if(act&&c.contains(act))return;
+    if(_downCard===c&&Date.now()-_downAt<1200){setTimeout(pruneDone,1250-(Date.now()-_downAt));return}
+    c.classList.add('leaving');
+    setTimeout(()=>{c.remove();refreshEntryHead();if(!$('.rcard',box))box.innerHTML='<p class="muted">Đã nhập đủ số điện nước cho tất cả phòng.</p>'},300);
+  });
+}
+const prunePoll=()=>setTimeout(pruneDone,60);
+
 /* ---------- sự kiện ---------- */
 document.addEventListener('input',e=>{
   const t=e.target;
@@ -1366,7 +1382,7 @@ let saveT=null;function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(()=>
 function flushAll(){if(saveT){clearTimeout(saveT);saveT=null;save()}clearTimeout(persistTimer);persistLocal();Sync.flush()}
 function payListOnly(){const d=document.createElement('div');d.innerHTML=vPay();return $('#payList',d).innerHTML}
 document.addEventListener('focusout',e=>{
-  const t=e.target;
+  const t=e.target;prunePoll();
   if(t.dataset&&t.dataset.money&&t.tagName==='INPUT'&&!t.dataset.set&&!t.dataset.m){const v=parseInt0(t.value);t.value=v==null?'':money(v)}
 });
 document.addEventListener('change',e=>{
@@ -1386,7 +1402,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&$('#modal-root').classList.contains('open'))closeModal();
   const t=e.target;
   if(e.key==='Enter'&&t.dataset&&(t.dataset.f==='eNew'||t.dataset.f==='wNew')){e.preventDefault();
-    const all=$$('[data-f="eNew"],[data-f="wNew"]').filter(x=>!x.disabled),i=all.indexOf(t);const n=all[i+1];if(n){n.focus();n.select()}}
+    const all=$$('[data-f="eNew"],[data-f="wNew"]').filter(x=>!x.disabled),i=all.indexOf(t);const n=all[i+1];if(n){n.focus();n.select()}else{t.blur()}prunePoll()}
 });
 $('#modal-root').addEventListener('mousedown',e=>{if(e.target.id==='modal-root')closeModal()});
 
@@ -1480,7 +1496,7 @@ const AUTH_EMAIL='hoangvucntt@gmail.com',AUTH_KEY='tientro.auth',AUTH_TTL=12*360
 function authOK(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');return !!a&&a.email===AUTH_EMAIL&&Date.now()<a.exp}catch(e){return false}}
 function authSet(){try{localStorage.setItem(AUTH_KEY,JSON.stringify({email:AUTH_EMAIL,exp:Date.now()+AUTH_TTL}))}catch(e){}}
 function authClear(){try{localStorage.removeItem(AUTH_KEY)}catch(e){}}
-const DEFAULT_OTP_URL=''; // Dán sẵn địa chỉ Apps Script (…/exec) vào đây nếu muốn, khỏi nhập ở màn hình đăng nhập
+const DEFAULT_OTP_URL='https://script.google.com/macros/s/AKfycbxeGnmy3hFh0jHO4uULG61r2jOH2SERkiQ2RUUwoBHo9JsWIbtxoQMBGUhbYO0mZ4gw/exec'; // Dán sẵn địa chỉ Apps Script (…/exec) vào đây nếu muốn, khỏi nhập ở màn hình đăng nhập
 const OTP_KEY='tientro.otpurl';
 function otpUrl(){let u='';try{u=localStorage.getItem(OTP_KEY)||''}catch(e){}return u||DEFAULT_OTP_URL}
 async function otpCall(a,extra){
