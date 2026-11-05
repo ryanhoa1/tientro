@@ -261,6 +261,20 @@ svg.chart .b1{fill:var(--line2)}svg.chart .b2{fill:var(--accent)}
 #print-root.per2 .paper .qrbox img{width:84px;height:84px}
 #print-root.per2 .paper .sig{min-height:30px;margin-top:4px}
 #print-root.per2 .paper .foot{font-size:10px;padding-top:3px}
+#print-root.police{font:11px/1.4 Arial,Helvetica,sans-serif;color:#000}
+#print-root.police .ph{font-size:11px;margin:0 0 6px}
+#print-root.police h3{text-align:center;font-size:17px;margin:8px 0 2px;letter-spacing:.3px}
+#print-root.police .sub{text-align:center;font-style:italic;margin:0 0 8px}
+#print-root.police table{width:100%;border-collapse:collapse;font-size:10px}
+#print-root.police th,#print-root.police td{border:1px solid #444;padding:3px 4px;text-align:left;vertical-align:top}
+#print-root.police th{background:#e7e7e7;text-align:center}
+#print-root.police td.c{text-align:center}
+#print-root.police thead{display:table-header-group}
+#print-root.police tr{page-break-inside:avoid}
+#print-root.police .sigs{display:flex;justify-content:flex-end;margin-top:14px;page-break-inside:avoid}
+#print-root.police .sigs>div{text-align:center;min-width:240px}
+#print-root.police .sg{height:60px}
+#print-root.police .brk{page-break-after:always}
 @media print{
   body.printing{background:#fff}
   body.printing #app,body.printing .modal-root,body.printing #toast{display:none!important}
@@ -692,7 +706,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4.6 · nhập theo dòng · sửa/xóa tháng</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4.7 · báo cáo công an · nhập Excel đủ cột</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
@@ -1129,7 +1143,7 @@ function monthsSince(d){if(!d)return '';const a=new Date(d+'T00:00:00'),b=new Da
 const RES_WARN=()=>DB.settings.resWarnDays||30;
 const dLeft=iso=>Math.round((new Date(iso+'T00:00:00')-new Date(todayISO()+'T00:00:00'))/864e5);
 function peopleOf(r){
-  const t=r.tenant||{},mk=(x,rep,i)=>({rep,i,name:x.name||'',idNo:x.idNo||'',tt1:x.tt1||'',tt2:x.tt2||'',tv1:x.tv1||'',tv2:x.tv2||'',dob:x.dob||'',sex:x.sex||'',hk:x.hk||'',note:rep?'':(x.note||'')});
+  const t=r.tenant||{},mk=(x,rep,i)=>({rep,i,name:x.name||'',idNo:x.idNo||'',tt1:x.tt1||'',tt2:x.tt2||'',tv1:x.tv1||'',tv2:x.tv2||'',dob:x.dob||'',sex:x.sex||'',hk:x.hk||'',hkOwner:x.hkOwner||'',group:x.group||'',ttPlace:x.ttPlace||'',phone:x.phone||'',note:rep?'':(x.note||'')});
   const list=[];if(t.name||t.idNo||t.tt1||t.tt2||t.tv1||t.tv2)list.push(mk(t,true,-1));
   (r.members||[]).forEach((x,i)=>list.push(mk(x,false,i)));return list;
 }
@@ -1165,13 +1179,13 @@ function vPeople(){
   const bad=x=>(x.tt.lv==='bad'||x.tt.lv==='warn')||(x.tv&&(x.tv.lv==='bad'||x.tv.lv==='warn'));
   const nAlert=all.filter(bad).length,nNone=all.filter(x=>x.tt.lv==='none').length,nDup=findDupGroups().length;
   const list=all.filter(x=>f==='alert'?bad(x):f==='none'?x.tt.lv==='none':true);
-  const rows=list.map(({r,p,tt,tv})=>`<tr><td class="l"><b class="mono">${esc(r.id)}</b></td><td class="l"><b>${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}</b> ${p.rep?chip('acc','Đại diện'):''}${(p.dob||p.sex||p.hk)?`<div class="muted sm">${esc([p.dob?'sinh '+fmtDate(p.dob):'',p.sex,p.hk?'HKTT: '+p.hk:''].filter(Boolean).join(' · '))}</div>`:''}</td>
+  const rows=list.map(({r,p,tt,tv})=>`<tr><td class="l"><b class="mono">${esc(r.id)}</b></td><td class="l"><b>${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}</b> ${p.rep?chip('acc','Đại diện'):''}${(p.dob||p.sex||p.hk)?`<div class="muted sm">${esc([p.dob?'sinh '+fmtDate(p.dob):'',p.sex,p.hk?'HKTT: '+p.hk:''].filter(Boolean).join(' · '))}</div>`:''}${(p.hkOwner||p.group||p.ttPlace||p.phone)?`<div class="muted sm" title="${esc(p.ttPlace?'Đăng ký tạm trú tại: '+p.ttPlace:'')}">${esc([p.hkOwner?'Chủ hộ HKTT: '+p.hkOwner:'',p.group?'Nhóm ở trọ: '+p.group:'',p.phone?'ĐT: '+p.phone:''].filter(Boolean).join(' · '))}</div>`:''}</td>
     <td class="num">${esc(p.idNo)||'–'}</td><td>${p.rep?fmtDate(r.tenant.moveIn)||'–':'<span class="muted">–</span>'}</td><td class="num">${p.rep&&r.tenant.deposit?money(r.tenant.deposit):'<span class="muted">–</span>'}</td>
     <td>${p.tt1||p.tt2?`${fmtDate(p.tt1)||'…'} → ${fmtDate(p.tt2)||'…'}`:'–'}</td><td class="l">${lvChip(tt)}</td>
     <td>${p.tv1||p.tv2?`${fmtDate(p.tv1)||'…'} → ${fmtDate(p.tv2)||'…'}`:'–'}</td><td class="l">${lvChip(tv)}</td>
     <td><button class="btn sm ghost" data-act="roomedit" data-room="${esc(r.id)}" aria-label="Sửa phòng ${esc(r.id)}">${icon('edit',14)}</button></td></tr>`).join('');
   return `<div class="tools"><span class="muted grow">${all.length} người ở · ${nAlert} cần chú ý · ${nNone} chưa nhập hạn tạm trú · cảnh báo trước ${RES_WARN()} ngày</span>
-    <button class="btn" data-act="peopleimport">${icon('down',16)}Nhập từ Excel</button><button class="btn${nDup?' primary':' ghost'}" data-act="peopledup" title="Tìm và gộp người bị nhập trùng trong cùng phòng">Gộp người trùng${nDup?` (${nDup})`:''}</button><button class="btn ghost" data-act="peopletpl" title="Tải file Excel mẫu đúng định dạng">File mẫu</button><input type="file" id="filePeople" accept=".xlsx,.xls" hidden>
+    <button class="btn" data-act="peopleimport">${icon('down',16)}Nhập từ Excel</button><button class="btn${nDup?' primary':' ghost'}" data-act="peopledup" title="Tìm và gộp người bị nhập trùng trong cùng phòng">Gộp người trùng${nDup?` (${nDup})`:''}</button><button class="btn ghost" data-act="peopletpl" title="Tải file Excel mẫu đúng định dạng">File mẫu</button><button class="btn primary" data-act="policerep" title="Xuất danh sách để gửi công an (Excel hoặc in PDF)">${icon('down',16)}Báo cáo công an</button><input type="file" id="filePeople" accept=".xlsx,.xls" hidden>
     <div class="seg" role="group" aria-label="Lọc">${[['all','Tất cả'],['alert','Cần chú ý'],['none','Chưa có hạn tạm trú']].map(([v,l])=>`<button data-act="pfilter" data-v="${v}" aria-pressed="${f===v}">${l}</button>`).join('')}</div></div>
   <div class="tw fit ppl"><table><thead><tr><th class="l">Phòng</th><th class="l">Họ và tên</th><th>CMND/CCCD</th><th>Ngày thuê</th><th>Tiền cọc</th><th>Tạm trú (từ → đến)</th><th class="l">Tình trạng</th><th>Tạm vắng (từ → đến)</th><th class="l">Tình trạng</th><th></th></tr></thead>
   <tbody>${rows||'<tr><td class="l muted" colspan="10">Không có ai phù hợp.</td></tr>'}</tbody></table></div>
@@ -1181,7 +1195,7 @@ const memRowHTML=m=>`<div class="memrow"><label class="f">Họ và tên<input ty
   <label class="f">Tạm trú từ<input type="date" class="m-tt1" value="${m.tt1||''}"></label><label class="f">Tạm trú đến (hạn)<input type="date" class="m-tt2" value="${m.tt2||''}"></label>
   <label class="f">Tạm vắng từ<input type="date" class="m-tv1" value="${m.tv1||''}"></label><label class="f">Tạm vắng đến<input type="date" class="m-tv2" value="${m.tv2||''}"></label>
   <label class="f">Ngày sinh<input type="date" class="m-dob" value="${m.dob||''}"></label><label class="f">Giới tính<select class="m-sex"><option value=""></option>${['Nam','Nữ'].map(x=>`<option ${m.sex===x?'selected':''}>${x}</option>`).join('')}</select></label>
-  <label class="f" style="grid-column:1/-1">Thường trú (HKTT)<input type="text" class="m-hk" value="${esc(m.hk||'')}"></label><label class="f" style="grid-column:1/-1">Ghi chú<input type="text" class="m-note" value="${esc(m.note||'')}"></label>
+  <label class="f" style="grid-column:1/-1">Thường trú (HKTT)<input type="text" class="m-hk" value="${esc(m.hk||'')}"></label><label class="f">Chủ hộ (HKTT)<input type="text" class="m-hko" value="${esc(m.hkOwner||'')}"></label><label class="f">Nhóm / hộ ở trọ<input type="text" class="m-grp" value="${esc(m.group||'')}"></label><label class="f">Số điện thoại<input type="text" class="m-ph" inputmode="tel" value="${esc(m.phone||'')}"></label><label class="f">Nơi đăng ký tạm trú<input type="text" class="m-tpl" value="${esc(m.ttPlace||'')}"></label><label class="f" style="grid-column:1/-1">Ghi chú<input type="text" class="m-note" value="${esc(m.note||'')}"></label>
   <button class="btn sm danger memdel" type="button" data-act="memdel">${icon('trash',14)}Xóa người này</button></div>`;
 function roomResLine(r){
   const ms=(r.members||[]).filter(x=>x.name),al=resAlerts().filter(a=>a.r.id===r.id);
@@ -1205,18 +1219,18 @@ const nameMatch=(a,b)=>{const x=normTxt(a).split(' ').filter(Boolean),y=normTxt(
   const [sh,lo]=x.length<=y.length?[x,y]:[y,x];return sh.every(w=>lo.includes(w))};
 async function parsePeopleXLSX(file){
   await ensureXLSX();
-  const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});
+  const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:false}); // giữ số ngày gốc của Excel, tránh lệch 1 ngày do múi giờ
   for(const sn of wb.SheetNames){
     const aoa=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:''});
     for(let hi=0;hi<Math.min(aoa.length,15);hi++){
       const H=aoa[hi].map(normTxt),col=f=>H.findIndex(f);
       const c={room:col(h=>h==='phong'),name:col(h=>/^ho (va )?ten$/.test(h)),dob:col(h=>h==='ngay sinh'),sex:col(h=>h==='gioi tinh'),id:col(h=>/cccd|cmnd|can cuoc/.test(h)),
-        tt1:col(h=>h==='ngay dang ky'),tt2:col(h=>h==='thoi han'||h==='han tam tru'),hk:col(h=>h==='hktt'||h==='thuong tru'),note:col(h=>h==='ghi chu'),phone:col(h=>/^sdt|dien thoai/.test(h))};
+        tt1:col(h=>h==='ngay dang ky'),tt2:col(h=>h==='thoi han'||h==='han tam tru'),hk:col(h=>h==='hktt'||h==='thuong tru'),note:col(h=>h==='ghi chu'),phone:col(h=>/^sdt|dien thoai/.test(h)),hkOwner:col(h=>/^chu ho/.test(h)),group:col(h=>h==='nhom ho o tro'||h==='nhom o tro'||h==='ho o tro'),ttPlace:col(h=>h==='tam tru'||h==='noi tam tru'||h==='noi dang ky tam tru')};
       if(c.room<0||c.name<0)continue;
       const rows=[];
       for(let i=hi+1;i<aoa.length;i++){const r=aoa[i],g=k=>c[k]>=0?r[c[k]]:'';const name=String(g('name')||'').trim();if(!name||!String(g('room')||'').trim())continue;
         rows.push({roomRaw:String(g('room')).trim(),room:importRoomId(g('room')),name,idNo:idStr(g('id')),dob:anyDate(g('dob')),sex:/^nam$/i.test(String(g('sex')).trim())?'Nam':/^n[ữu]$/i.test(String(g('sex')).trim())?'Nữ':'',
-          tt1:anyDate(g('tt1')),tt2:anyDate(g('tt2')),hk:String(g('hk')||'').trim(),note:String(g('note')||'').trim(),phone:String(g('phone')||'').trim()})}
+          tt1:anyDate(g('tt1')),tt2:anyDate(g('tt2')),hk:String(g('hk')||'').trim(),note:String(g('note')||'').trim(),phone:String(g('phone')||'').trim(),hkOwner:toTitle(g('hkOwner')),group:toTitle(g('group')),ttPlace:String(g('ttPlace')||'').trim()})}
       if(rows.length)return {sheet:sn,rows};
     }
   }
@@ -1260,19 +1274,19 @@ function applyPeoplePlan(plan,opt){
     room.members=room.members||[];
     items.forEach(({r,target,kind})=>{
       if(kind==='dup')return;
-      if(kind==='add'){room.members.push({name:toTitle(r.name),idNo:r.idNo,tt1:r.tt1,tt2:r.tt2,tv1:'',tv2:'',dob:r.dob,sex:r.sex,hk:r.hk,note:r.note});return}
+      if(kind==='add'){room.members.push({name:toTitle(r.name),idNo:r.idNo,tt1:r.tt1,tt2:r.tt2,tv1:'',tv2:'',dob:r.dob,sex:r.sex,hk:r.hk,hkOwner:r.hkOwner,group:r.group,ttPlace:r.ttPlace,phone:r.phone,note:r.note});return}
       if(!opt.update)return;
       const t=target==='rep'?room.tenant:room.members[target];
       if(!t.idNo&&r.idNo)t.idNo=r.idNo;
-      ['dob','sex','hk','tt1','tt2'].forEach(f=>{if(r[f])t[f]=r[f]});
-      if(r.phone&&target==='rep'&&!t.phone)t.phone=r.phone;
+      ['dob','sex','hk','hkOwner','group','ttPlace','tt1','tt2'].forEach(f=>{if(r[f])t[f]=r[f]});
+      if(r.phone&&!t.phone)t.phone=r.phone;
       if(r.note&&!t.note)t.note=r.note;
     });
     if(opt.occ&&total>0)room.occupants=total;
   });
 }
 /* ---------- Gộp người trùng (cùng phòng) ---------- */
-const MERGE_F=['name','idNo','dob','sex','hk','tt1','tt2','tv1','tv2','note'];
+const MERGE_F=['name','idNo','dob','sex','hk','hkOwner','group','ttPlace','phone','tt1','tt2','tv1','tv2','note'];
 function findDupGroups(){
   const groups=[];
   DB.rooms.filter(r=>r.status==='occupied').forEach(room=>{
@@ -1317,7 +1331,7 @@ async function importPeopleXLSX(file){
   const roomLines=plan.rooms.map(x=>`<li><b class="mono">${esc(x.id)}</b> – ${esc(x.room.tenant.name||'')}: ${x.items.filter(i=>i.kind==='upd').length?x.items.filter(i=>i.kind==='upd').length+' cập nhật':''}${x.items.filter(i=>i.kind==='upd').length&&x.newCount?', ':''}${x.newCount?x.newCount+' người mới':''}</li>`).join('');
   openModal('Nhập người ở từ Excel',`
     <p style="margin:0 0 8px">Đọc được <b>${plan.total}</b> người từ bảng “${esc(parsed.sheet)}”: <b>${plan.add}</b> người mới, <b>${plan.upd}</b> người đã có trong app (khớp theo CCCD hoặc tên trong cùng phòng).${plan.dup?` Có <b>${plan.dup}</b> dòng trùng trong file, đã tự gộp.`:''}</p>
-    <div class="mgr-sec"><label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="imUpd" checked><span>Cập nhật thông tin người đã có (ngày sinh, giới tính, thường trú, hạn tạm trú). Không đổi họ tên và CCCD đang có.</span></label>
+    <div class="mgr-sec"><label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="imUpd" checked><span>Cập nhật thông tin người đã có (ngày sinh, giới tính, thường trú, chủ hộ, nơi đăng ký tạm trú, ngày đăng ký và hạn tạm trú). Cũng dùng để sửa các ngày đã nhập lệch 1 ngày ở bản cũ. Không đổi họ tên và CCCD đang có.</span></label>
       <label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="imOcc"><span>Đặt “Số người ở mặc định” của phòng theo số người trong danh sách${plan.mism.length?` (${plan.mism.length} phòng đang lệch: ${esc(plan.mism.slice(0,6).map(x=>`${x.id} ${x.cur}→${x.list}`).join(', '))}${plan.mism.length>6?'…':''})`:''}. Chỉ ảnh hưởng tiền phụ thu từ tháng tạo sau.</span></label></div>
     ${plan.skipped.length?`<p class="muted sm" style="margin:0 0 8px">Bỏ qua ${plan.skipped.reduce((a,x)=>a+x.n,0)} người: ${esc(plan.skipped.map(x=>`${x.id} (${x.why})`).join('; '))}.</p>`:''}
     <details class="help"><summary>Xem theo phòng (${plan.rooms.length} phòng)</summary><ul class="list-plain" style="max-height:220px;overflow:auto">${roomLines}</ul></details>
@@ -1334,10 +1348,132 @@ async function importPeopleXLSX(file){
 }
 async function peopleTemplate(){
   try{await ensureXLSX()}catch(e){return toast(e.message,'bad')}
-  const H=['STT','PHÒNG','HỌ TÊN','NGÀY SINH','GIỚI TÍNH','CCCD','NGÀY ĐĂNG KÝ','THỜI HẠN','HKTT','GHI CHÚ'];
-  const ws=XLSX.utils.aoa_to_sheet([H,[1,'P1','NGUYỄN VĂN A','01/02/1990','Nam','012345678901','01/03/2026','01/03/2028','Xã A, Tỉnh B','Người ví dụ, xóa dòng này']]);
-  ws['!cols']=[6,10,26,13,11,16,15,13,36,30].map(w=>({wch:w}));
+  const H=['STT','PHÒNG','HỌ TÊN','NGÀY SINH','GIỚI TÍNH','CCCD','CHỦ HỘ (HKTT)','NHÓM / HỘ Ở TRỌ','TẠM TRÚ','SĐT','NGÀY ĐĂNG KÝ','THỜI HẠN','HKTT','GHI CHÚ'];
+  const ws=XLSX.utils.aoa_to_sheet([H,[1,'P1','NGUYỄN VĂN A','01/02/1990','Nam','012345678901','NGUYỄN VĂN A','NGUYỄN VĂN A','Nhà trọ - 22C/20 ...','0900000000','01/03/2026','01/03/2028','Xã A, Tỉnh B','Người ví dụ, xóa dòng này']]);
+  ws['!cols']=[6,10,26,13,11,16,22,22,30,13,15,13,36,30].map(w=>({wch:w}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Danh sach Khach Tro');XLSX.writeFile(wb,'Mau_danh_sach_nguoi_o.xlsx');
+}
+
+/* ---------- Báo cáo gửi công an ---------- */
+const ttState=p=>!p.tt2?'none':(dLeft(p.tt2)<0?'expired':(dLeft(p.tt2)<=RES_WARN()?'soon':'ok'));
+const ttReportTxt=p=>{const s=ttState(p);return s==='expired'?'Hết hạn':s==='none'?(p.tt1?'Chưa rõ hạn':'Chưa đăng ký'):'Còn hạn'};
+function policeList(o){
+  const out=[];
+  DB.rooms.filter(r=>r.status==='occupied').forEach(r=>peopleOf(r).forEach(p=>{
+    if(!p.name&&!p.idNo)return;
+    const s=ttState(p);
+    if(o.scope==='valid'&&(s==='none'||s==='expired'))return;
+    if(o.scope==='attn'&&s==='ok')return;
+    if(o.from&&(!p.tt1||p.tt1<o.from))return;
+    if(o.until&&(!p.tt1||p.tt1>o.until))return;
+    out.push({r,p});
+  }));
+  return out;
+}
+function policeTV(){
+  const out=[];
+  DB.rooms.filter(r=>r.status==='occupied').forEach(r=>peopleOf(r).forEach(p=>{if((p.name||p.idNo)&&(p.tv1||p.tv2))out.push({r,p})}));
+  return out;
+}
+function policeCols(o){
+  const c=[
+    {h:'STT',w:6,c:1,f:(x,i)=>i+1},
+    {h:'Số phòng',w:10,c:1,f:x=>x.r.id},
+    {h:'Họ và tên',w:27,f:x=>(x.p.name||'').toUpperCase()},
+    {h:'Ngày sinh',w:12,c:1,f:x=>fmtDate(x.p.dob)},
+    {h:'Giới tính',w:9,c:1,f:x=>x.p.sex},
+    {h:'Số CCCD / CMND',w:16,c:1,f:x=>x.p.idNo},
+    {h:'Nơi thường trú (HKTT)',w:40,f:x=>x.p.hk},
+    {h:'Chủ hộ (HKTT)',w:22,f:x=>x.p.hkOwner},
+    {h:'Ngày đăng ký tạm trú',w:13,c:1,f:x=>fmtDate(x.p.tt1)},
+    {h:'Hạn tạm trú',w:13,c:1,f:x=>fmtDate(x.p.tt2)},
+    {h:'Tình trạng',w:13,c:1,f:x=>ttReportTxt(x.p)}];
+  if(o.note)c.push({h:'Ghi chú',w:30,f:x=>x.p.rep?(x.r.tenant.note||''):x.p.note});
+  return c;
+}
+const policeTVCols=()=>[
+  {h:'STT',w:6,c:1,f:(x,i)=>i+1},
+  {h:'Số phòng',w:10,c:1,f:x=>x.r.id},
+  {h:'Họ và tên',w:27,f:x=>(x.p.name||'').toUpperCase()},
+  {h:'Ngày sinh',w:12,c:1,f:x=>fmtDate(x.p.dob)},
+  {h:'Số CCCD / CMND',w:16,c:1,f:x=>x.p.idNo},
+  {h:'Tạm vắng từ',w:13,c:1,f:x=>fmtDate(x.p.tv1)},
+  {h:'Tạm vắng đến',w:13,c:1,f:x=>fmtDate(x.p.tv2)},
+  {h:'Tình trạng',w:26,f:x=>{const s=resTV(x.p);return s?s.txt:''}}];
+function policeHead(o){
+  const S=DB.settings,d=new Date();
+  return {place:S.propertyName||'',addr:S.address||'',phone:S.phone||'',mgr:(o.sign||S.manager||'').trim(),to:(o.to||'').trim(),date:d.toLocaleDateString('vi-VN'),d:d.getDate(),m:d.getMonth()+1,y:d.getFullYear()};
+}
+const policeSummary=(items)=>`Tổng số ${items.length} người, ${new Set(items.map(x=>x.r.id)).size} phòng`;
+async function policeXLSX(o){
+  try{await loadScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js')}catch(e){return toast('Chưa tải được thư viện Excel (cần Internet).','bad')}
+  const L=policeList(o),H=policeHead(o),FONT='Times New Roman';
+  const wb=new ExcelJS.Workbook();wb.creator=H.place||'Quản lý tiền trọ';wb.created=new Date();
+  const thin={style:'thin',color:{argb:'FF444444'}},BD={top:thin,left:thin,bottom:thin,right:thin};
+  const sheet=(name,title,cols,items)=>{
+    const ws=wb.addWorksheet(name),n=cols.length;
+    ws.pageSetup={paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.4,right:.4,top:.5,bottom:.6,header:.3,footer:.3},printTitlesRow:'7:7'};
+    cols.forEach((c,i)=>ws.getColumn(i+1).width=c.w);
+    const line=(r,text,q={})=>{ws.mergeCells(r,1,r,n);const c=ws.getCell(r,1);c.value=text;c.font={name:FONT,size:q.size||11,bold:!!q.bold,italic:!!q.it};c.alignment={horizontal:q.center?'center':'left',vertical:'middle',wrapText:true};if(q.h)ws.getRow(r).height=q.h};
+    line(1,(H.place||'').toUpperCase(),{bold:true});
+    line(2,'Địa chỉ: '+H.addr+(H.phone?'  ·  Điện thoại: '+H.phone:''));
+    line(4,title,{center:true,bold:true,size:16,h:30});
+    line(5,(H.to?'Kính gửi: '+H.to+'   ·   ':'')+'Tính đến ngày '+H.date+'   ·   '+policeSummary(items),{center:true,it:true});
+    const hr=ws.getRow(7);hr.height=36;
+    cols.forEach((c,i)=>{const cell=hr.getCell(i+1);cell.value=c.h;cell.font={name:FONT,bold:true,size:11};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE7E7E7'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=BD});
+    items.forEach((x,k)=>{const row=ws.getRow(8+k);cols.forEach((c,i)=>{const cell=row.getCell(i+1),v=c.f(x,k);cell.value=v==null?'':v;cell.font={name:FONT,size:11};cell.alignment={horizontal:c.c?'center':'left',vertical:'middle',wrapText:true};cell.border=BD})});
+    ws.views=[{state:'frozen',ySplit:7,showGridLines:false}];
+    const sr=8+items.length+1;
+    if(n>=5){
+      ws.mergeCells(sr,n-3,sr,n);const a=ws.getCell(sr,n-3);a.value=`Ngày ${H.d} tháng ${H.m} năm ${H.y}`;a.font={name:FONT,italic:true,size:11};a.alignment={horizontal:'center'};
+      ws.mergeCells(sr+1,n-3,sr+1,n);const b=ws.getCell(sr+1,n-3);b.value='CHỦ NHÀ TRỌ';b.font={name:FONT,bold:true,size:11};b.alignment={horizontal:'center'};
+      ws.mergeCells(sr+2,n-3,sr+2,n);const c2=ws.getCell(sr+2,n-3);c2.value='(Ký, ghi rõ họ tên)';c2.font={name:FONT,italic:true,size:10};c2.alignment={horizontal:'center'};
+      if(H.mgr){ws.mergeCells(sr+6,n-3,sr+6,n);const d=ws.getCell(sr+6,n-3);d.value=H.mgr;d.font={name:FONT,bold:true,size:11};d.alignment={horizontal:'center'}}
+    }
+  };
+  sheet('Danh sách lưu trú','DANH SÁCH NGƯỜI Ở TRỌ / TẠM TRÚ',policeCols(o),L);
+  if(o.tv){const T=policeTV();if(T.length)sheet('Tạm vắng','DANH SÁCH NGƯỜI TẠM VẮNG',policeTVCols(),T)}
+  const buf=await wb.xlsx.writeBuffer(),a=document.createElement('a'),d=new Date();
+  a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download=`Bao_cao_luu_tru_cong_an_${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear()}.xlsx`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800);
+  toast(`Đã xuất file Excel (${L.length} người)`);
+}
+function policePrint(o){
+  const L=policeList(o),H=policeHead(o),cols=policeCols(o),T=o.tv?policeTV():[];
+  const tbl=(cs,items)=>`<table><thead><tr>${cs.map(c=>`<th>${esc(c.h)}</th>`).join('')}</tr></thead><tbody>${items.map((x,i)=>`<tr>${cs.map(c=>`<td class="${c.c?'c':''}">${esc(c.f(x,i))}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const sign=`<div class="sigs"><div><i>Ngày ${H.d} tháng ${H.m} năm ${H.y}</i><br><b>CHỦ NHÀ TRỌ</b><br><i>(Ký, ghi rõ họ tên)</i><div class="sg"></div><b>${esc(H.mgr)}</b></div></div>`;
+  const head=(title,items)=>`<div class="ph"><b>${esc((H.place||'').toUpperCase())}</b><br>Địa chỉ: ${esc(H.addr)}${H.phone?' · Điện thoại: '+esc(H.phone):''}</div><h3>${title}</h3><p class="sub">${H.to?'Kính gửi: '+esc(H.to)+' · ':''}Tính đến ngày ${H.date} · ${policeSummary(items)}</p>`;
+  const root=$('#print-root');root.className='police';
+  root.innerHTML=head('DANH SÁCH NGƯỜI Ở TRỌ / TẠM TRÚ',L)+tbl(cols,L)+sign+(T.length?`<div class="brk"></div>`+head('DANH SÁCH NGƯỜI TẠM VẮNG',T)+tbl(policeTVCols(),T)+sign:'');
+  const st=document.createElement('style');st.id='policePage';st.textContent='@page{size:A4 landscape;margin:10mm}';document.head.appendChild(st);
+  document.body.classList.add('printing');
+  const done=()=>{document.body.classList.remove('printing');root.innerHTML='';root.className='';st.remove();window.removeEventListener('afterprint',done)};
+  window.addEventListener('afterprint',done);setTimeout(()=>window.print(),80);
+}
+function policeModal(){
+  const S=DB.settings,all=[];
+  DB.rooms.filter(r=>r.status==='occupied').forEach(r=>peopleOf(r).forEach(p=>{if(p.name||p.idNo)all.push({r,p})}));
+  if(!all.length)return toast('Chưa có người ở nào để lập báo cáo','bad');
+  const miss=f=>all.filter(x=>!f(x.p)).length,nT=policeTV().length;
+  const warn=[['chưa có CCCD',miss(p=>p.idNo)],['chưa có ngày sinh',miss(p=>p.dob)],['chưa có nơi thường trú (HKTT)',miss(p=>p.hk)],['chưa có hạn tạm trú',miss(p=>p.tt2)]].filter(x=>x[1]);
+  openModal('Báo cáo gửi công an',`
+    <p class="muted" style="margin:0 0 10px">Danh sách người ở trọ / tạm trú gồm họ tên, ngày sinh, giới tính, CCCD, nơi thường trú, ngày đăng ký và hạn tạm trú, theo từng phòng. Có sẵn khung ký tên chủ nhà trọ.</p>
+    <div class="fg">
+      <label class="f full">Kính gửi (cơ quan nhận)<input type="text" id="prTo" value="${esc(CFG.policeTo||'')}" placeholder="vd: Công an phường An Phú"></label>
+      <label class="f">Người ký (chủ nhà trọ)<input type="text" id="prSign" value="${esc(CFG.policeSign||S.manager||'')}"></label>
+      <label class="f">Phạm vi<select id="prScope"><option value="all">Tất cả người đang ở</option><option value="valid">Chỉ người còn hạn tạm trú</option><option value="attn">Chỉ người cần xử lý (hết hạn / sắp hết / chưa có hạn)</option></select></label>
+      <label class="f">Đăng ký tạm trú từ ngày<input type="date" id="prFrom"></label><label class="f">đến ngày<input type="date" id="prUntil"></label>
+    </div>
+    <div class="mgr-sec" style="margin-top:10px"><label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="prNote"><span>Thêm cột Ghi chú (ghi chú nội bộ trong app)</span></label>
+      <label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="prTv" ${nT?'checked':''} ${nT?'':'disabled'}><span>Kèm danh sách tạm vắng (${nT} người)</span></label></div>
+    <p id="prCount" style="margin:8px 0 0"></p>
+    ${warn.length?`<div class="fl warn" style="margin-top:8px">${icon('alert',13)}Còn thiếu thông tin: ${esc(warn.map(x=>x[1]+' người '+x[0]).join(' · '))}. Bổ sung ở nút sửa (bút chì) hoặc nhập lại file Excel trước khi gửi.</div>`:''}`,
+    `<button class="btn" data-act="mclose">Đóng</button><button class="btn" id="prPrint">In / lưu PDF</button><button class="btn primary" id="prXlsx">${icon('down',14)}Tải file Excel</button>`,{wide:true});
+  const opts=()=>{const o={to:$('#prTo').value,sign:$('#prSign').value,scope:$('#prScope').value,from:$('#prFrom').value,until:$('#prUntil').value,note:$('#prNote').checked,tv:$('#prTv').checked};CFG.policeTo=o.to.trim();CFG.policeSign=o.sign.trim();saveCfg();return o};
+  const upd=()=>{const L=policeList({scope:$('#prScope').value,from:$('#prFrom').value,until:$('#prUntil').value});$('#prCount').innerHTML=`Báo cáo sẽ gồm <b>${L.length}</b> người (${new Set(L.map(x=>x.r.id)).size} phòng) trên tổng số ${all.length} người đang ở.`};
+  ['prScope','prFrom','prUntil'].forEach(i=>$('#'+i).addEventListener('input',upd));upd();
+  $('#prXlsx').onclick=()=>{const o=opts();if(!policeList(o).length)return toast('Không có ai phù hợp bộ lọc','bad');policeXLSX(o)};
+  $('#prPrint').onclick=()=>{const o=opts();if(!policeList(o).length)return toast('Không có ai phù hợp bộ lọc','bad');closeModal(true);policePrint(o)};
 }
 function vRooms(){
   const occ=DB.rooms.filter(r=>r.status==='occupied').length;
@@ -1371,7 +1507,7 @@ function roomModal(id){
     <label class="f">Tạm trú từ<input id="ttf" type="date" value="${t.tt1||''}"></label><label class="f">Tạm trú đến (hạn)<input id="ttt" type="date" value="${t.tt2||''}"></label>
     <label class="f">Tạm vắng từ<input id="tvf" type="date" value="${t.tv1||''}"></label><label class="f">Tạm vắng đến<input id="tvt" type="date" value="${t.tv2||''}"></label>
     <label class="f">Ngày sinh<input id="tdob" type="date" value="${t.dob||''}"></label><label class="f">Giới tính<select id="tsex"><option value=""></option>${['Nam','Nữ'].map(x=>`<option ${t.sex===x?'selected':''}>${x}</option>`).join('')}</select></label>
-    <label class="f full">Thường trú (HKTT)<input id="thk" type="text" value="${esc(t.hk||'')}"></label>
+    <label class="f full">Thường trú (HKTT)<input id="thk" type="text" value="${esc(t.hk||'')}"></label><label class="f">Chủ hộ (HKTT)<input id="thko" type="text" value="${esc(t.hkOwner||'')}"></label><label class="f">Nhóm / hộ ở trọ<input id="tgrp" type="text" value="${esc(t.group||'')}"></label><label class="f full">Nơi đăng ký tạm trú<input id="ttpl" type="text" value="${esc(t.ttPlace||'')}"></label>
     <div class="full" style="margin-top:4px"><div class="row sp"><b>Người ở cùng phòng</b><button class="btn sm" type="button" data-act="memadd">${icon('plus',14)}Thêm người</button></div>
       <div class="muted sm">Khách đứng tên ở trên là đại diện phòng. Thêm 2–3 người còn lại (nếu phòng có 3–4 người) kèm CCCD và hạn tạm trú.</div><div id="memRows">${(r.members||[]).map(memRowHTML).join('')}</div></div></div>
     <p class="muted sm" style="margin:0">Giá mặc định áp dụng từ tháng tạo sau. Tháng đang mở sửa riêng ở nút Chi tiết trong Nhập số.</p>`,
@@ -1770,6 +1906,7 @@ document.addEventListener('click',async e=>{
    case 'exportxlsx':exportXLSX();break;
    case 'peopleimport':{const fi=$('#filePeople');if(fi)fi.click();break}
    case 'peopletpl':peopleTemplate();break;
+   case 'policerep':policeModal();break;
    case 'peopledup':dupModal();break;
    case 'importxlsx':$('#fileXlsx').click();break;
    case 'snaprestore':{const v=await idb.get(el.dataset.key);if(!v)break;confirmBox('Khôi phục bản lưu','Thay dữ liệu hiện tại bằng bản lưu lúc '+new Date(v.t).toLocaleString('vi-VN')+'?','Khôi phục',async()=>{await snapshot('Trước khi khôi phục bản lưu');DB=normalizeDB(JSON.parse(v.json));DB.rev+=1;persistLocal();ensureMonthSelected();save();await loadSnaps();render();toast('Đã khôi phục')},false);break}
@@ -1791,8 +1928,8 @@ function saveRoom(oldId){
   const g=i=>parseInt0($('#'+i).value)||0;
   const r=isNew?{id,tenant:{}}:roomById(id);
   Object.assign(r,{type:$('#rtype').value,rentMode:$('#rmode').value,base:g('rbase'),fixed:g('rfixed'),trash:g('rtrash'),anqp:g('ranqp'),internet:g('rnet'),cable:g('rcable'),occupants:Math.max(0,g('rocc')),status:$('#rstatus').value});
-  r.tenant=Object.assign({},r.tenant,{name:$('#tname').value.trim(),phone:$('#tphone').value.trim(),idNo:$('#tid').value.trim(),moveIn:$('#tdate').value,deposit:g('tdep'),note:$('#tnote').value.trim(),tt1:$('#ttf').value,tt2:$('#ttt').value,tv1:$('#tvf').value,tv2:$('#tvt').value,dob:$('#tdob').value,sex:$('#tsex').value,hk:$('#thk').value.trim()});
-  r.members=$$('#memRows .memrow').map(row=>({name:$('.m-name',row).value.trim(),idNo:$('.m-id',row).value.trim(),tt1:$('.m-tt1',row).value,tt2:$('.m-tt2',row).value,tv1:$('.m-tv1',row).value,tv2:$('.m-tv2',row).value,dob:$('.m-dob',row).value,sex:$('.m-sex',row).value,hk:$('.m-hk',row).value.trim(),note:$('.m-note',row).value.trim()})).filter(x=>x.name||x.idNo||x.tt1||x.tt2||x.tv1||x.tv2);
+  r.tenant=Object.assign({},r.tenant,{name:$('#tname').value.trim(),phone:$('#tphone').value.trim(),idNo:$('#tid').value.trim(),moveIn:$('#tdate').value,deposit:g('tdep'),note:$('#tnote').value.trim(),tt1:$('#ttf').value,tt2:$('#ttt').value,tv1:$('#tvf').value,tv2:$('#tvt').value,dob:$('#tdob').value,sex:$('#tsex').value,hk:$('#thk').value.trim(),hkOwner:$('#thko').value.trim(),group:$('#tgrp').value.trim(),ttPlace:$('#ttpl').value.trim()});
+  r.members=$$('#memRows .memrow').map(row=>({name:$('.m-name',row).value.trim(),idNo:$('.m-id',row).value.trim(),tt1:$('.m-tt1',row).value,tt2:$('.m-tt2',row).value,tv1:$('.m-tv1',row).value,tv2:$('.m-tv2',row).value,dob:$('.m-dob',row).value,sex:$('.m-sex',row).value,hk:$('.m-hk',row).value.trim(),hkOwner:$('.m-hko',row).value.trim(),group:$('.m-grp',row).value.trim(),phone:$('.m-ph',row).value.trim(),ttPlace:$('.m-tpl',row).value.trim(),note:$('.m-note',row).value.trim()})).filter(x=>x.name||x.idNo||x.tt1||x.tt2||x.tv1||x.tv2);
   const nPeople=1+r.members.length;
   if(isNew)DB.rooms.push(r);sortRooms();syncRecs(UI.month);save();closeModal(true);render();toast(isNew?'Đã thêm phòng '+id:'Đã lưu phòng '+id);
   if(r.members.length&&nPeople!==r.occupants)setTimeout(()=>toast(`Lưu ý: danh sách ghi ${nPeople} người nhưng “Số người ở mặc định” là ${r.occupants}. Chỉnh nếu cần tính phụ thu.`),600);
