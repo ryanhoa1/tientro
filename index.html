@@ -159,6 +159,14 @@ td.e{color:var(--elec)}td.w{color:var(--water)}
 .tw.fit.h-int .c-int,.tw.fit.h-cab .c-cab,.tw.fit.h-tt .c-tt,.tw.fit.h-debt .c-debt{display:none}
 .tw.fit td.l:nth-child(2){max-width:170px;overflow:hidden;text-overflow:ellipsis}
 
+/* v4.4: người ở, tạm trú / tạm vắng */
+.memrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0 0;background:var(--surface2)}
+.memrow .f{margin:0}.memrow .memdel{align-self:end;justify-self:start}
+.rsub{font-size:12px;color:var(--muted);margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.tw.fit.ppl{max-height:none}
+.tw.fit.ppl td.l:nth-child(2){max-width:none;overflow:visible;white-space:normal;min-width:190px}
+.tw.fit.ppl th,.tw.fit.ppl td{padding:7px 8px}
+
 /* list rows (payments, rooms) */
 .lst{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
 .lrow{display:grid;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
@@ -398,7 +406,7 @@ const CCCD_FILL={};
 function fillCCCD(d){let n=0;(d.rooms||[]).forEach(r=>{const f=CCCD_FILL[r.id];if(f&&r.tenant&&!r.tenant.idNo&&r.status==='occupied'&&String(r.tenant.name||'').trim()===f[0]){r.tenant.idNo=f[1];n++}});return n}
 const BRAND={name:'Nhà trọ Bùi Văn Hòa',addr:'22C/20 KP. Bình Chuẩn 2, P. An Phú, TP.HCM',logo:'data:image/png;base64,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'};
 function normalizeDB(d){
-  d.settings={...DEFAULT_SETTINGS,...(d.settings||{})};if(!d.settings.propertyName||d.settings.propertyName==='Nhà trọ')d.settings.propertyName=BRAND.name;if(!d.settings.address)d.settings.address=BRAND.addr;d.rooms=d.rooms||[];d.months=d.months||{};d.history=d.history||[];d.rev=d.rev||1;d.deviceId=d.deviceId||uid();
+  d.settings={...DEFAULT_SETTINGS,...(d.settings||{})};if(!d.settings.propertyName||d.settings.propertyName==='Nhà trọ')d.settings.propertyName=BRAND.name;if(!d.settings.address)d.settings.address=BRAND.addr;d.rooms=d.rooms||[];d.rooms.forEach(r=>{if(!Array.isArray(r.members))r.members=[]});d.months=d.months||{};d.history=d.history||[];d.rev=d.rev||1;d.deviceId=d.deviceId||uid();
   Object.values(d.months).forEach(m=>{m.recs=m.recs||{};m.payments=m.payments||{};m.deductions=m.deductions||[];m.expenses=m.expenses||[];m.recon=m.recon||{bank:null,cash:null};m.mainMeters=m.mainMeters||[];m.pump=m.pump||{old:0,new:null};
     m.prices=m.prices||{elec:d.settings.elecPrice,water:d.settings.waterPrice,pump:d.settings.pumpPrice,freePeople:d.settings.freePeople,extraPerson:d.settings.extraPerson}});
   return d;
@@ -663,6 +671,7 @@ const NAV=[
  {id:'recon',label:'Đối soát',icon:'scale',title:'Đối soát doanh thu'},
  {id:'notice',label:'Thông báo',icon:'file',title:'Thông báo tiền phòng'},
  {id:'rooms',label:'Phòng & khách',icon:'door',title:'Phòng & khách thuê'},
+ {id:'people',label:'Người ở & tạm trú',icon:'user',title:'Người ở & tạm trú / tạm vắng'},
  {id:'report',label:'Báo cáo',icon:'chart',title:'Báo cáo'},
  {id:'settings',label:'Cài đặt & dữ liệu',icon:'cog',title:'Cài đặt & dữ liệu'}
 ];
@@ -683,7 +692,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4.3 · nhập theo dòng · sửa/xóa tháng</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4.5 · nhập theo dòng · sửa/xóa tháng</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
@@ -700,8 +709,8 @@ function renderChrome(){
 function render(){
   if(syncRecs(UI.month))save();
   renderChrome();
-  const V={dash:vDash,entry:vEntry,table:vTable,pay:vPay,recon:vRecon,notice:vNotice,rooms:vRooms,report:vReport,settings:vSettings}[UI.view];
-  $('#view').classList.toggle('wide',UI.view==='table');$('#view').innerHTML=V();
+  const V={dash:vDash,entry:vEntry,table:vTable,pay:vPay,recon:vRecon,notice:vNotice,rooms:vRooms,people:vPeople,report:vReport,settings:vSettings}[UI.view];
+  $('#view').classList.toggle('wide',UI.view==='table'||UI.view==='people');$('#view').innerHTML=V();
   $('#side').classList.remove('open');
   if(UI.view==='entry')refreshEntryHead();
 }
@@ -753,6 +762,7 @@ function vDash(){
   <div class="grid g2">
     <div class="card"><h2>Cần chú ý</h2><ul class="list-plain">
       ${notEntered.length?`<li>${chip('warn',notEntered.length+' phòng')}<span class="grow">chưa nhập đủ số điện nước</span><button class="btn sm" data-act="nav" data-v="entry">Nhập số</button></li>`:`<li>${chip('ok','Xong')}<span class="grow">Đã nhập số điện nước cho mọi phòng</span></li>`}
+      ${resAlertLi()}
       ${flagged.slice(0,5).map(x=>`<li>${chip(x.f[0].t,x.r.id)}<span class="grow">${esc(x.f[0].x)}</span><button class="btn sm" data-act="detail" data-room="${esc(x.r.id)}">Xem</button></li>`).join('')}
       ${owing.length?`<li>${chip(days<0?'bad':'warn',owing.length+' phòng')}<span class="grow">còn thiếu ${money(s.left)}đ</span><button class="btn sm" data-act="nav" data-v="pay">Thu tiền</button></li>`:`<li>${chip('ok','Xong')}<span class="grow">Đã thu đủ tháng này</span></li>`}
       ${m.locked?'':`<li>${chip('','Gợi ý')}<span class="grow">Thu đủ và kiểm tra xong thì chốt tháng để khóa số liệu.</span><button class="btn sm" data-act="lock">Chốt tháng</button></li>`}
@@ -969,8 +979,8 @@ function slipHTML(k,id){
   return `<div class="paper">
     <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px"><img src="${BRAND.logo}" width="46" height="46" alt="" style="border-radius:10px;display:block"><div style="text-align:left"><div style="font-size:15px;font-weight:700;color:#0a6c5a;line-height:1.25">${esc(S.propertyName||BRAND.name)}</div><div style="font-size:11.5px;color:#444;line-height:1.35">${esc(S.address||BRAND.addr)}${S.phone?' · ĐT '+esc(S.phone):''}</div></div></div>
     <h4>${esc(S.noticeTitle||'THÔNG BÁO TIỀN PHÒNG TRỌ')}</h4><div class="ph">Ngày ${fmtDate(d)}</div>
-    <div class="pm"><span>Kính gửi: <b>${esc(room.tenant.name)}</b></span><span>CMND/CCCD số: ${esc(room.tenant.idNo)||'………'}</span><span>Thuê trọ ngày: ${fmtDate(room.tenant.moveIn)||'………'}</span></div>
-    <div class="pm"><span>Sử dụng phòng số: <b>${esc(room.id)}</b></span></div>
+    <div class="pm"><span>Kính gửi: <b>${esc(room.tenant.name)}</b>${(room.members||[]).length?' (đại diện phòng)':''}</span><span>CMND/CCCD số: ${esc(room.tenant.idNo)||'………'}</span><span>Thuê trọ ngày: ${fmtDate(room.tenant.moveIn)||'………'}</span></div>
+    <div class="pm"><span>Sử dụng phòng số: <b>${esc(room.id)}</b></span>${room.tenant.deposit?`<span>Tiền cọc: ${money(room.tenant.deposit)}đ</span>`:''}</div>${(room.members||[]).filter(x=>x.name).length?`<div class="pm"><span>Người ở cùng: ${esc(room.members.filter(x=>x.name).map(x=>x.name).join(', '))}</span></div>`:''}
     <p style="margin:8px 0 2px">Xin thông báo cô, chú, anh, chị biết tiền thuê phòng và các chi phí dịch vụ khác trong <b>tháng ${+k.slice(5)}/${k.slice(0,4)}</b>. Cụ thể như sau:</p>
     <div style="font-size:12px"><i>***Lưu ý (điện ${money(rec.ePrice!=null?rec.ePrice:m.prices.elec)}đ/kWh – nước ${money(rec.wPrice!=null?rec.wPrice:m.prices.water)}đ/khối)</i></div>
     <table><thead><tr><th style="width:36px">STT</th><th style="width:96px">Khoản</th><th>Chi tiết</th><th style="width:110px">Thành tiền</th></tr></thead><tbody>
@@ -1114,10 +1124,174 @@ async function noticePNG(forceDownload){
 /* ---------- Phòng & khách ---------- */
 function ruleText(r){const S=DB.settings;return r.rentMode==='fixed'?`${money(r.fixed)} cố định`:`${money(r.base)} + ${money(S.extraPerson)}/người thêm`}
 function monthsSince(d){if(!d)return '';const a=new Date(d+'T00:00:00'),b=new Date(),n=(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth();return n>0?n+' tháng':'mới thuê'}
+
+/* ---------- Người ở, tạm trú / tạm vắng ---------- */
+const RES_WARN=()=>DB.settings.resWarnDays||30;
+const dLeft=iso=>Math.round((new Date(iso+'T00:00:00')-new Date(todayISO()+'T00:00:00'))/864e5);
+function peopleOf(r){
+  const t=r.tenant||{},mk=(x,rep,i)=>({rep,i,name:x.name||'',idNo:x.idNo||'',tt1:x.tt1||'',tt2:x.tt2||'',tv1:x.tv1||'',tv2:x.tv2||'',dob:x.dob||'',sex:x.sex||'',hk:x.hk||'',note:rep?'':(x.note||'')});
+  const list=[];if(t.name||t.idNo||t.tt1||t.tt2||t.tv1||t.tv2)list.push(mk(t,true,-1));
+  (r.members||[]).forEach((x,i)=>list.push(mk(x,false,i)));return list;
+}
+function resTT(p){
+  if(!p.tt2)return {lv:'none',txt:'Chưa nhập hạn',d:null};
+  const d=dLeft(p.tt2);
+  if(d<0)return {lv:'bad',txt:'Hết hạn '+(-d)+' ngày',d};
+  if(d===0)return {lv:'warn',txt:'Hết hạn hôm nay',d};
+  return {lv:d<=RES_WARN()?'warn':'ok',txt:'Còn '+d+' ngày',d};
+}
+function resTV(p){
+  if(!p.tv1&&!p.tv2)return null;
+  if(p.tv1&&dLeft(p.tv1)>0)return {lv:'ok',txt:'Sắp tạm vắng từ '+fmtDate(p.tv1),d:dLeft(p.tv1)};
+  if(!p.tv2)return {lv:'ok',txt:'Đang tạm vắng',d:null};
+  const d=dLeft(p.tv2);
+  if(d<0)return {lv:'bad',txt:'Quá hạn tạm vắng '+(-d)+' ngày',d};
+  return {lv:d<=RES_WARN()?'warn':'ok',txt:'Tạm vắng còn '+d+' ngày',d};
+}
+const lvChip=st=>st?chip(st.lv==='bad'?'bad':st.lv==='warn'?'warn':st.lv==='ok'?'ok':'',st.txt):'<span class="muted">–</span>';
+function resAlerts(){
+  const out=[];
+  DB.rooms.filter(r=>r.status==='occupied').forEach(r=>peopleOf(r).forEach(p=>{
+    [['Tạm trú',resTT(p)],['Tạm vắng',resTV(p)]].forEach(([kind,st])=>{if(st&&(st.lv==='bad'||st.lv==='warn'))out.push({r,p,kind,st})})}));
+  return out.sort((a,b)=>(a.st.lv==='bad'?0:1)-(b.st.lv==='bad'?0:1)||(a.st.d||0)-(b.st.d||0));
+}
+function resAlertLi(){
+  const al=resAlerts();if(!al.length)return '';const a=al[0];
+  return `<li>${chip(a.st.lv==='bad'?'bad':'warn',al.length+' mục')}<span class="grow">tạm trú / tạm vắng cần xử lý, gấp nhất: ${esc(a.r.id)} · ${esc(a.p.name||'(chưa tên)')} – ${a.kind.toLowerCase()} ${esc(a.st.txt.toLowerCase())}</span><button class="btn sm" data-act="nav" data-v="people">Xem</button></li>`;
+}
+function vPeople(){
+  const f=UI.peopleFilter||'all';
+  const all=[];DB.rooms.filter(r=>r.status==='occupied').forEach(r=>peopleOf(r).forEach(p=>all.push({r,p,tt:resTT(p),tv:resTV(p)})));
+  const bad=x=>(x.tt.lv==='bad'||x.tt.lv==='warn')||(x.tv&&(x.tv.lv==='bad'||x.tv.lv==='warn'));
+  const nAlert=all.filter(bad).length,nNone=all.filter(x=>x.tt.lv==='none').length;
+  const list=all.filter(x=>f==='alert'?bad(x):f==='none'?x.tt.lv==='none':true);
+  const rows=list.map(({r,p,tt,tv})=>`<tr><td class="l"><b class="mono">${esc(r.id)}</b></td><td class="l"><b>${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}</b> ${p.rep?chip('acc','Đại diện'):''}${(p.dob||p.sex||p.hk)?`<div class="muted sm">${esc([p.dob?'sinh '+fmtDate(p.dob):'',p.sex,p.hk?'HKTT: '+p.hk:''].filter(Boolean).join(' · '))}</div>`:''}</td>
+    <td class="num">${esc(p.idNo)||'–'}</td><td>${p.rep?fmtDate(r.tenant.moveIn)||'–':'<span class="muted">–</span>'}</td><td class="num">${p.rep&&r.tenant.deposit?money(r.tenant.deposit):'<span class="muted">–</span>'}</td>
+    <td>${p.tt1||p.tt2?`${fmtDate(p.tt1)||'…'} → ${fmtDate(p.tt2)||'…'}`:'–'}</td><td class="l">${lvChip(tt)}</td>
+    <td>${p.tv1||p.tv2?`${fmtDate(p.tv1)||'…'} → ${fmtDate(p.tv2)||'…'}`:'–'}</td><td class="l">${lvChip(tv)}</td>
+    <td><button class="btn sm ghost" data-act="roomedit" data-room="${esc(r.id)}" aria-label="Sửa phòng ${esc(r.id)}">${icon('edit',14)}</button></td></tr>`).join('');
+  return `<div class="tools"><span class="muted grow">${all.length} người ở · ${nAlert} cần chú ý · ${nNone} chưa nhập hạn tạm trú · cảnh báo trước ${RES_WARN()} ngày</span>
+    <button class="btn" data-act="peopleimport">${icon('down',16)}Nhập từ Excel</button><button class="btn ghost" data-act="peopletpl" title="Tải file Excel mẫu đúng định dạng">File mẫu</button><input type="file" id="filePeople" accept=".xlsx,.xls" hidden>
+    <div class="seg" role="group" aria-label="Lọc">${[['all','Tất cả'],['alert','Cần chú ý'],['none','Chưa có hạn tạm trú']].map(([v,l])=>`<button data-act="pfilter" data-v="${v}" aria-pressed="${f===v}">${l}</button>`).join('')}</div></div>
+  <div class="tw fit ppl"><table><thead><tr><th class="l">Phòng</th><th class="l">Họ và tên</th><th>CMND/CCCD</th><th>Ngày thuê</th><th>Tiền cọc</th><th>Tạm trú (từ → đến)</th><th class="l">Tình trạng</th><th>Tạm vắng (từ → đến)</th><th class="l">Tình trạng</th><th></th></tr></thead>
+  <tbody>${rows||'<tr><td class="l muted" colspan="10">Không có ai phù hợp.</td></tr>'}</tbody></table></div>
+  <p class="muted sm" style="margin:0">Người đứng tên thuê là <b>đại diện phòng</b>, ngày thuê và tiền cọc tính theo đại diện. Thêm hoặc sửa người ở cùng phòng ở nút sửa (bút chì) hoặc mục Phòng &amp; khách. Khác với khoản “Tiền giấy tạm trú” (phí thu hằng tháng).</p>`;
+}
+const memRowHTML=m=>`<div class="memrow"><label class="f">Họ và tên<input type="text" class="m-name" value="${esc(m.name||'')}"></label><label class="f">CMND/CCCD<input type="text" class="m-id" value="${esc(m.idNo||'')}"></label>
+  <label class="f">Tạm trú từ<input type="date" class="m-tt1" value="${m.tt1||''}"></label><label class="f">Tạm trú đến (hạn)<input type="date" class="m-tt2" value="${m.tt2||''}"></label>
+  <label class="f">Tạm vắng từ<input type="date" class="m-tv1" value="${m.tv1||''}"></label><label class="f">Tạm vắng đến<input type="date" class="m-tv2" value="${m.tv2||''}"></label>
+  <label class="f">Ngày sinh<input type="date" class="m-dob" value="${m.dob||''}"></label><label class="f">Giới tính<select class="m-sex"><option value=""></option>${['Nam','Nữ'].map(x=>`<option ${m.sex===x?'selected':''}>${x}</option>`).join('')}</select></label>
+  <label class="f" style="grid-column:1/-1">Thường trú (HKTT)<input type="text" class="m-hk" value="${esc(m.hk||'')}"></label><label class="f" style="grid-column:1/-1">Ghi chú<input type="text" class="m-note" value="${esc(m.note||'')}"></label>
+  <button class="btn sm danger memdel" type="button" data-act="memdel">${icon('trash',14)}Xóa người này</button></div>`;
+function roomResLine(r){
+  const ms=(r.members||[]).filter(x=>x.name),al=resAlerts().filter(a=>a.r.id===r.id);
+  if(!ms.length&&!al.length)return '';
+  return `<div class="rsub">${ms.length?`<span>Ở cùng: ${esc(ms.map(x=>x.name).join(', '))}</span>`:''}${al.slice(0,2).map(a=>chip(a.st.lv==='bad'?'bad':'warn',(a.p.rep?'':a.p.name+': ')+a.kind+' '+a.st.txt.toLowerCase())).join('')}</div>`;
+}
+
+/* ---------- Nhập danh sách người ở từ Excel ---------- */
+const normTxt=t=>noAccent(String(t||'')).toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+const toTitle=t=>String(t||'').trim().toLowerCase().replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toUpperCase());
+function importRoomId(v){const t=normTxt(v);let m;
+  if(m=/^(?:p|phong)?\s*0*(\d+)\s*h?$/.exec(t))return m[1]+' H';
+  if(m=/^kiot\s*0*(\d+)$/.exec(t))return 'KIOT'+m[1];
+  return String(v||'').trim().toUpperCase().replace(/\s+/g,' ')}
+function anyDate(v){
+  if(v==null||v==='')return '';
+  if(v instanceof Date&&!isNaN(v))return `${v.getFullYear()}-${pad(v.getMonth()+1)}-${pad(v.getDate())}`;
+  return serialISO(typeof v==='string'?v.trim():v)||''}
+const idStr=v=>{if(v==null)return '';if(typeof v==='number')return String(Math.round(v)).padStart(12,'0');return String(v).replace(/\s+/g,'').trim()};
+const nameMatch=(a,b)=>{const x=normTxt(a).split(' ').filter(Boolean),y=normTxt(b).split(' ').filter(Boolean);if(!x.length||!y.length)return false;
+  const [sh,lo]=x.length<=y.length?[x,y]:[y,x];return sh.every(w=>lo.includes(w))};
+async function parsePeopleXLSX(file){
+  await ensureXLSX();
+  const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});
+  for(const sn of wb.SheetNames){
+    const aoa=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:''});
+    for(let hi=0;hi<Math.min(aoa.length,15);hi++){
+      const H=aoa[hi].map(normTxt),col=f=>H.findIndex(f);
+      const c={room:col(h=>h==='phong'),name:col(h=>/^ho (va )?ten$/.test(h)),dob:col(h=>h==='ngay sinh'),sex:col(h=>h==='gioi tinh'),id:col(h=>/cccd|cmnd|can cuoc/.test(h)),
+        tt1:col(h=>h==='ngay dang ky'),tt2:col(h=>h==='thoi han'||h==='han tam tru'),hk:col(h=>h==='hktt'||h==='thuong tru'),note:col(h=>h==='ghi chu'),phone:col(h=>/^sdt|dien thoai/.test(h))};
+      if(c.room<0||c.name<0)continue;
+      const rows=[];
+      for(let i=hi+1;i<aoa.length;i++){const r=aoa[i],g=k=>c[k]>=0?r[c[k]]:'';const name=String(g('name')||'').trim();if(!name||!String(g('room')||'').trim())continue;
+        rows.push({roomRaw:String(g('room')).trim(),room:importRoomId(g('room')),name,idNo:idStr(g('id')),dob:anyDate(g('dob')),sex:/^nam$/i.test(String(g('sex')).trim())?'Nam':/^n[ữu]$/i.test(String(g('sex')).trim())?'Nữ':'',
+          tt1:anyDate(g('tt1')),tt2:anyDate(g('tt2')),hk:String(g('hk')||'').trim(),note:String(g('note')||'').trim(),phone:String(g('phone')||'').trim()})}
+      if(rows.length)return {sheet:sn,rows};
+    }
+  }
+  throw new Error('Không tìm thấy bảng danh sách. File cần có hàng tiêu đề với cột “PHÒNG” và “HỌ TÊN”.');
+}
+function planPeopleImport(rows){
+  const byRoom={};rows.forEach(r=>(byRoom[r.room]=byRoom[r.room]||[]).push(r));
+  const plan={rooms:[],skipped:[],add:0,upd:0,total:rows.length,mism:[]};
+  Object.keys(byRoom).forEach(id=>{
+    const room=roomById(id);
+    if(!room){plan.skipped.push({id,n:byRoom[id].length,why:'chưa có phòng này trong app'});return}
+    if(room.status!=='occupied'){plan.skipped.push({id,n:byRoom[id].length,why:'phòng đang để trống'});return}
+    const rep=room.tenant,mem=(room.members||[]),usedRep={v:false},usedMem=new Set(),items=[];
+    byRoom[id].forEach(r=>{
+      let target=null,kind='add';
+      if(!usedRep.v&&rep.idNo&&rep.idNo===r.idNo){target='rep';usedRep.v=true;kind='upd'}
+      if(!target){const i=mem.findIndex((m,j)=>!usedMem.has(j)&&m.idNo&&m.idNo===r.idNo);if(i>=0){target=i;usedMem.add(i);kind='upd'}}
+      if(!target&&!usedRep.v&&!rep.idNo&&rep.name&&nameMatch(rep.name,r.name)){target='rep';usedRep.v=true;kind='upd'}
+      if(target==null||target===false){const i=mem.findIndex((m,j)=>!usedMem.has(j)&&!m.idNo&&m.name&&nameMatch(m.name,r.name));if(i>=0){target=i;usedMem.add(i);kind='upd'}}
+      items.push({r,target:target==null||target===false?null:target,kind});
+      kind==='add'?plan.add++:plan.upd++;
+    });
+    const newCount=items.filter(x=>x.kind==='add').length,total=1+mem.length+newCount;
+    plan.rooms.push({id,room,items,newCount,total});
+    if(total!==room.occupants)plan.mism.push({id,list:total,cur:room.occupants});
+  });
+  return plan;
+}
+function applyPeoplePlan(plan,opt){
+  plan.rooms.forEach(({room,items,total})=>{
+    room.members=room.members||[];
+    items.forEach(({r,target,kind})=>{
+      if(kind==='add'){room.members.push({name:toTitle(r.name),idNo:r.idNo,tt1:r.tt1,tt2:r.tt2,tv1:'',tv2:'',dob:r.dob,sex:r.sex,hk:r.hk,note:r.note});return}
+      if(!opt.update)return;
+      const t=target==='rep'?room.tenant:room.members[target];
+      if(!t.idNo&&r.idNo)t.idNo=r.idNo;
+      ['dob','sex','hk','tt1','tt2'].forEach(f=>{if(r[f])t[f]=r[f]});
+      if(r.phone&&target==='rep'&&!t.phone)t.phone=r.phone;
+      if(r.note&&!t.note)t.note=r.note;
+    });
+    if(opt.occ&&total>0)room.occupants=total;
+  });
+}
+async function importPeopleXLSX(file){
+  let parsed;try{parsed=await parsePeopleXLSX(file)}catch(e){return toast(e.message||String(e),'bad')}
+  const plan=planPeopleImport(parsed.rows);
+  const roomLines=plan.rooms.map(x=>`<li><b class="mono">${esc(x.id)}</b> – ${esc(x.room.tenant.name||'')}: ${x.items.filter(i=>i.kind==='upd').length?x.items.filter(i=>i.kind==='upd').length+' cập nhật':''}${x.items.filter(i=>i.kind==='upd').length&&x.newCount?', ':''}${x.newCount?x.newCount+' người mới':''}</li>`).join('');
+  openModal('Nhập người ở từ Excel',`
+    <p style="margin:0 0 8px">Đọc được <b>${plan.total}</b> người từ bảng “${esc(parsed.sheet)}”: <b>${plan.add}</b> người mới, <b>${plan.upd}</b> người đã có trong app (khớp theo CCCD hoặc tên trong cùng phòng).</p>
+    <div class="mgr-sec"><label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="imUpd" checked><span>Cập nhật thông tin người đã có (ngày sinh, giới tính, thường trú, hạn tạm trú). Không đổi họ tên và CCCD đang có.</span></label>
+      <label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="imOcc"><span>Đặt “Số người ở mặc định” của phòng theo số người trong danh sách${plan.mism.length?` (${plan.mism.length} phòng đang lệch: ${esc(plan.mism.slice(0,6).map(x=>`${x.id} ${x.cur}→${x.list}`).join(', '))}${plan.mism.length>6?'…':''})`:''}. Chỉ ảnh hưởng tiền phụ thu từ tháng tạo sau.</span></label></div>
+    ${plan.skipped.length?`<p class="muted sm" style="margin:0 0 8px">Bỏ qua ${plan.skipped.reduce((a,x)=>a+x.n,0)} người: ${esc(plan.skipped.map(x=>`${x.id} (${x.why})`).join('; '))}.</p>`:''}
+    <details class="help"><summary>Xem theo phòng (${plan.rooms.length} phòng)</summary><ul class="list-plain" style="max-height:220px;overflow:auto">${roomLines}</ul></details>
+    <p class="muted sm" style="margin:8px 0 0">File chỉ được đọc ngay trên máy bạn, không gửi đi đâu. Dữ liệu sau khi nhập được lưu vào cơ sở dữ liệu của app (Google Drive nếu đã kết nối) và có bản lưu tự động trước khi nhập.</p>`,
+    `<button class="btn" data-act="mclose">Hủy</button><button class="btn primary" id="imGo">Nhập vào app</button>`,{wide:true});
+  $('#imGo').onclick=async()=>{
+    const opt={update:$('#imUpd').checked,occ:$('#imOcc').checked};closeModal(true);
+    await snapshot('Trước khi nhập người ở từ Excel');
+    applyPeoplePlan(plan,opt);save();persistLocal();UI.view='people';CFG.view='people';saveCfg();render();
+    let where=' · đang lưu trong trình duyệt này (chưa kết nối Google Drive)';
+    if(Sync.driver&&Sync.state!=='needauth'){try{await Sync.push()}catch(e){}where=Sync.state==='idle'?' · đã lưu lên '+(DRIVER_NAME[CFG.driver]||'nơi lưu trữ'):' · chưa ghi được lên nơi lưu trữ, hãy kiểm tra kết nối'}
+    toast(`Đã nhập ${plan.total} người (${opt.update?plan.add+' mới, '+plan.upd+' cập nhật':plan.add+' mới'})${where}`,Sync.driver&&Sync.state==='error'?'bad':'');
+  };
+}
+async function peopleTemplate(){
+  try{await ensureXLSX()}catch(e){return toast(e.message,'bad')}
+  const H=['STT','PHÒNG','HỌ TÊN','NGÀY SINH','GIỚI TÍNH','CCCD','NGÀY ĐĂNG KÝ','THỜI HẠN','HKTT','GHI CHÚ'];
+  const ws=XLSX.utils.aoa_to_sheet([H,[1,'P1','NGUYỄN VĂN A','01/02/1990','Nam','012345678901','01/03/2026','01/03/2028','Xã A, Tỉnh B','Người ví dụ, xóa dòng này']]);
+  ws['!cols']=[6,10,26,13,11,16,15,13,36,30].map(w=>({wch:w}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Danh sach Khach Tro');XLSX.writeFile(wb,'Mau_danh_sach_nguoi_o.xlsx');
+}
 function vRooms(){
   const occ=DB.rooms.filter(r=>r.status==='occupied').length;
   const rows=DB.rooms.map(r=>`<div class="lrow room-g"><div class="mono"><b>${esc(r.id)}</b></div>
-    <div class="full"><div>${esc(r.tenant.name)||'<span class="muted">Phòng trống</span>'}</div><div class="muted sm">${esc(r.tenant.phone||'')}${r.tenant.idNo?` · CCCD ${esc(r.tenant.idNo)}`:''}</div></div>
+    <div class="full"><div>${esc(r.tenant.name)||'<span class="muted">Phòng trống</span>'}</div><div class="muted sm">${esc(r.tenant.phone||'')}${r.tenant.idNo?` · CCCD ${esc(r.tenant.idNo)}`:''}</div>${r.status==='occupied'?roomResLine(r):''}</div>
     <div><span class="cell-l">Ngày thuê</span>${fmtDate(r.tenant.moveIn)||'–'}<div class="muted sm">${monthsSince(r.tenant.moveIn)}</div></div>
     <div class="num right"><span class="cell-l">Tiền cọc</span>${r.tenant.deposit?money(r.tenant.deposit):'–'}</div>
     <div class="sm"><span class="cell-l">Tiền phòng</span>${ruleText(r)}</div><div class="num right"><span class="cell-l">Người</span>${r.status==='occupied'?r.occupants:'–'}</div>
@@ -1141,7 +1315,14 @@ function roomModal(id){
     ${mi('rtrash','Tiền rác mặc định',r.trash)}${mi('ranqp','Tiền ANQP mặc định',r.anqp)}${mi('rnet','Tiền internet mặc định',r.internet)}${mi('rcable','Tiền cáp TV mặc định',r.cable)}
     <label class="f">Họ và tên khách<input id="tname" type="text" value="${esc(t.name)}"></label><label class="f">Số điện thoại<input id="tphone" type="text" inputmode="tel" value="${esc(t.phone||'')}"></label>
     <label class="f">CMND/CCCD<input id="tid" type="text" value="${esc(t.idNo||'')}"></label><label class="f">Ngày thuê<input id="tdate" type="date" value="${t.moveIn||''}"></label>
-    ${mi('tdep','Tiền cọc (đ)',t.deposit)}<label class="f full">Ghi chú<textarea id="tnote">${esc(t.note||'')}</textarea></label></div>
+    ${mi('tdep','Tiền cọc (đ)',t.deposit)}<label class="f full">Ghi chú<textarea id="tnote">${esc(t.note||'')}</textarea></label>
+    <div class="full" style="margin-top:4px"><b>Tạm trú / tạm vắng của người đại diện</b><div class="muted sm">Nhập hạn để app tự cảnh báo trước ${RES_WARN()} ngày.</div></div>
+    <label class="f">Tạm trú từ<input id="ttf" type="date" value="${t.tt1||''}"></label><label class="f">Tạm trú đến (hạn)<input id="ttt" type="date" value="${t.tt2||''}"></label>
+    <label class="f">Tạm vắng từ<input id="tvf" type="date" value="${t.tv1||''}"></label><label class="f">Tạm vắng đến<input id="tvt" type="date" value="${t.tv2||''}"></label>
+    <label class="f">Ngày sinh<input id="tdob" type="date" value="${t.dob||''}"></label><label class="f">Giới tính<select id="tsex"><option value=""></option>${['Nam','Nữ'].map(x=>`<option ${t.sex===x?'selected':''}>${x}</option>`).join('')}</select></label>
+    <label class="f full">Thường trú (HKTT)<input id="thk" type="text" value="${esc(t.hk||'')}"></label>
+    <div class="full" style="margin-top:4px"><div class="row sp"><b>Người ở cùng phòng</b><button class="btn sm" type="button" data-act="memadd">${icon('plus',14)}Thêm người</button></div>
+      <div class="muted sm">Khách đứng tên ở trên là đại diện phòng. Thêm 2–3 người còn lại (nếu phòng có 3–4 người) kèm CCCD và hạn tạm trú.</div><div id="memRows">${(r.members||[]).map(memRowHTML).join('')}</div></div></div>
     <p class="muted sm" style="margin:0">Giá mặc định áp dụng từ tháng tạo sau. Tháng đang mở sửa riêng ở nút Chi tiết trong Nhập số.</p>`,
     `${isNew?'':`<button class="btn danger" data-act="roomdel" data-room="${esc(r.id)}" style="margin-right:auto">Xóa phòng</button>`}<button class="btn" data-act="mclose">Hủy</button><button class="btn primary" data-act="roomsave" data-room="${esc(id||'')}">Lưu</button>`,{wide:true});
 }
@@ -1354,6 +1535,12 @@ async function exportXLSX(){
     ds.forEach(d=>{body(pw,pr,['','− '+d.label,-d.amount],{fmt:{2:NUM}});pr++});
     body(pw,pr,['','Số tiền còn lại',ck+tm-dsum],{fmt:{2:NUM},total:true,bold:true});pr+=2}
 
+  /* ===== Sheet: Người ở & tạm trú ===== */
+  const ps=wb.addWorksheet('Người ở',{views:[{state:'frozen',ySplit:1,showGridLines:true}]});setup(ps,true);
+  [9,24,12,18,13,13,13,13,20,13,13,22].forEach((w,i)=>ps.getColumn(i+1).width=w);
+  head(ps,1,['Số phòng','Họ và tên','Vai trò','CMND/CCCD','Ngày thuê','Tiền cọc (đ)','Tạm trú từ','Tạm trú đến','Tình trạng tạm trú','Tạm vắng từ','Tạm vắng đến','Tình trạng tạm vắng']);
+  let qr=2;DB.rooms.filter(r=>r.status==='occupied').forEach(rm=>peopleOf(rm).forEach(p=>{const a=resTT(p),b=resTV(p);
+    body(ps,qr,[rm.id,p.name,p.rep?'Đại diện':'Ở cùng',p.idNo,p.rep?fmtDate(rm.tenant.moveIn):'',p.rep?(rm.tenant.deposit||0):'',p.tt1?fmtDate(p.tt1):'',p.tt2?fmtDate(p.tt2):'',a.txt,p.tv1?fmtDate(p.tv1):'',p.tv2?fmtDate(p.tv2):'',b?b.txt:''],{fmt:{5:NUM},center:[0,2,4,6,7,9,10],zebra:(qr-2)%2});ps.getCell(qr,1).font={name:FONT,bold:true};qr++}));
   const buf=await wb.xlsx.writeBuffer(),a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=`Doi_soat_tien_tro_${k.slice(5)}-${k.slice(0,4)}.xlsx`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800);toast('Đã xuất file Excel');
 }
@@ -1463,6 +1650,7 @@ document.addEventListener('change',e=>{
   else if(c==='lossmeter'){DB.months[UI.month].lossMeter=t.dataset.v;save();render()}
   else if(t.id==='fileJson'&&t.files[0]){importJSON(t.files[0]);t.value=''}
   else if(t.id==='fileXlsx'&&t.files[0]){importXLSX(t.files[0]);t.value=''}
+  else if(t.id==='filePeople'&&t.files[0]){importPeopleXLSX(t.files[0]);t.value=''}
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&$('#modal-root').classList.contains('open'))closeModal();
@@ -1486,6 +1674,9 @@ document.addEventListener('click',async e=>{
    case 'lock':confirmBox('Chốt '+monthLabel(UI.month).toLowerCase(),'Sau khi chốt, số điện nước và các khoản phí của tháng không sửa được nữa (vẫn ghi nhận thu tiền). Tiền phòng đang tự tính sẽ được cố định lại để các thay đổi giá sau này không làm lệch tháng cũ.','Chốt tháng',()=>{
       DB.rooms.forEach(r=>{const rec=m.recs[r.id];if(rec&&rec.rent==null)rec.rent=rentAuto(r,rec.people,m)});m.locked=true;save();render();toast('Đã chốt tháng');if(CFG.driver&&Sync.driver)Sync.driver.backup(JSON.stringify(DB),`TienTro_backup_${UI.month}_chot.json`,true).catch(()=>{})},false);break;
    case 'unlock':m.locked=false;save();render();toast('Đã mở khóa tháng');break;
+   case 'memadd':{const box=$('#memRows');if(box){box.insertAdjacentHTML('beforeend',memRowHTML({}));const l=box.lastElementChild;l.scrollIntoView({block:'nearest'});$('.m-name',l).focus()}break}
+   case 'memdel':{const row=el.closest('.memrow');if(row)row.remove();break}
+   case 'pfilter':UI.peopleFilter=el.dataset.v;render();break;
    case 'eview':CFG.entryView=el.dataset.v;saveCfg();render();break;
    case 'efilter':UI.entryFilter=el.dataset.v;render();break;
    case 'pfilter':UI.payFilter=el.dataset.v;render();break;
@@ -1514,8 +1705,8 @@ document.addEventListener('click',async e=>{
    case 'roomdel':{const used=Object.values(DB.months).some(x=>x.recs[id]);if(used)return toast('Phòng này đã có số liệu trong các tháng, không xóa được. Hãy đặt tình trạng “Trống”.','bad');DB.rooms=DB.rooms.filter(r=>r.id!==id);save();closeModal(true);render();break}
    case 'moveout':moveOutModal(id);break;
    case 'moveoutsave':{const r=roomById(id),owed=debtOf(id),dep=r.tenant.deposit||0,refund=parseInt0($('#mrefund').value)||0;
-      DB.history.push({roomId:id,name:r.tenant.name,moveIn:r.tenant.moveIn,moveOut:$('#mdate').value,deposit:dep,refund,note:$('#mnote').value.trim()});
-      r.tenant={name:'',phone:'',idNo:'',moveIn:'',deposit:0,note:''};r.status='vacant';save();closeModal(true);render();toast('Đã ghi nhận trả phòng '+id);break}
+      DB.history.push({roomId:id,name:r.tenant.name,moveIn:r.tenant.moveIn,moveOut:$('#mdate').value,deposit:dep,refund,note:$('#mnote').value.trim(),members:(r.members||[]).map(x=>x.name).filter(Boolean)});
+      r.tenant={name:'',phone:'',idNo:'',moveIn:'',deposit:0,note:''};r.members=[];r.status='vacant';save();closeModal(true);render();toast('Đã ghi nhận trả phòng '+id);break}
    case 'syncchip':if(!Sync.driver){UI.view='settings';await loadSnaps();render()}else if(Sync.state==='needauth')reauth();else if(Sync.state==='error'||Sync.state==='idle')Sync.push();break;
    case 'syncnow':if(Sync.driver){Sync.pullAndMerge().catch(x=>setSync(x.code==='auth'?'needauth':'error',x.message))}break;
    case 'fspick':try{await FSD.pick(!!el.dataset.create);await connectDriver('fs')}catch(x){if(x.name!=='AbortError')toast(x.message,'bad')}break;
@@ -1526,6 +1717,8 @@ document.addEventListener('click',async e=>{
    case 'logout':authClear();try{GD.token=null;GD.exp=0;localStorage.removeItem('tientro.gd')}catch(e){}location.reload();break;
    case 'importjson':$('#fileJson').click();break;
    case 'exportxlsx':exportXLSX();break;
+   case 'peopleimport':{const fi=$('#filePeople');if(fi)fi.click();break}
+   case 'peopletpl':peopleTemplate();break;
    case 'importxlsx':$('#fileXlsx').click();break;
    case 'snaprestore':{const v=await idb.get(el.dataset.key);if(!v)break;confirmBox('Khôi phục bản lưu','Thay dữ liệu hiện tại bằng bản lưu lúc '+new Date(v.t).toLocaleString('vi-VN')+'?','Khôi phục',async()=>{await snapshot('Trước khi khôi phục bản lưu');DB=normalizeDB(JSON.parse(v.json));DB.rev+=1;persistLocal();ensureMonthSelected();save();await loadSnaps();render();toast('Đã khôi phục')},false);break}
    case 'delmonth':if(monthKeys().length<2)return toast('Cần giữ lại ít nhất một tháng','bad');confirmBox('Xóa '+monthLabel(UI.month).toLowerCase(),'Toàn bộ số điện nước và khoản thu của tháng này sẽ mất (bản lưu tự động vẫn giữ lại).','Xóa tháng',async()=>{await snapshot('Trước khi xóa tháng');delete DB.months[UI.month];UI.month=null;ensureMonthSelected();save();render()});break;
@@ -1546,8 +1739,11 @@ function saveRoom(oldId){
   const g=i=>parseInt0($('#'+i).value)||0;
   const r=isNew?{id,tenant:{}}:roomById(id);
   Object.assign(r,{type:$('#rtype').value,rentMode:$('#rmode').value,base:g('rbase'),fixed:g('rfixed'),trash:g('rtrash'),anqp:g('ranqp'),internet:g('rnet'),cable:g('rcable'),occupants:Math.max(0,g('rocc')),status:$('#rstatus').value});
-  r.tenant={name:$('#tname').value.trim(),phone:$('#tphone').value.trim(),idNo:$('#tid').value.trim(),moveIn:$('#tdate').value,deposit:g('tdep'),note:$('#tnote').value.trim()};
+  r.tenant=Object.assign({},r.tenant,{name:$('#tname').value.trim(),phone:$('#tphone').value.trim(),idNo:$('#tid').value.trim(),moveIn:$('#tdate').value,deposit:g('tdep'),note:$('#tnote').value.trim(),tt1:$('#ttf').value,tt2:$('#ttt').value,tv1:$('#tvf').value,tv2:$('#tvt').value,dob:$('#tdob').value,sex:$('#tsex').value,hk:$('#thk').value.trim()});
+  r.members=$$('#memRows .memrow').map(row=>({name:$('.m-name',row).value.trim(),idNo:$('.m-id',row).value.trim(),tt1:$('.m-tt1',row).value,tt2:$('.m-tt2',row).value,tv1:$('.m-tv1',row).value,tv2:$('.m-tv2',row).value,dob:$('.m-dob',row).value,sex:$('.m-sex',row).value,hk:$('.m-hk',row).value.trim(),note:$('.m-note',row).value.trim()})).filter(x=>x.name||x.idNo||x.tt1||x.tt2||x.tv1||x.tv2);
+  const nPeople=1+r.members.length;
   if(isNew)DB.rooms.push(r);sortRooms();syncRecs(UI.month);save();closeModal(true);render();toast(isNew?'Đã thêm phòng '+id:'Đã lưu phòng '+id);
+  if(r.members.length&&nPeople!==r.occupants)setTimeout(()=>toast(`Lưu ý: danh sách ghi ${nPeople} người nhưng “Số người ở mặc định” là ${r.occupants}. Chỉnh nếu cần tính phụ thu.`),600);
 }
 
 function monthMgrModal(){
