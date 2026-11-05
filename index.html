@@ -396,7 +396,7 @@ const idb={db:null,
 };
 
 /* ---------- Cấu hình thiết bị (không đồng bộ) ---------- */
-const DEFAULT_G_CLIENT_ID=''; // Dán sẵn Google Client ID vào đây nếu muốn app tự dùng, khỏi nhập trong Cài đặt
+const DEFAULT_G_CLIENT_ID='160509043267-rq97u0revcveeglq15mo1tappf7aikih.apps.googleusercontent.com'; // Dán sẵn Google Client ID vào đây nếu muốn app tự dùng, khỏi nhập trong Cài đặt
 let CFG={driver:null,gClientId:'',gFileId:null,gFolderId:null,syncPid:null,syncRev:0,view:'dash',month:null};
 try{Object.assign(CFG,JSON.parse(localStorage.getItem('tientro.cfg')||'{}'))}catch(e){}
 if(!CFG.gClientId)CFG.gClientId=DEFAULT_G_CLIENT_ID;
@@ -641,7 +641,7 @@ const GD={label:'Google Drive',token:null,exp:0,folderId:null,fileId:null,renewi
     if(this.folderId)return this.folderId;
     if(CFG.gFolderId)return this.folderId=CFG.gFolderId;
     const q=encodeURIComponent("mimeType='application/vnd.google-apps.folder' and name='Quản lý tiền trọ' and trashed=false");
-    const j=await (await this.api(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`)).json();
+    const j=await (await this.api(`https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=createdTime&fields=files(id)`)).json();
     if(j.files&&j.files.length)this.folderId=j.files[0].id;
     else this.folderId=(await (await this.api('https://www.googleapis.com/drive/v3/files?fields=id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Quản lý tiền trọ',mimeType:'application/vnd.google-apps.folder'})})).json()).id;
     CFG.gFolderId=this.folderId;saveCfg();return this.folderId;
@@ -655,7 +655,7 @@ const GD={label:'Google Drive',token:null,exp:0,folderId:null,fileId:null,renewi
     }
     const f=await this.folder();
     const q=encodeURIComponent(`name='TienTro_data.json' and '${f}' in parents and trashed=false`);
-    const j=await (await this.api(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`)).json();
+    const j=await (await this.api(`https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=createdTime&fields=files(id)`)).json();
     this.fileId=(j.files&&j.files[0]&&j.files[0].id)||null;
     if(this.fileId){CFG.gFileId=this.fileId;saveCfg()}
     return this.fileId;
@@ -706,7 +706,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4.7 · báo cáo công an · nhập Excel đủ cột</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4.8 · báo cáo công an · nhập Excel đủ cột</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
@@ -1537,14 +1537,15 @@ function vSettings(){
   const redirect=location.origin+location.pathname;
   return `<div class="card"><h2>${icon('cloud',18)}Nơi lưu dữ liệu</h2>
     <p class="muted" style="margin-top:0">Dữ liệu luôn có bản trên máy này. Kết nối thêm một nơi lưu để có bản dự phòng và dùng được trên nhiều thiết bị. Mỗi lần bạn sửa, ứng dụng tự ghi lại sau vài giây.</p>
+    ${cur==='fs'?`<div class="banner" style="background:var(--bad-soft);color:var(--bad)">${icon('alert',22)}<div class="grow"><b>Chế độ này KHÔNG đồng bộ sang điện thoại.</b><br><span class="sm">Điện thoại không dùng được “tệp trên máy”. Muốn máy tính và điện thoại dùng chung một dữ liệu, hãy ngắt kết nối rồi bấm “Kết nối Google Drive” (ô bên phải) trên cả hai thiết bị, cùng một tài khoản Google.</span></div></div>`:''}
     ${cur?`<div class="banner" style="background:var(--${Sync.state==='needauth'||Sync.state==='error'?'bad':'ok'}-soft);color:var(--${Sync.state==='needauth'||Sync.state==='error'?'bad':'ok'})"><div class="grow"><b>Đang lưu vào: ${DRIVER_NAME[cur]}${cur==='fs'&&FSD.nameOf()?' ('+esc(FSD.nameOf())+')':''}</b><br><span class="sm">${Sync.lastAt?'Lần ghi gần nhất '+new Date(Sync.lastAt).toLocaleString('vi-VN'):(CFG.lastAt?'Lần ghi gần nhất (phiên trước) '+new Date(CFG.lastAt).toLocaleString('vi-VN'):'Chưa ghi lần nào')}${Sync.msg?' · '+esc(Sync.msg):''}</span></div>
       ${Sync.state==='needauth'?`<button class="btn primary" data-act="syncchip">Cấp quyền / đăng nhập</button>`:''}<button class="btn" data-act="syncnow">${icon('refresh',14)}Đồng bộ ngay</button><button class="btn" data-act="backupcloud">${icon('up',14)}Sao lưu thêm bản có ngày</button><button class="btn danger" data-act="disconnect">Ngắt kết nối</button></div>`:''}
     <div class="grid g2" style="margin-top:12px">
-      <div class="card stack" style="box-shadow:none"><b>Thư mục Google Drive / OneDrive trên máy</b><span class="chip">Không cần Client ID</span>
+      <div class="card stack" style="box-shadow:none"><b>Thư mục Google Drive / OneDrive trên máy</b><span class="chip warn">Chỉ máy tính · không sang điện thoại</span>
         <p class="muted sm" style="margin:0">Dùng được với <b>Google Drive cho máy tính</b> (ổ G:\My Drive) và <b>OneDrive</b>. Bấm “Tạo tệp dữ liệu mới”, chọn một thư mục nằm trong Google Drive hoặc OneDrive. Ứng dụng tự ghi vào tệp sau mỗi lần sửa, phần mềm Drive/OneDrive tự đưa lên mạng. Không cần tài khoản lập trình. Chỉ dùng trên Chrome hoặc Edge máy tính, và phải để trang này mở.</p>
         ${fs?`<button class="btn primary" data-act="fspick" data-create="1">Tạo tệp dữ liệu mới…</button><button class="btn" data-act="fspick">Chọn tệp có sẵn…</button>`:`<div class="fl warn">${icon('alert',13)}Trình duyệt này không hỗ trợ. Hãy dùng Chrome hoặc Edge trên máy tính.</div>`}</div>
       <div class="card stack" style="box-shadow:none"><b>Google Drive (đăng nhập trực tiếp)</b><span class="chip ok">Khuyên dùng</span>
-        <p class="muted sm" style="margin:0">Dùng được cả trên điện thoại. Ứng dụng nhớ tệp dữ liệu và tự kết nối lại ở các lần mở sau. Ứng dụng chỉ thấy tệp do chính nó tạo trong thư mục “Quản lý tiền trọ”.</p>
+        <p class="muted sm" style="margin:0">Dùng được cả máy tính và điện thoại, hai máy tự đồng bộ với nhau khi dùng cùng tài khoản Google. Ứng dụng nhớ tệp dữ liệu và tự kết nối lại ở các lần mở sau. Ứng dụng chỉ thấy tệp do chính nó tạo trong thư mục “Quản lý tiền trọ”.</p>
         <label class="f">Google Client ID<input type="text" id="gcid" value="${esc(CFG.gClientId)}" placeholder="xxxx.apps.googleusercontent.com"></label>
         <button class="btn primary" data-act="gconnect" ${web?'':'disabled'}>Kết nối Google Drive</button>
         <details class="help"><summary>Cách lấy Client ID (làm một lần)</summary><ol><li>Vào <code>console.cloud.google.com</code>, tạo project mới.</li><li>APIs &amp; Services → Library → bật <b>Google Drive API</b>.</li><li>OAuth consent screen: chọn External, điền tên ứng dụng, thêm email của bạn vào Test users.</li><li>Credentials → Create credentials → OAuth client ID → <b>Web application</b>.</li><li>Authorized JavaScript origins: thêm <code>${esc(location.origin)}</code></li><li>Bấm <b>Publish app</b> (đưa lên Production) để Google không bắt đăng nhập lại sau 7 ngày. Phạm vi drive.file không cần xác minh.</li><li>Copy Client ID dán vào ô trên.</li></ol></details></div>
