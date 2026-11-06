@@ -632,7 +632,7 @@ const GD={label:'Google Drive',token:null,exp:0,folderId:null,fileId:null,renewi
   async connect(){await this.request(false)},
   async api(url,opt={}){
     const {ok404,...o}=opt;await this.ensure();
-    const r=await fetch(url,{...o,headers:{Authorization:'Bearer '+this.token,...(o.headers||{})}});
+    const r=await fetch(url,{cache:'no-store',...o,headers:{Authorization:'Bearer '+this.token,...(o.headers||{})}});
     if(r.status===401){this.token=null;this.exp=0;try{localStorage.removeItem('tientro.gd')}catch(e){}throw this.authErr('Phiên Google đã hết hạn, hãy kết nối lại')}
     if(r.status===404&&ok404)return null;
     if(!r.ok)throw new Error('Google Drive '+r.status+': '+(await r.text()).slice(0,140));return r;
@@ -706,7 +706,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4.8 · báo cáo công an · nhập Excel đủ cột</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v4.9 · báo cáo công an · nhập Excel đủ cột</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
@@ -750,7 +750,7 @@ function vDash(){
   const owing=rooms.map(r=>{const c=calc(r,m.recs[r.id],m),p=paidOf(m,r.id);return {r,left:c.total-p.total,c,p}}).filter(x=>x.left>0).sort((a,b)=>b.left-a.left);
   const ks=monthKeys().slice(-6),ch=ks.map(x=>{const t=monthStats(x);return {label:x.slice(5)+'/'+x.slice(2,4),a:t.billed,b:Math.min(t.paid,t.billed)}});
   const occ=DB.rooms.filter(r=>r.status==='occupied').length;
-  return `${Sync.driver&&Sync.state==='error'?`<div class="banner" style="background:var(--bad-soft)">${icon('alert',22)}<div class="grow"><b>Dữ liệu chưa được ghi lên ${DRIVER_NAME[CFG.driver]}.</b> ${esc(Sync.msg||'')}</div><button class="btn primary" data-act="syncchip">${Sync.state==='needauth'?'Cấp quyền / đăng nhập':'Thử lại'}</button></div>`:''}
+  return `${Sync.driver&&(Sync.state==='error'||Sync.state==='needauth')?`<div class="banner" style="background:var(--bad-soft)">${icon('alert',22)}<div class="grow"><b>Dữ liệu chưa được đồng bộ với ${DRIVER_NAME[CFG.driver]}.</b> ${esc(Sync.msg||'')}</div><button class="btn primary" data-act="syncchip">${Sync.state==='needauth'?'Cấp quyền / đăng nhập':'Thử lại'}</button></div>`:''}
   ${!CFG.driver?`<div class="banner">${icon('cloud',22)}<div class="grow"><b>Dữ liệu mới chỉ lưu trong trình duyệt này.</b> Kết nối Google Drive để không bị mất khi đổi máy hoặc xóa trình duyệt.</div><button class="btn primary" data-act="nav" data-v="settings">Kết nối lưu trữ</button></div>`:''}
   ${!localOK?`<div class="banner">${icon('alert',22)}<div class="grow"><b>Trình duyệt không cho lưu cục bộ.</b> Hãy kết nối Drive/OneDrive hoặc xuất bản sao lưu thường xuyên.</div></div>`:''}
   <div class="grid g4 kpi-row">
@@ -1552,6 +1552,7 @@ function vSettings(){
       
     </div>
     ${web?'':`<div class="fl warn" style="margin-top:10px">${icon('alert',13)}Bạn đang mở ứng dụng từ tệp trên máy (file://). Google Drive đăng nhập trực tiếp cần địa chỉ http(s), ví dụ đưa tệp lên GitHub Pages hoặc Netlify. Cách “Thư mục Drive/OneDrive trên máy” vẫn dùng bình thường.</div>`}</div>
+  ${cur?`<div class="card"><h2>${icon('refresh',18)}Chẩn đoán đồng bộ</h2><p class="muted sm" style="margin-top:0">Nếu hai máy không khớp dữ liệu, bấm nút này trên <b>cả hai máy</b> rồi chụp màn hình gửi người hỗ trợ.</p><button class="btn" data-act="syncdiag">Kiểm tra đồng bộ</button><pre id="diagout" style="white-space:pre-wrap;word-break:break-all;font-size:12px;margin:10px 0 0;padding:10px;background:var(--soft,#f3f6f5);border-radius:8px"></pre></div>`:''}
   <div class="grid g2">
    <div class="card"><h2>Thông tin nhà trọ (in trên thông báo)</h2><div class="fg">${si('propertyName','Tên nhà trọ')}${si('manager','Người quản lý (ký tên)')}${si('address','Địa chỉ')}${si('phone','Điện thoại')}${si('bankName','Ngân hàng')}${si('bankAcc','Số tài khoản')}${si('bankHolder','Chủ tài khoản')}<label class="f">Ngân hàng (để tạo mã QR)<select data-set="bankBin" data-t="t"><option value="">— Chọn ngân hàng —</option>${BANKS.map(b=>`<option value="${b.bin}" ${S.bankBin===b.bin?'selected':''}>${b.name}</option>`).join('')}</select></label><label class="f">In mã QR thanh toán trên phiếu<select data-set="qrOn" data-t="t"><option value="1" ${S.qrOn!=='0'?'selected':''}>Có</option><option value="0" ${S.qrOn==='0'?'selected':''}>Không</option></select></label><label class="f full">Nội dung chuyển khoản trong QR (dùng {room} {month} {year} {name})<input type="text" data-set="qrContent" data-t="t" value="${esc(S.qrContent||'')}" maxlength="60"></label>
      <label class="f full">Tiêu đề thông báo<input type="text" data-set="noticeTitle" data-t="t" value="${esc(S.noticeTitle)}"></label>
@@ -1599,6 +1600,29 @@ function showConflict(rem,why){
    `<button class="btn" id="cfLocal">Giữ bản trên máy này (ghi đè)</button><button class="btn primary" id="cfRemote">Dùng bản trên nơi lưu trữ</button>`);
   $('#cfRemote').onclick=async()=>{closeModal(true);await adoptRemote(rem,'Đã lấy dữ liệu từ '+Sync.driver.label)};
   $('#cfLocal').onclick=async()=>{closeModal(true);await snapshot('Trước khi ghi đè nơi lưu trữ');await Sync.push(true);toast('Đã ghi dữ liệu máy này lên '+Sync.driver.label)};
+}
+async function syncDiag(){
+  const o=$('#diagout');if(!o)return;o.textContent='Đang kiểm tra…';
+  const L=[],add=(k,v)=>L.push(k+': '+v),fmt=t=>t?new Date(t).toLocaleString('vi-VN'):'-',sh=x=>(x||'').slice(0,6)||'-';
+  add('Phiên bản','v4.9');add('Địa chỉ app',location.origin+location.pathname);
+  add('Nơi lưu',CFG.driver||'(chưa kết nối)');add('Trạng thái',Sync.state+(Sync.msg?' – '+Sync.msg:''));
+  add('Máy này: rev',DB.rev+' · rev đã đồng bộ '+CFG.syncRev);add('Máy này: pid',sh(DB.pid)+' · pid đã đồng bộ '+sh(CFG.syncPid));
+  add('Máy này: sửa lần cuối',fmt(DB.updatedAt)+' · '+Object.keys(DB.months).length+' tháng');
+  if(CFG.driver==='gdrive'){
+    add('Token Google',GD.valid()?('còn '+Math.round((GD.exp-Date.now())/60000)+' phút'):'hết hạn hoặc chưa có');
+    add('Client ID',(CFG.gClientId||'').slice(0,14)+'…');
+    try{
+      const q=encodeURIComponent("name='TienTro_data.json' and trashed=false");
+      const j=await (await GD.api(`https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=createdTime&fields=files(id,createdTime,modifiedTime,size)`)).json();
+      const fl=j.files||[];add('Số tệp TienTro_data.json thấy được',fl.length+(fl.length>1?'  ← BỊ TRÙNG':''));
+      fl.forEach((f,i)=>add('  tệp '+(i+1),f.id.slice(0,8)+'… sửa '+fmt(f.modifiedTime)+' · '+f.size+' byte'));
+      add('Tệp máy này đang dùng',(CFG.gFileId||'').slice(0,8)+'…');
+      const t=await GD.pull(),rem=t&&safeParse(t);
+      if(rem)add('Trên Drive',`rev ${rem.rev} · pid ${sh(rem.pid)} · sửa ${fmt(rem.updatedAt)} · ${Object.keys(rem.months||{}).length} tháng`);else add('Trên Drive','trống hoặc không đọc được');
+      if(rem)add('Kết luận',rem.pid===CFG.syncPid?'Máy này ĐÃ khớp với Drive':'Máy này KHÁC Drive (bấm "Đồng bộ ngay")');
+    }catch(e){add('LỖI',e.message||String(e))}
+  }
+  o.textContent=L.join('\n');
 }
 async function connectDriver(kind){
   const d=DRIVERS[kind];
@@ -1896,7 +1920,8 @@ document.addEventListener('click',async e=>{
       DB.history.push({roomId:id,name:r.tenant.name,moveIn:r.tenant.moveIn,moveOut:$('#mdate').value,deposit:dep,refund,note:$('#mnote').value.trim(),members:(r.members||[]).map(x=>x.name).filter(Boolean)});
       r.tenant={name:'',phone:'',idNo:'',moveIn:'',deposit:0,note:''};r.members=[];r.status='vacant';save();closeModal(true);render();toast('Đã ghi nhận trả phòng '+id);break}
    case 'syncchip':if(!Sync.driver){UI.view='settings';await loadSnaps();render()}else if(Sync.state==='needauth')reauth();else if(Sync.state==='error'||Sync.state==='idle')Sync.push();break;
-   case 'syncnow':if(Sync.driver){Sync.pullAndMerge().catch(x=>setSync(x.code==='auth'?'needauth':'error',x.message))}break;
+   case 'syncnow':if(Sync.driver){Sync.pullAndMerge().then(()=>{if(Sync.state==='idle')toast('Đã đồng bộ xong')}).catch(x=>{setSync(x.code==='auth'?'needauth':'error',x.message);toast(x.message||'Lỗi đồng bộ','bad')})}break;
+   case 'syncdiag':syncDiag();break;
    case 'fspick':try{await FSD.pick(!!el.dataset.create);await connectDriver('fs')}catch(x){if(x.name!=='AbortError')toast(x.message,'bad')}break;
    case 'gconnect':CFG.gClientId=$('#gcid').value.trim();saveCfg();connectDriver('gdrive');break;
    case 'disconnect':confirmBox('Ngắt kết nối','Ứng dụng sẽ ngừng ghi lên '+DRIVER_NAME[CFG.driver]+'. Tệp đã có trên đó vẫn được giữ nguyên.','Ngắt kết nối',()=>{Sync.driver&&Sync.driver.disconnect();Sync.driver=null;CFG.driver=null;CFG.syncPid=null;saveCfg();setSync('local');render()});break;
