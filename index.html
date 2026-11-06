@@ -104,6 +104,7 @@ button.kpilink:active{transform:scale(.985)}
 button.kpilink:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button.kpilink .l::after{content:'›';margin-left:auto;font-size:18px;line-height:1;opacity:.55}
 .kpi .dl{font-size:11.5px;font-weight:600}.kpi .dl.up{color:var(--ok,#0a6c5a)}.kpi .dl.dn{color:var(--bad,#b3261e)}.kpi .dl.flat{color:var(--muted)}
+.seg.tabs{margin-bottom:12px}.bar.sm{height:6px}
 .fnote{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:2px 0 8px}
 .bar{height:8px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);overflow:hidden;margin-top:6px}
 .bar>i{display:block;height:100%;background:var(--accent)}
@@ -412,7 +413,7 @@ if(CFG.driver&&CFG.driver!=='fs'&&CFG.driver!=='gdrive'){CFG.driver=null;CFG.syn
 const saveCfg=()=>{try{localStorage.setItem('tientro.cfg',JSON.stringify(CFG))}catch(e){}};
 
 /* ---------- Dữ liệu ---------- */
-const DEFAULT_SETTINGS={propertyName:'Nhà trọ Bùi Văn Hòa',address:'22C/20 KP. Bình Chuẩn 2, P. An Phú, TP.HCM',manager:'',phone:'',bankName:'',bankAcc:'',bankHolder:'',bankBin:'',qrOn:'1',qrContent:'Phong {room} tien phong thang {month}',
+const DEFAULT_SETTINGS={remindOffsets:'-2,1,5',propertyName:'Nhà trọ Bùi Văn Hòa',address:'22C/20 KP. Bình Chuẩn 2, P. An Phú, TP.HCM',manager:'',phone:'',bankName:'',bankAcc:'',bankHolder:'',bankBin:'',qrOn:'1',qrContent:'Phong {room} tien phong thang {month}',
   elecPrice:3500,waterPrice:4000,pumpPrice:2500,trash:40000,anqp:4000,freePeople:2,extraPerson:100000,dueDay:18,batches:3,
   noticeTitle:'THÔNG BÁO TIỀN PHÒNG TRỌ',noticeFooter:'Lưu ý: Anh/Chị vui lòng thanh toán tiền trọ trước ngày {dueDay} hàng tháng.\nCác trường hợp khó khăn vui lòng báo Chủ trọ.'};
 let DB=null;
@@ -428,7 +429,7 @@ function fillCCCD(d){let n=0;(d.rooms||[]).forEach(r=>{const f=CCCD_FILL[r.id];i
 const BRAND={name:'Nhà trọ Bùi Văn Hòa',addr:'22C/20 KP. Bình Chuẩn 2, P. An Phú, TP.HCM',logo:'data:image/png;base64,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'};
 function normalizeDB(d){
   d.settings={...DEFAULT_SETTINGS,...(d.settings||{})};if(!d.settings.propertyName||d.settings.propertyName==='Nhà trọ')d.settings.propertyName=BRAND.name;if(!d.settings.address)d.settings.address=BRAND.addr;d.rooms=d.rooms||[];d.rooms.forEach(r=>{if(!Array.isArray(r.members))r.members=[]});d.months=d.months||{};d.history=d.history||[];d.rev=d.rev||1;d.deviceId=d.deviceId||uid();
-  Object.values(d.months).forEach(m=>{m.recs=m.recs||{};m.payments=m.payments||{};m.deductions=m.deductions||[];m.expenses=m.expenses||[];m.recon=m.recon||{bank:null,cash:null};m.mainMeters=m.mainMeters||[];m.pump=m.pump||{old:0,new:null};
+  Object.values(d.months).forEach(m=>{m.recs=m.recs||{};m.payments=m.payments||{};m.deductions=m.deductions||[];m.expenses=m.expenses||[];m.reminded=m.reminded||{};m.recon=m.recon||{bank:null,cash:null};m.mainMeters=m.mainMeters||[];m.pump=m.pump||{old:0,new:null};
     m.prices=m.prices||{elec:d.settings.elecPrice,water:d.settings.waterPrice,pump:d.settings.pumpPrice,freePeople:d.settings.freePeople,extraPerson:d.settings.extraPerson}});
   return d;
 }
@@ -713,7 +714,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.0 · báo cáo công an · nhập Excel đủ cột</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.1 · báo cáo công an · nhập Excel đủ cột</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
@@ -763,7 +764,9 @@ function vDash(){
   const carried=rooms.filter(r=>(m.recs[r.id].debt||0)>0),carriedSum=carried.reduce((a,r)=>a+(m.recs[r.id].debt||0),0);
   const lastK=monthKeys().slice(-1)[0],curK=todayISO().slice(0,7),needNew=k===lastK&&curK>lastK;
   const go=(v,extra='')=>`data-act="go" data-v="${v}" ${extra}`;
+  const prq=k===lastK?pendingRemind(k):[],prqSc=remindSched(k);
   return `${Sync.driver&&(Sync.state==='error'||Sync.state==='needauth')?`<div class="banner" style="background:var(--bad-soft)">${icon('alert',22)}<div class="grow"><b>Dữ liệu chưa được đồng bộ với ${DRIVER_NAME[CFG.driver]}.</b> ${esc(Sync.msg||'')}</div><button class="btn primary" data-act="syncchip">${Sync.state==='needauth'?'Cấp quyền / đăng nhập':'Thử lại'}</button></div>`:''}
+  ${prq.length?`<div class="banner" style="background:var(--warn-soft,#fff4d6)">${icon('alert',22)}<div class="grow"><b>Đến lịch nhắc nợ:</b> ${prq.length} phòng chưa đóng đủ và chưa được nhắc từ ${fmtDate(prqSc)} (${prq.slice(0,6).map(x=>esc(x.r.id)).join(', ')}${prq.length>6?'…':''}).</div><button class="btn primary" data-act="remindq">Nhắc lần lượt</button></div>`:''}
   ${!CFG.driver?`<div class="banner">${icon('cloud',22)}<div class="grow"><b>Dữ liệu mới chỉ lưu trong trình duyệt này.</b> Kết nối Google Drive để không bị mất khi đổi máy hoặc xóa trình duyệt.</div><button class="btn primary" data-act="nav" data-v="settings">Kết nối lưu trữ</button></div>`:''}
   ${!localOK?`<div class="banner">${icon('alert',22)}<div class="grow"><b>Trình duyệt không cho lưu cục bộ.</b> Hãy kết nối Drive/OneDrive hoặc xuất bản sao lưu thường xuyên.</div></div>`:''}
   <div class="grid g4 kpi-row">
@@ -1537,7 +1540,7 @@ function roomModal(id){
 }
 
 /* ---------- Báo cáo ---------- */
-function vReport(){
+function vReportMain(){
   const ks=monthKeys(),stats=ks.map(k=>({k,s:monthStats(k)})).reverse();
   if(!UI.reportRoom||!roomById(UI.reportRoom))UI.reportRoom=DB.rooms[0]&&DB.rooms[0].id;
   const rid=UI.reportRoom;
@@ -1579,7 +1582,7 @@ function vSettings(){
    <div class="card"><h2>Thông tin nhà trọ (in trên thông báo)</h2><div class="fg">${si('propertyName','Tên nhà trọ')}${si('manager','Người quản lý (ký tên)')}${si('address','Địa chỉ')}${si('phone','Điện thoại')}${si('bankName','Ngân hàng')}${si('bankAcc','Số tài khoản')}${si('bankHolder','Chủ tài khoản')}<label class="f">Ngân hàng (để tạo mã QR)<select data-set="bankBin" data-t="t"><option value="">— Chọn ngân hàng —</option>${BANKS.map(b=>`<option value="${b.bin}" ${S.bankBin===b.bin?'selected':''}>${b.name}</option>`).join('')}</select></label><label class="f">In mã QR thanh toán trên phiếu<select data-set="qrOn" data-t="t"><option value="1" ${S.qrOn!=='0'?'selected':''}>Có</option><option value="0" ${S.qrOn==='0'?'selected':''}>Không</option></select></label><label class="f full">Nội dung chuyển khoản trong QR (dùng {room} {month} {year} {name})<input type="text" data-set="qrContent" data-t="t" value="${esc(S.qrContent||'')}" maxlength="60"></label>
      <label class="f full">Tiêu đề thông báo<input type="text" data-set="noticeTitle" data-t="t" value="${esc(S.noticeTitle)}"></label>
      <label class="f full">Lời nhắc cuối phiếu (dùng {dueDay} cho ngày hạn)<textarea data-set="noticeFooter" data-t="t">${esc(S.noticeFooter)}</textarea></label></div></div>
-   <div class="card"><h2>Đơn giá mặc định cho tháng tạo mới</h2><div class="fg">${si('elecPrice','Giá điện (đ/kWh)','n')}${si('waterPrice','Giá nước (đ/m³)','n')}${si('pumpPrice','Giá điện máy bơm (đ/kWh)','n')}${si('trash','Tiền rác mặc định','n')}${si('anqp','Tiền ANQP mặc định','n')}${si('freePeople','Số người không phụ thu','n')}${si('extraPerson','Phụ thu mỗi người thêm','n')}${si('dueDay','Hạn đóng tiền (ngày trong tháng)','n')}${si('batches','Số đợt thu tiền','n')}</div>
+   <div class="card"><h2>Đơn giá mặc định cho tháng tạo mới</h2><div class="fg">${si('elecPrice','Giá điện (đ/kWh)','n')}${si('waterPrice','Giá nước (đ/m³)','n')}${si('pumpPrice','Giá điện máy bơm (đ/kWh)','n')}${si('trash','Tiền rác mặc định','n')}${si('anqp','Tiền ANQP mặc định','n')}${si('freePeople','Số người không phụ thu','n')}${si('extraPerson','Phụ thu mỗi người thêm','n')}${si('dueDay','Hạn đóng tiền (ngày trong tháng)','n')}${si('batches','Số đợt thu tiền','n')}${si('remindOffsets','Ngày nhắc nợ so với hạn thu (vd -2,1,5)')}</div>
      <p class="muted sm">Đổi ở đây không làm thay đổi các tháng đã tạo. Giá từng tháng chỉnh trong Bảng tính.</p></div></div>
   <div class="card"><h2>Sao lưu, khôi phục, nhập xuất</h2><div class="row">
      <button class="btn" data-act="exportjson">${icon('down',16)}Tải bản sao lưu (.json)</button><button class="btn" data-act="importjson">${icon('up',16)}Khôi phục từ tệp .json</button>
@@ -1626,7 +1629,7 @@ function showConflict(rem,why){
 async function syncDiag(){
   const o=$('#diagout');if(!o)return;o.textContent='Đang kiểm tra…';
   const L=[],add=(k,v)=>L.push(k+': '+v),fmt=t=>t?new Date(t).toLocaleString('vi-VN'):'-',sh=x=>(x||'').slice(0,6)||'-';
-  add('Phiên bản','v5.0');add('Địa chỉ app',location.origin+location.pathname);
+  add('Phiên bản','v5.1');add('Địa chỉ app',location.origin+location.pathname);
   add('Nơi lưu',CFG.driver||'(chưa kết nối)');add('Trạng thái',Sync.state+(Sync.msg?' – '+Sync.msg:''));
   add('Máy này: rev',DB.rev+' · rev đã đồng bộ '+CFG.syncRev);add('Máy này: pid',sh(DB.pid)+' · pid đã đồng bộ '+sh(CFG.syncPid));
   add('Máy này: sửa lần cuối',fmt(DB.updatedAt)+' · '+Object.keys(DB.months).length+' tháng');
@@ -1820,6 +1823,95 @@ function importJSON(file){
     confirmBox('Khôi phục từ sao lưu','Dữ liệu hiện tại sẽ được thay bằng nội dung tệp. Bản hiện tại vẫn được giữ trong “Bản lưu tự động”.','Khôi phục',async()=>{await snapshot('Trước khi khôi phục từ tệp');DB=normalizeDB(d);DB.rev=Math.max(DB.rev,(CFG.syncRev||0))+1;persistLocal();ensureMonthSelected();save();render();toast('Đã khôi phục dữ liệu')},false)};
   fr.readAsText(file);
 }
+/* ---------- Lịch nhắc nợ ---------- */
+const isoAdd=(iso,n)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const daysBetween=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/864e5);
+const dueISO=k=>`${k}-${pad(Math.min(DB.settings.dueDay||5,28))}`;
+function remindOffsets(){const t=String(DB.settings.remindOffsets==null?'-2,1,5':DB.settings.remindOffsets);const a=t.split(/[,;\s]+/).filter(Boolean).map(Number).filter(x=>Number.isFinite(x));return a.length?a.sort((x,y)=>x-y):[]}
+function remindSched(k){const due=dueISO(k),t=todayISO();const ds=remindOffsets().map(o=>isoAdd(due,o)).filter(d=>d<=t);return ds.length?ds[ds.length-1]:null}
+function pendingRemind(k){
+  const sc=remindSched(k),m=DB.months[k];if(!sc||!m)return [];
+  return remindList(null).filter(x=>(m.reminded&&m.reminded[x.r.id]||'')<sc);
+}
+function startRemindQueue(all){
+  const k=UI.month,m=DB.months[k];let L=remindList(null);
+  if(!all){const p=pendingRemind(k);if(p.length)L=p}
+  if(!L.length)return toast('Không có phòng nào còn thiếu tiền');
+  UI.rq={ids:L.map(x=>x.r.id),i:0,done:0};remindStep();
+}
+function remindStep(){
+  const q=UI.rq;if(!q)return;const k=UI.month,m=DB.months[k];
+  while(q.i<q.ids.length){const r0=roomById(q.ids[q.i]);if(r0&&m.recs[r0.id]){const c0=calc(r0,m.recs[r0.id],m);if(c0.total-paidOf(m,r0.id).total>0)break}q.i++}
+  if(q.i>=q.ids.length){closeModal(true);UI.rq=null;render();return toast(`Đã nhắc ${q.done} phòng`)}
+  const id=q.ids[q.i],r=roomById(id),c=calc(r,m.recs[id],m),left=Math.round(c.total-paidOf(m,id).total),tx=remindText(k,id),ph=String(r.tenant.phone||'').replace(/\D/g,'');
+  openModal(`Nhắc nợ ${q.i+1}/${q.ids.length} · phòng ${id}`,
+    `<div class="row" style="gap:8px"><b class="mono">${esc(id)}</b><span class="grow">${esc(r.tenant.name||'')}</span><b class="mono neg">${money(left)}</b></div>
+     <div class="bar sm" style="margin:8px 0"><i style="width:${Math.round(q.i/q.ids.length*100)}%"></i></div>
+     <pre style="white-space:pre-wrap;font:inherit;font-size:13px;margin:0 0 10px;padding:8px;background:var(--soft,#f3f6f5);border-radius:8px">${esc(tx)}</pre>
+     <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm primary" data-act="copyremind" data-room="${esc(id)}">Sao chép</button>${ph?`<a class="btn sm" href="https://zalo.me/${ph}" target="_blank" rel="noopener">Mở Zalo</a><a class="btn sm" href="sms:${ph}?&body=${encodeURIComponent(tx)}">SMS</a>`:'<span class="muted sm">Phòng chưa có số điện thoại</span>'}</div>
+     <p class="muted sm" style="margin:10px 0 0">Gửi xong bấm “Đã nhắc” để app ghi nhớ và sang phòng tiếp theo. Lần sau chỉ nhắc những phòng chưa được nhắc.</p>`,
+    `<button class="btn" data-act="rqskip">Bỏ qua</button><button class="btn primary" data-act="rqdone">Đã nhắc, phòng tiếp theo</button>`,{onClose:()=>{UI.rq=null;render()}});
+}
+
+/* ---------- Thống kê trả trễ ---------- */
+function lateStats(){
+  const today=todayISO(),ks=monthKeys(),res={};
+  DB.rooms.forEach(r=>{res[r.id]={r,months:0,ontime:0,late:0,lateDays:0,unpaid:0,unknown:0}});
+  ks.forEach(k=>{const m=DB.months[k],due=dueISO(k);
+    monthRooms(k).forEach(r=>{const rec=m.recs[r.id],c=calc(r,rec,m),o=res[r.id];if(!o||!(c.total>0))return;
+      const pays=(m.payments[r.id]||[]).slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
+      let cum=0,full=null;for(const x of pays){cum+=x.amount;if(cum>=c.total){full=x.date||'';break}}
+      if(full===null){if(today<=due)return;o.months++;o.unpaid++;return}
+      o.months++;if(full===''){o.unknown++;return}
+      const dl=daysBetween(due,full);if(dl<=0)o.ontime++;else{o.late++;o.lateDays+=dl}
+    })});
+  const lk=ks[ks.length-1],lm=lk&&DB.months[lk];
+  return Object.values(res).filter(o=>o.months>0).map(o=>{
+    const known=o.months-o.unknown,bad=o.late+o.unpaid,rate=known>0?o.ontime/known:null;
+    let left=0;if(lm&&lm.recs[o.r.id]){const c=calc(o.r,lm.recs[o.r.id],lm);left=Math.max(0,Math.round(c.total-paidOf(lm,o.r.id).total))}
+    const lv=known<2?['','Ít dữ liệu']:(bad/known>=.5?['bad','Hay trễ']:(bad/known>=.25?['warn','Thỉnh thoảng trễ']:['ok','Đúng hạn']));
+    return {...o,known,bad,rate,left,lv,avg:o.late?Math.round(o.lateDays/o.late):0};
+  }).sort((a,b)=>b.bad-a.bad||b.lateDays-a.lateDays||b.left-a.left);
+}
+function vLate(){
+  const L=lateStats();
+  if(!L.length)return `<div class="card"><p class="muted" style="margin:0">Chưa đủ dữ liệu: cần ít nhất một tháng đã quá hạn thu và có ghi ngày trả tiền.</p></div>`;
+  const tk=L.reduce((a,o)=>a+o.known,0),to=L.reduce((a,o)=>a+o.ontime,0),tl=L.reduce((a,o)=>a+o.late,0),td=L.reduce((a,o)=>a+o.lateDays,0),nBad=L.filter(o=>o.lv[0]==='bad').length;
+  const rows=L.map(o=>`<tr><td class="l stk1"><b class="mono">${esc(o.r.id)}</b></td><td class="l">${esc(o.r.tenant.name||'')}</td><td class="num">${o.months}</td><td class="num pos">${o.ontime}</td><td class="num ${o.late?'neg':''}">${o.late}${o.late?` <span class="muted sm">(TB ${o.avg} ngày)</span>`:''}</td><td class="num ${o.unpaid?'neg':''}">${o.unpaid}</td><td class="num">${o.rate==null?'–':Math.round(o.rate*100)+'%'}</td><td class="num ${o.left>0?'neg':''}">${o.left>0?money(o.left):'–'}</td><td class="l"><span class="chip ${o.lv[0]}">${o.lv[1]}</span></td><td class="l"><button class="btn sm ghost" data-act="rephist" data-room="${esc(o.r.id)}">Lịch sử</button>${o.left>0?`<button class="btn sm ghost" data-act="remind" data-room="${esc(o.r.id)}">Nhắc</button>`:''}</td></tr>`).join('');
+  return `<div class="grid g4 kpi-row">
+    <div class="card kpi"><span class="l">Phòng hay trả trễ</span><span class="v ${nBad?'neg':''}">${nBad}<small class="sm muted"> / ${L.length}</small></span><span class="s">trễ hoặc chưa đủ từ 50% số tháng</span></div>
+    <div class="card kpi"><span class="l">Tỷ lệ đúng hạn toàn nhà</span><span class="v">${tk?Math.round(to/tk*100):0}%</span><span class="s">${to}/${tk} lượt tháng-phòng</span></div>
+    <div class="card kpi"><span class="l">Trễ trung bình</span><span class="v">${tl?Math.round(td/tl):0}<small class="sm muted"> ngày</small></span><span class="s">${tl} lượt trả trễ</span></div>
+    <div class="card kpi"><span class="l">Đang nợ tháng gần nhất</span><span class="v ${L.some(o=>o.left>0)?'neg':''}">${money(L.reduce((a,o)=>a+o.left,0))}</span><span class="s">${L.filter(o=>o.left>0).length} phòng</span></div></div>
+  <div class="card"><h2>Phòng theo mức độ trả trễ</h2><div class="tw"><table><thead><tr><th class="l">Phòng</th><th class="l">Tên</th><th>Số tháng</th><th>Đúng hạn</th><th>Trễ</th><th>Chưa đủ</th><th>% đúng hạn</th><th>Đang nợ</th><th class="l">Đánh giá</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="muted sm" style="margin:10px 0 0">Cách tính: “đúng hạn” là ngày khoản thu đủ tổng phải thu, không muộn hơn hạn thu (ngày ${DB.settings.dueDay||5} hằng tháng). “Trễ” là đủ nhưng sau hạn. “Chưa đủ” là tháng đã quá hạn mà chưa thu đủ. Khoản thu không ghi ngày trả không bị tính trễ. Nợ cộng dồn từ tháng trước làm tháng sau cũng bị tính chưa đủ nếu chưa trả hết.</p></div>`;
+}
+
+/* ---------- Lợi nhuận ---------- */
+function vProfit(){
+  const ks=monthKeys().slice().reverse();
+  const R=ks.map(k=>{const m=DB.months[k],s=monthStats(k),ex=m.expenses||[],sm=c=>ex.filter(x=>x.cat===c).reduce((a,x)=>a+x.amount,0);
+    const e=sm('elec'),w=sm('water'),o=sm('other'),tot=e+w+o;return {k,s,e,w,o,tot,has:ex.length>0,profit:s.paid-tot,ge:e>0?s.elecTotal-e:null,gw:w>0?s.wAmt-w:null}});
+  const H=R.filter(x=>x.has),skip=R.length-H.length;
+  const T={paid:H.reduce((a,x)=>a+x.s.paid,0),exp:H.reduce((a,x)=>a+x.tot,0)};T.profit=T.paid-T.exp;
+  const best=H.length?H.reduce((a,x)=>x.profit>a.profit?x:a):null;
+  const ch=H.slice(0,8).reverse().map(x=>({label:x.k.slice(5)+'/'+x.k.slice(2,4),a:x.tot,b:Math.max(0,x.profit)}));
+  const rows=R.map(x=>`<tr><td class="l"><button class="btn sm ghost" data-act="gorecon" data-m="${x.k}"><b>${monthLabel(x.k)}</b></button></td><td class="num">${money(x.s.billed)}</td><td class="num pos">${money(x.s.paid)}</td>${x.has?`<td class="num">${money(x.e)}</td><td class="num">${money(x.w)}</td><td class="num">${money(x.o)}</td><td class="num"><b>${money(x.tot)}</b></td><td class="num ${x.profit<0?'neg':'pos'}"><b>${money(x.profit)}</b></td><td class="num">${x.s.paid>0?Math.round(x.profit/x.s.paid*100)+'%':'–'}</td><td class="num ${x.ge!=null&&x.ge<0?'neg':''}">${x.ge==null?'–':money(x.ge)}</td><td class="num ${x.gw!=null&&x.gw<0?'neg':''}">${x.gw==null?'–':money(x.gw)}</td>`:`<td class="l muted" colspan="8">Chưa nhập chi phí <button class="btn sm ghost" data-act="gorecon" data-m="${x.k}">Nhập ở Đối soát</button></td>`}</tr>`).join('');
+  return `<div class="grid g4 kpi-row">
+    <div class="card kpi"><span class="l">Đã thu thực tế</span><span class="v pos">${money(T.paid)}</span><span class="s">${H.length} tháng đã nhập chi phí</span></div>
+    <div class="card kpi"><span class="l">Tổng chi phí</span><span class="v">${money(T.exp)}</span><span class="s">điện, nước, khác</span></div>
+    <div class="card kpi"><span class="l">Lợi nhuận</span><span class="v ${T.profit<0?'neg':'pos'}">${money(T.profit)}</span><span class="s">${T.paid>0?'Biên '+Math.round(T.profit/T.paid*100)+'% · ':''}TB ${H.length?money(T.profit/H.length):0}/tháng</span></div>
+    <div class="card kpi"><span class="l">Tháng tốt nhất</span><span class="v">${best?esc(best.k.slice(5)+'/'+best.k.slice(0,4)):'–'}</span><span class="s">${best?money(best.profit)+'đ':'Chưa có dữ liệu'}</span></div></div>
+  ${skip?`<div class="banner">${icon('alert',22)}<div class="grow">${skip} tháng chưa nhập chi phí nên không được tính vào tổng. Nhập tiền điện, nước thực trả và chi khác ở mục <b>Đối soát</b> để có lợi nhuận đúng.</div></div>`:''}
+  ${H.length?`<div class="card"><h2>Chi phí và lợi nhuận<span class="sp"></span><span class="chip"><span style="width:9px;height:9px;border-radius:2px;background:var(--line2)"></span>Chi phí</span><span class="chip acc"><span style="width:9px;height:9px;border-radius:2px;background:var(--accent)"></span>Lợi nhuận</span></h2>${barChart(ch)}</div>`:''}
+  <div class="card"><h2>Lợi nhuận theo tháng</h2><div class="tw"><table><thead><tr><th class="l">Tháng</th><th>Phải thu</th><th>Đã thu</th><th>Chi điện</th><th>Chi nước</th><th>Chi khác</th><th>Tổng chi</th><th>Lợi nhuận</th><th>Biên</th><th>Lãi điện</th><th>Lãi nước</th></tr></thead><tbody>${rows||'<tr><td class="l muted" colspan="11">Chưa có dữ liệu.</td></tr>'}</tbody></table></div>
+  <p class="muted sm" style="margin:10px 0 0">Lợi nhuận = đã thu thực tế − chi phí đã nhập ở Đối soát. “Lãi điện/nước” = tiền điện (gồm bơm) hoặc nước đã tính khách − tiền điện/nước thực trả nhà cung cấp.</p></div>`;
+}
+function vReport(){
+  const t=UI.reportTab||'main';
+  const tabs=`<div class="seg tabs" role="group" aria-label="Loại báo cáo">${[['main','Tổng hợp'],['late','Trả trễ'],['profit','Lợi nhuận']].map(([v,l])=>`<button data-act="rtab" data-v="${v}" aria-pressed="${t===v}">${l}</button>`).join('')}</div>`;
+  return tabs+(t==='late'?vLate():t==='profit'?vProfit():vReportMain());
+}
 function remindText(k,id){
   const m=DB.months[k],room=roomById(id),c=calc(room,m.recs[id],m),p=paidOf(m,id),S=DB.settings;
   const left=Math.round(c.total-p.total),due=`${k}-${pad(Math.min(S.dueDay||5,28))}`,name=(room.tenant&&room.tenant.name||'').trim();
@@ -1837,9 +1929,9 @@ function remindList(only){
 function remindModal(only){
   const L=remindList(only),k=UI.month;if(!L.length)return toast('Không có phòng nào còn thiếu tiền');
   openModal(only?`Nhắc nợ · phòng ${only}`:`Nhắc nợ · ${L.length} phòng`,
-    `<p class="muted sm" style="margin-top:0">Bấm Sao chép rồi dán vào Zalo hoặc tin nhắn. Nội dung tự lấy số tiền còn thiếu, hạn thu và tài khoản ngân hàng đã nhập trong Cài đặt.</p>`+
+    (!only&&L.length>1?`<div style="margin-bottom:10px"><button class="btn primary" data-act="remindq" data-all="1">Nhắc lần lượt từng phòng</button></div>`:'')+`<p class="muted sm" style="margin-top:0">Bấm Sao chép rồi dán vào Zalo hoặc tin nhắn. Nội dung tự lấy số tiền còn thiếu, hạn thu và tài khoản ngân hàng đã nhập trong Cài đặt.</p>`+
     L.map(x=>{const ph=String(x.r.tenant.phone||'').replace(/\D/g,''),tx=remindText(k,x.r.id);
-      return `<div class="card" style="box-shadow:none;margin-bottom:8px"><div class="row" style="gap:8px"><b class="mono">${esc(x.r.id)}</b><span class="grow">${esc(x.r.tenant.name||'')}</span><b class="mono neg">${money(x.left)}</b></div><pre style="white-space:pre-wrap;font:inherit;font-size:13px;margin:8px 0;padding:8px;background:var(--soft,#f3f6f5);border-radius:8px">${esc(tx)}</pre><div class="row" style="gap:6px"><button class="btn sm primary" data-act="copyremind" data-room="${esc(x.r.id)}">Sao chép</button>${ph?`<a class="btn sm" href="https://zalo.me/${ph}" target="_blank" rel="noopener">Mở Zalo</a><a class="btn sm" href="sms:${ph}?&body=${encodeURIComponent(tx)}">SMS</a>`:''}</div></div>`}).join(''),
+      return `<div class="card" style="box-shadow:none;margin-bottom:8px"><div class="row" style="gap:8px"><b class="mono">${esc(x.r.id)}</b><span class="grow">${esc(x.r.tenant.name||'')}</span><b class="mono neg">${money(x.left)}</b></div>${(DB.months[k].reminded||{})[x.r.id]?`<div class="muted sm">Đã nhắc ${fmtDate(DB.months[k].reminded[x.r.id])}</div>`:''}<pre style="white-space:pre-wrap;font:inherit;font-size:13px;margin:8px 0;padding:8px;background:var(--soft,#f3f6f5);border-radius:8px">${esc(tx)}</pre><div class="row" style="gap:6px"><button class="btn sm primary" data-act="copyremind" data-room="${esc(x.r.id)}">Sao chép</button>${ph?`<a class="btn sm" href="https://zalo.me/${ph}" target="_blank" rel="noopener">Mở Zalo</a><a class="btn sm" href="sms:${ph}?&body=${encodeURIComponent(tx)}">SMS</a>`:''}</div></div>`}).join(''),
     `<button class="btn" data-act="mclose">Đóng</button>`,{wide:true});
 }
 async function copyText(t){
@@ -1938,7 +2030,13 @@ document.addEventListener('click',async e=>{
    case 'go':{UI.view=el.dataset.v;if(el.dataset.pf!=null){UI.payFilter=el.dataset.pf;UI.payQ=''}if(el.dataset.ef!=null){UI.entryFilter=el.dataset.ef;UI.entryQ=''}CFG.view=UI.view;saveCfg();render();window.scrollTo(0,0);break}
    case 'pclear':UI.payFilter='all';UI.payQ='';render();break;
    case 'remind':remindModal(el.dataset.room||null);break;
-   case 'copyremind':copyText(remindText(UI.month,el.dataset.room));break;
+   case 'remindq':startRemindQueue(!!el.dataset.all);break;
+   case 'rqdone':{const q=UI.rq;if(q){m.reminded=m.reminded||{};m.reminded[q.ids[q.i]]=todayISO();q.done++;q.i++;save();remindStep()}break}
+   case 'rqskip':{const q=UI.rq;if(q){q.i++;remindStep()}break}
+   case 'rtab':UI.reportTab=el.dataset.v;render();window.scrollTo(0,0);break;
+   case 'rephist':UI.reportRoom=el.dataset.room;UI.reportTab='main';render();window.scrollTo(0,0);break;
+   case 'gorecon':UI.month=el.dataset.m;CFG.month=UI.month;UI.view='recon';CFG.view='recon';saveCfg();render();window.scrollTo(0,0);break;
+   case 'copyremind':{m.reminded=m.reminded||{};m.reminded[el.dataset.room]=todayISO();save();copyText(remindText(UI.month,el.dataset.room));break}
    case 'pfilter':UI.payFilter=el.dataset.v;render();break;
    case 'ppl':{const rec=m.recs[id];if(m.locked)break;rec.people=Math.max(0,(rec.people||0)+(+el.dataset.d));refreshCard(id);scheduleSave();break}
    case 'detail':detailModal(id);break;
