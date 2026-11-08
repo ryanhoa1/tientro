@@ -714,7 +714,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.1 · báo cáo công an · nhập Excel đủ cột</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.2 · nhập Excel cập nhật toàn bộ người ở</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
@@ -1242,6 +1242,10 @@ function anyDate(v){
 const idStr=v=>{if(v==null)return '';if(typeof v==='number'){const t=String(Math.round(v));return (t.length===11||t.length===8)?'0'+t:t}return String(v).replace(/\s+/g,'').trim()};
 const nameMatch=(a,b)=>{const x=normTxt(a).split(' ').filter(Boolean),y=normTxt(b).split(' ').filter(Boolean);if(!x.length||!y.length)return false;
   const [sh,lo]=x.length<=y.length?[x,y]:[y,x];return sh.every(w=>lo.includes(w))};
+const lev1=(a,b)=>{if(a===b)return true;if(Math.abs(a.length-b.length)>1||Math.min(a.length,b.length)<4)return false;let i=0;while(i<a.length&&i<b.length&&a[i]===b[i])i++;
+  return a.slice(i+1)===b.slice(i+1)||a.slice(i)===b.slice(i+1)||a.slice(i+1)===b.slice(i)};   // lệch tối đa 1 ký tự
+const nameClose=(a,b)=>{const x=normTxt(a).split(' ').filter(Boolean),y=normTxt(b).split(' ').filter(Boolean);if(x.length<2||x.length!==y.length)return false;
+  let diff=0;for(let i=0;i<x.length;i++)if(x[i]!==y[i]){if(!lev1(x[i],y[i]))return false;diff++}return diff<=1};  // gõ sai 1 chữ, ví dụ “Trung” và “Trương”
 async function parsePeopleXLSX(file){
   await ensureXLSX();
   const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:false}); // giữ số ngày gốc của Excel, tránh lệch 1 ngày do múi giờ
@@ -1264,7 +1268,7 @@ async function parsePeopleXLSX(file){
 const idKey=v=>String(v||'').replace(/\D/g,'').replace(/^0+/,'');
 function planPeopleImport(rows){
   const byRoom={};rows.forEach(r=>(byRoom[r.room]=byRoom[r.room]||[]).push(r));
-  const plan={rooms:[],skipped:[],add:0,upd:0,dup:0,total:rows.length,mism:[]};
+  const plan={rooms:[],skipped:[],add:0,upd:0,dup:0,total:rows.length,mism:[],repMiss:[]};
   Object.keys(byRoom).forEach(id=>{
     const room=roomById(id);
     if(!room){plan.skipped.push({id,n:byRoom[id].length,why:'chưa có phòng này trong app'});return}
@@ -1280,14 +1284,16 @@ function planPeopleImport(rows){
         const ok=cands.filter(x=>(!rid||!x.id)&&x.name&&(x.virt?normTxt(x.name)===rn:nameMatch(x.name,r.name)));
         c=ok.find(x=>!x.taken&&normTxt(x.name)===rn)||ok.find(x=>!x.taken)||ok.find(x=>normTxt(x.name)===rn)||null;
       }
+      if(!c)c=cands.find(x=>!x.taken&&!x.virt&&(!rid||!x.id)&&x.name&&nameClose(x.name,r.name))||null;   // 3. tên gõ sai 1 chữ
       if(c&&c.virt){                                                   // dòng trùng với người vừa được thêm trong cùng lần nhập: gộp
         Object.keys(r).forEach(k=>{if(!c.item.r[k]&&r[k])c.item.r[k]=r[k]});if(rid&&!c.id)c.id=rid;
         items.push({r,target:null,kind:'dup'});plan.dup++;return;
       }
-      if(c){c.taken=true;if(rid&&!c.id)c.id=rid;items.push({r,target:c.tgt,kind:'upd'});plan.upd++;return}
+      if(c){c.taken=true;if(rid&&!c.id)c.id=rid;items.push({r,target:c.tgt,kind:'upd',old:c.name||''});plan.upd++;return}
       const item={r:{...r},target:null,kind:'add'};items.push(item);plan.add++;
       cands.push({t:null,tgt:null,id:rid,name:r.name,virt:true,taken:true,item});
     });
+    if(room.tenant.name&&!cands[0].taken)plan.repMiss.push({id,name:room.tenant.name}); // đại diện không có trong file
     const newCount=items.filter(x=>x.kind==='add').length,total=1+mem.length+newCount;
     plan.rooms.push({id,room,items,newCount,total});
     if(total!==room.occupants)plan.mism.push({id,list:total,cur:room.occupants});
@@ -1302,6 +1308,7 @@ function applyPeoplePlan(plan,opt){
       if(kind==='add'){room.members.push({name:toTitle(r.name),idNo:r.idNo,tt1:r.tt1,tt2:r.tt2,tv1:'',tv2:'',dob:r.dob,sex:r.sex,hk:r.hk,hkOwner:r.hkOwner,group:r.group,ttPlace:r.ttPlace,phone:r.phone,note:r.note});return}
       if(!opt.update)return;
       const t=target==='rep'?room.tenant:room.members[target];
+      if(opt.name&&r.name){const nn=toTitle(r.name);if(nn)t.name=nn}   // họ tên đầy đủ (cả đại diện và người ở cùng)
       if(!t.idNo&&r.idNo)t.idNo=r.idNo;
       ['dob','sex','hk','hkOwner','group','ttPlace','tt1','tt2'].forEach(f=>{if(r[f])t[f]=r[f]});
       if(r.phone&&!t.phone)t.phone=r.phone;
@@ -1353,17 +1360,19 @@ function dupModal(){
 async function importPeopleXLSX(file){
   let parsed;try{parsed=await parsePeopleXLSX(file)}catch(e){return toast(e.message||String(e),'bad')}
   const plan=planPeopleImport(parsed.rows);
-  const roomLines=plan.rooms.map(x=>`<li><b class="mono">${esc(x.id)}</b> – ${esc(x.room.tenant.name||'')}: ${x.items.filter(i=>i.kind==='upd').length?x.items.filter(i=>i.kind==='upd').length+' cập nhật':''}${x.items.filter(i=>i.kind==='upd').length&&x.newCount?', ':''}${x.newCount?x.newCount+' người mới':''}</li>`).join('');
+  const roomLines=plan.rooms.map(x=>`<li><b class="mono">${esc(x.id)}</b> – ${x.items.filter(i=>i.kind!=='dup').map(i=>i.kind==='add'?`<span class="pos">+ ${esc(toTitle(i.r.name))}</span> (mới)`:`${esc(i.old||'(chưa tên)')}${i.old&&i.old.trim()!==toTitle(i.r.name)?' → <b>'+esc(toTitle(i.r.name))+'</b>':''} (cập nhật)`).join('; ')}</li>`).join('');
   openModal('Nhập người ở từ Excel',`
     <p style="margin:0 0 8px">Đọc được <b>${plan.total}</b> người từ bảng “${esc(parsed.sheet)}”: <b>${plan.add}</b> người mới, <b>${plan.upd}</b> người đã có trong app (khớp theo CCCD hoặc tên trong cùng phòng).${plan.dup?` Có <b>${plan.dup}</b> dòng trùng trong file, đã tự gộp.`:''}</p>
-    <div class="mgr-sec"><label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="imUpd" checked><span>Cập nhật thông tin người đã có (ngày sinh, giới tính, thường trú, chủ hộ, nơi đăng ký tạm trú, ngày đăng ký và hạn tạm trú). Cũng dùng để sửa các ngày đã nhập lệch 1 ngày ở bản cũ. Không đổi họ tên và CCCD đang có.</span></label>
+    <div class="mgr-sec"><label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="imUpd" checked><span>Cập nhật thông tin người đã có (ngày sinh, giới tính, thường trú, chủ hộ, nơi đăng ký tạm trú, ngày đăng ký và hạn tạm trú). Cũng dùng để sửa các ngày đã nhập lệch 1 ngày ở bản cũ. Không đổi CCCD đang có.</span></label>
+      <label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="imName" checked><span>Đổi tên đang nhập thành <b>họ tên đầy đủ trong file</b>, áp dụng cho cả đại diện phòng và người ở cùng (ví dụ “Hoành” → “Danh Hoành”). Tên đại diện cũng xuất hiện trên phiếu thu và lời nhắc, nên nếu muốn giữ tên gọi cũ thì bỏ chọn ô này.</span></label>
       <label class="row" style="gap:8px;flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="imOcc"><span>Đặt “Số người ở mặc định” của phòng theo số người trong danh sách${plan.mism.length?` (${plan.mism.length} phòng đang lệch: ${esc(plan.mism.slice(0,6).map(x=>`${x.id} ${x.cur}→${x.list}`).join(', '))}${plan.mism.length>6?'…':''})`:''}. Chỉ ảnh hưởng tiền phụ thu từ tháng tạo sau.</span></label></div>
+    ${plan.repMiss.length?`<p class="muted sm" style="margin:0 0 8px">Đại diện phòng không có trong file (giữ nguyên, kiểm tra lại tên): ${esc(plan.repMiss.map(x=>`${x.id} (${x.name})`).join('; '))}.</p>`:''}
     ${plan.skipped.length?`<p class="muted sm" style="margin:0 0 8px">Bỏ qua ${plan.skipped.reduce((a,x)=>a+x.n,0)} người: ${esc(plan.skipped.map(x=>`${x.id} (${x.why})`).join('; '))}.</p>`:''}
     <details class="help"><summary>Xem theo phòng (${plan.rooms.length} phòng)</summary><ul class="list-plain" style="max-height:220px;overflow:auto">${roomLines}</ul></details>
     <p class="muted sm" style="margin:8px 0 0">File chỉ được đọc ngay trên máy bạn, không gửi đi đâu. Dữ liệu sau khi nhập được lưu vào cơ sở dữ liệu của app (Google Drive nếu đã kết nối) và có bản lưu tự động trước khi nhập.</p>`,
     `<button class="btn" data-act="mclose">Hủy</button><button class="btn primary" id="imGo">Nhập vào app</button>`,{wide:true});
   $('#imGo').onclick=async()=>{
-    const opt={update:$('#imUpd').checked,occ:$('#imOcc').checked};closeModal(true);
+    const opt={update:$('#imUpd').checked,name:$('#imName').checked,occ:$('#imOcc').checked};closeModal(true);
     await snapshot('Trước khi nhập người ở từ Excel');
     applyPeoplePlan(plan,opt);save();persistLocal();UI.view='people';CFG.view='people';saveCfg();render();
     let where=' · đang lưu trong trình duyệt này (chưa kết nối Google Drive)';
@@ -1629,7 +1638,7 @@ function showConflict(rem,why){
 async function syncDiag(){
   const o=$('#diagout');if(!o)return;o.textContent='Đang kiểm tra…';
   const L=[],add=(k,v)=>L.push(k+': '+v),fmt=t=>t?new Date(t).toLocaleString('vi-VN'):'-',sh=x=>(x||'').slice(0,6)||'-';
-  add('Phiên bản','v5.1');add('Địa chỉ app',location.origin+location.pathname);
+  add('Phiên bản','v5.2');add('Địa chỉ app',location.origin+location.pathname);
   add('Nơi lưu',CFG.driver||'(chưa kết nối)');add('Trạng thái',Sync.state+(Sync.msg?' – '+Sync.msg:''));
   add('Máy này: rev',DB.rev+' · rev đã đồng bộ '+CFG.syncRev);add('Máy này: pid',sh(DB.pid)+' · pid đã đồng bộ '+sh(CFG.syncPid));
   add('Máy này: sửa lần cuối',fmt(DB.updatedAt)+' · '+Object.keys(DB.months).length+' tháng');
