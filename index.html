@@ -348,6 +348,19 @@ svg.chart .b1{fill:var(--line2)}svg.chart .b2{fill:var(--accent)}
 .sentchip.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
 .sentchip.no{background:var(--bad-soft);color:var(--bad);border-color:transparent}
 .sentchip.cur{outline:2px solid var(--accent);outline-offset:1px}
+.only-m{display:none}
+.sentgrid.paint{touch-action:none;user-select:none;-webkit-user-select:none}
+.sentgrid.paint .sentchip{touch-action:none}
+@media (max-width:700px){
+  .only-m{display:flex}
+  .sentbox{padding:12px;gap:10px}
+  .sentbox .seg{display:flex;width:100%}.sentbox .seg button{flex:1;min-height:44px;font-size:14px;line-height:1.2}
+  .sentbox .btn{min-height:44px}
+  .sentgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .sentchip{justify-content:center;min-height:46px;padding:4px 2px;font-size:15px;border-radius:10px}
+  .noticewrap>.card{padding:14px}
+  .paperwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 #login{position:fixed;inset:0;z-index:9999;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
 #login .box{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:28px 24px;text-align:center}
@@ -749,7 +762,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.6 · xác nhận đã gửi thông báo</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.7 · quét chọn hàng loạt, gọn cho điện thoại</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave'].includes(UI.view);
@@ -1108,7 +1121,10 @@ function sentPanel(k,rooms){
   return `<div class="sentbox"><div class="row" style="justify-content:space-between;gap:8px"><b>Tình trạng gửi tháng ${esc(k.slice(5))}/${esc(k.slice(0,4))}</b><span class="muted sm">${done.length}/${rooms.length} đã gửi</span></div>
     <div class="sentbar" aria-hidden="true"><i style="width:${pct}%"></i></div>
     <div class="seg" role="group" aria-label="Lọc đã gửi">${[['all','Tất cả ('+rooms.length+')'],['todo','Chưa gửi ('+todo.length+')'],['done','Đã gửi ('+done.length+')']].map(([v,l])=>`<button data-act="sentfilter" data-v="${v}" aria-pressed="${f===v}">${l}</button>`).join('')}</div>
-    <div class="sentgrid">${show.map(r=>{const t=sentAt(m,r.id);return `<button class="sentchip ${t?'ok':'no'}${r.id===cur?' cur':''}" data-act="noticepick" data-room="${esc(r.id)}" title="${esc(r.tenant.name||'')}${t?' · gửi '+sentFmt(t):' · chưa gửi'}">${t?icon('check',12):''}<span>${esc(r.id)}</span></button>`}).join('')||'<span class="muted sm">Không có phòng nào.</span>'}</div>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm${UI.sentPaint?' primary':''}" data-act="sentpaint" aria-pressed="${!!UI.sentPaint}">${icon('check',14)}Quét chọn: ${UI.sentPaint?'đang bật':'tắt'}</button>${UI.sentPaint?`<button class="btn sm" data-act="sentall" data-v="1">Đánh dấu tất cả</button><button class="btn sm" data-act="sentall" data-v="0">Bỏ hết</button>`:''}</div>
+    ${UI.sentPaint?`<div class="fl" style="background:var(--accent-soft,var(--surface));color:var(--accent)">Chạm hoặc <b>kéo ngón tay</b> qua nhiều phòng: ô đầu tiên là đỏ thì cả lượt sẽ thành <b>đã gửi</b>, là xanh thì cả lượt sẽ <b>bỏ đánh dấu</b>.</div>`:''}
+    <div class="sentgrid${UI.sentPaint?' paint':''}" id="sentGrid">${show.map(r=>{const t=sentAt(m,r.id);return `<button class="sentchip ${t?'ok':'no'}${r.id===cur?' cur':''}" data-act="${UI.sentPaint?'sentnoop':'noticepick'}" data-room="${esc(r.id)}" title="${esc(r.tenant.name||'')}${t?' · gửi '+sentFmt(t):' · chưa gửi'}">${t?icon('check',12):''}<span>${esc(r.id)}</span></button>`}).join('')||'<span class="muted sm">Không có phòng nào.</span>'}</div>
+    <div class="only-m" style="gap:8px"><button class="btn primary grow" data-act="noticecopy">${icon('copy',16)}Sao chép nội dung · ${esc(cur||'')}</button><button class="btn grow" data-act="noticecopyimg">${icon('copy',16)}Sao chép ảnh</button></div>
     ${todo.length?`<button class="btn sm" data-act="noticenextunsent">Đến phòng chưa gửi kế tiếp</button>`:`<div class="fl" style="background:var(--ok-soft);color:var(--ok)">${icon('check',13)}Đã gửi đủ tất cả các phòng.</div>`}
   </div>`;
 }
@@ -2115,6 +2131,17 @@ document.addEventListener('input',e=>{
   if(t.id==='pplQ'){UI.peopleQ=t.value;const d=pplData();$('#pplRows').innerHTML=pplRowsHTML(d.list);$('#pplMob').innerHTML=pplMobHTML(d.list,d.so==='room');$('#pplSum').textContent=pplSummary(d)}
   if(t.id==='leaveQ'){UI.leaveQ=t.value;const l=leaveFiltered();$('#leaveBody').innerHTML=leaveRowsHTML(l);$('#leaveSum').textContent=leaveSummary(l)}
 });
+/* Quét chọn: kéo ngón tay / chuột qua các ô phòng để đánh dấu hàng loạt */
+(()=>{let drag=null;
+  const chipAt=(x,y)=>{const e=document.elementFromPoint(x,y);const c=e&&e.closest&&e.closest('#sentGrid.paint .sentchip');return c||null};
+  const paint=c=>{if(!drag||!c||drag.seen.has(c))return;drag.seen.add(c);const id=c.dataset.room,m=DB.months[UI.month];m.sent=m.sent||{};
+    if(drag.on){m.sent[id]=drag.t;c.classList.add('ok');c.classList.remove('no')}else{delete m.sent[id];c.classList.add('no');c.classList.remove('ok')}};
+  document.addEventListener('pointerdown',e=>{if(e.button>0)return;const c=e.target.closest&&e.target.closest('#sentGrid.paint .sentchip');if(!c)return;
+    const m=DB.months[UI.month];drag={on:!(m.sent&&m.sent[c.dataset.room]),t:new Date().toISOString(),seen:new Set()};paint(c);e.preventDefault()});
+  document.addEventListener('pointermove',e=>{if(!drag)return;paint(chipAt(e.clientX,e.clientY));e.preventDefault()},{passive:false});
+  const end=()=>{if(!drag)return;const n=drag.seen.size;drag=null;if(n){save();render()}};
+  document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);
+})();
 let saveT=null;function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(()=>{saveT=null;save()},400)}
 function flushAll(){if(saveT){clearTimeout(saveT);saveT=null;save()}clearTimeout(persistTimer);persistLocal();Sync.flush()}
 function payListOnly(){const d=document.createElement('div');d.innerHTML=vPay();return $('#payList',d).innerHTML}
@@ -2201,6 +2228,9 @@ document.addEventListener('click',async e=>{
    case 'expdel':m.expenses=m.expenses.filter(x=>x.id!==el.dataset.id);save();render();break;
    case 'noticecopy':{const rid=UI.noticeRoom;copyText(zaloText(UI.month,rid)).then(()=>askSent(rid));break}
    case 'noticepick':UI.noticeRoom=el.dataset.room;render();break;
+   case 'sentpaint':UI.sentPaint=!UI.sentPaint;render();break;
+   case 'sentall':{const on=el.dataset.v==='1',ids=monthRooms(UI.month).map(r=>r.id);confirmBox(on?'Đánh dấu tất cả đã gửi?':'Bỏ đánh dấu tất cả?',on?'Tất cả '+ids.length+' phòng sẽ được ghi nhận là đã gửi.':'Tất cả phòng sẽ trở về trạng thái chưa gửi.',on?'Đánh dấu tất cả':'Bỏ hết',()=>{m.sent={};if(on){const t=new Date().toISOString();ids.forEach(i=>m.sent[i]=t)}save();render()},!on);break}
+   case 'sentnoop':break;
    case 'sentfilter':UI.sentFilter=el.dataset.v;render();break;
    case 'senton':markSent(el.dataset.room,true);render();break;
    case 'sentoff':markSent(el.dataset.room,false);render();break;
