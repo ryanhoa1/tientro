@@ -417,7 +417,7 @@ const DEFAULT_SETTINGS={remindOffsets:'-2,1,5',propertyName:'Nhà trọ Bùi Vă
   elecPrice:3500,waterPrice:4000,pumpPrice:2500,trash:40000,anqp:4000,freePeople:2,extraPerson:100000,dueDay:18,batches:3,
   noticeTitle:'THÔNG BÁO TIỀN PHÒNG TRỌ',noticeFooter:'Lưu ý: Anh/Chị vui lòng thanh toán tiền trọ trước ngày {dueDay} hàng tháng.\nCác trường hợp khó khăn vui lòng báo Chủ trọ.'};
 let DB=null;
-const UI={qrMode:'total',view:'dash',month:null,entryFilter:'all',entryQ:'',payFilter:'all',payQ:'',reportRoom:null,noticeRoom:null,perPage:2,tableQ:''};
+const UI={qrMode:'total',view:'dash',month:null,entryFilter:'all',entryQ:'',payFilter:'all',payQ:'',reportRoom:null,noticeRoom:null,perPage:2,tableQ:'',leaveQ:'',leaveMonth:'all'};
 let persistTimer=null,lastSnap=0,localOK=true;
 
 function makeSeed(){
@@ -694,6 +694,7 @@ const NAV=[
  {id:'notice',label:'Thông báo',icon:'file',title:'Thông báo tiền phòng'},
  {id:'rooms',label:'Phòng & khách',icon:'door',title:'Phòng & khách thuê'},
  {id:'people',label:'Người ở & tạm trú',icon:'user',title:'Người ở & tạm trú / tạm vắng'},
+ {id:'leave',label:'Người chuyển đi',icon:'door',title:'Danh sách người chuyển đi'},
  {id:'report',label:'Báo cáo',icon:'chart',title:'Báo cáo'},
  {id:'settings',label:'Cài đặt & dữ liệu',icon:'cog',title:'Cài đặt & dữ liệu'}
 ];
@@ -709,15 +710,27 @@ function syncChip(){
   if(Sync.state==='idle')t=`Đã lưu ${DRIVER_NAME[CFG.driver]||''}${Sync.lastAt?' · '+new Date(Sync.lastAt).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''}`;
   return `<button class="sync ${Sync.state}" data-act="syncchip" title="${esc(Sync.msg||'')}"><i></i>${esc(t)}</button>`;
 }
-function renderSyncChips(){$$('.syncslot').forEach(e=>e.innerHTML=syncChip())}
+function peopleCount(d){let n=0;(d.rooms||[]).forEach(r=>{if(r.status==='occupied')n+=peopleOf(r).filter(p=>p.name).length});return n}
+function syncWarn(){ // dải cảnh báo hiện ở mọi màn hình khi dữ liệu máy này có thể không khớp máy khác
+  if(typeof DB==='undefined'||!DB||UI.view==='settings')return '';
+  const btn=(a,t,v)=>`<button class="btn primary" data-act="${a}" ${v?`data-v="${v}"`:''}>${t}</button>`;
+  let h='';
+  if(!Sync.driver){if(UI.syncWarnOff)return '';h=`<b>Dữ liệu chỉ nằm trong trình duyệt này.</b> Máy khác (nhà, công ty, điện thoại) sẽ không thấy gì. Hãy kết nối Google Drive ở Cài đặt, làm trên cả hai máy.`+btn('nav','Mở Cài đặt','settings')+`<button class="btn" data-act="syncwarnoff">Ẩn</button>`}
+  else if(UI.view==='dash')return '';  // Tổng quan đã có banner riêng
+  else if(Sync.state==='needauth')h=`<b>Máy này chưa nối được Google Drive.</b> Dữ liệu đang hiển thị là bản cũ lưu trên máy này, các thay đổi mới chưa được ghi lên Drive và chưa nhận được thay đổi từ máy khác. `+btn('syncchip','Cấp quyền / đăng nhập');
+  else if(Sync.state==='error')h=`<b>Lỗi đồng bộ.</b> ${esc(Sync.msg||'')} `+btn('syncchip','Thử lại');
+  else if(DB.rev>CFG.syncRev&&Sync.state==='idle')h=`<b>Có thay đổi chưa được đồng bộ lên Drive.</b> `+btn('syncchip','Đồng bộ ngay');
+  return h?`<div class="banner" style="background:var(--bad-soft)">${icon('alert',22)}<div class="grow">${h}</div></div>`:'';
+}
+function renderSyncChips(){$$('.syncslot').forEach(e=>e.innerHTML=syncChip());const w=$('#syncWarn');if(w)w.innerHTML=syncWarn()}
 function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.2 · nhập Excel cập nhật toàn bộ người ở</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.4 · cảnh báo đồng bộ</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
-  const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings'].includes(UI.view);
+  const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave'].includes(UI.view);
   $('#top').innerHTML=`<button class="btn icon ghost" id="menuBtn" data-act="menu" aria-label="Mở menu">${icon('menu',20)}</button><h1>${cur.title}</h1>`+
     (showM?`<div class="mswitch"><button data-act="mprev" ${i<=0?'disabled':''} aria-label="Tháng trước">${icon('l')}</button>
       <select id="mSel" data-change="msel" aria-label="Chọn tháng">${ks.slice().reverse().map(x=>`<option value="${x}" ${x===k?'selected':''}>${monthLabel(x)}</option>`).join('')}</select>
@@ -731,8 +744,8 @@ function renderChrome(){
 function render(){
   if(syncRecs(UI.month))save();
   renderChrome();
-  const V={dash:vDash,entry:vEntry,table:vTable,pay:vPay,recon:vRecon,notice:vNotice,rooms:vRooms,people:vPeople,report:vReport,settings:vSettings}[UI.view];
-  $('#view').classList.toggle('wide',UI.view==='table'||UI.view==='people');$('#view').innerHTML=V();
+  const V={dash:vDash,entry:vEntry,table:vTable,pay:vPay,recon:vRecon,notice:vNotice,rooms:vRooms,people:vPeople,leave:vLeave,report:vReport,settings:vSettings}[UI.view];
+  $('#view').classList.toggle('wide',UI.view==='table'||UI.view==='people'||UI.view==='leave');$('#view').innerHTML=`<div id="syncWarn">${syncWarn()}</div>`+V();
   $('#side').classList.remove('open');
   if(UI.view==='entry')refreshEntryHead();
 }
@@ -1376,6 +1389,7 @@ async function importPeopleXLSX(file){
     await snapshot('Trước khi nhập người ở từ Excel');
     applyPeoplePlan(plan,opt);save();persistLocal();UI.view='people';CFG.view='people';saveCfg();render();
     let where=' · đang lưu trong trình duyệt này (chưa kết nối Google Drive)';
+    if(Sync.driver&&Sync.state==='needauth')where=' · CHƯA lên được '+(DRIVER_NAME[CFG.driver]||'nơi lưu trữ')+' (cần đăng nhập lại), bấm “Cấp quyền / đăng nhập” trước khi tắt app';
     if(Sync.driver&&Sync.state!=='needauth'){try{await Sync.push()}catch(e){}where=Sync.state==='idle'?' · đã lưu lên '+(DRIVER_NAME[CFG.driver]||'nơi lưu trữ'):' · chưa ghi được lên nơi lưu trữ, hãy kiểm tra kết nối'}
     toast(`Đã nhập ${plan.total} dòng (${opt.update?plan.add+' mới, '+plan.upd+' cập nhật':plan.add+' mới'}${plan.dup?', '+plan.dup+' trùng đã gộp':''})${where}`,Sync.driver&&Sync.state==='error'?'bad':'');
   };
@@ -1509,6 +1523,44 @@ function policeModal(){
   $('#prXlsx').onclick=()=>{const o=opts();if(!policeList(o).length)return toast('Không có ai phù hợp bộ lọc','bad');policeXLSX(o)};
   $('#prPrint').onclick=()=>{const o=opts();if(!policeList(o).length)return toast('Không có ai phù hợp bộ lọc','bad');closeModal(true);policePrint(o)};
 }
+/* ---------- Người chuyển đi (ghi nhận từng người khi trả phòng) ---------- */
+function leaveAll(){ // trải lịch sử trả phòng thành danh sách từng người; bản ghi cũ chỉ có tên thì dựng từ tên đại diện + người ở cùng
+  const out=[];
+  (DB.history||[]).forEach(h=>{
+    const ppl=Array.isArray(h.people)&&h.people.length?h.people:[{rep:true,name:h.name||''},...(h.members||[]).map(n=>({rep:false,name:n}))].filter(p=>p.name);
+    ppl.forEach(p=>out.push({h,p}));
+  });
+  return out.sort((a,b)=>(b.h.moveOut||'').localeCompare(a.h.moveOut||'')||String(a.h.roomId).localeCompare(String(b.h.roomId),'vi',{numeric:true})||(b.p.rep?1:0)-(a.p.rep?1:0));
+}
+function leaveFiltered(){
+  const all=leaveAll(),q=normTxt(UI.leaveQ||''),mo=UI.leaveMonth||'all';
+  return all.filter(({h,p})=>(mo==='all'||(h.moveOut||'').slice(0,7)===mo)&&(!q||normTxt([h.roomId,p.name,p.idNo,p.phone].join(' ')).includes(q)));
+}
+function leaveRowsHTML(list){
+  return list.map(({h,p})=>`<tr><td>${fmtDate(h.moveOut)||'–'}</td><td class="l"><b class="mono">${esc(h.roomId)}</b></td><td class="l"><b>${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}</b> ${p.rep?chip('acc','Đại diện'):''}${(p.dob||p.sex)?`<div class="muted sm">${esc([p.dob?'sinh '+fmtDate(p.dob):'',p.sex].filter(Boolean).join(' · '))}</div>`:''}</td>
+    <td class="num">${esc(p.idNo)||'–'}</td><td>${p.rep?(fmtDate(h.moveIn)||'–'):'<span class="muted">–</span>'}</td><td>${p.tt1||p.tt2?`${fmtDate(p.tt1)||'…'} → ${fmtDate(p.tt2)||'…'}`:'–'}</td><td class="l">${esc(p.phone||'')}</td><td class="l">${p.rep?esc(h.note||''):''}</td></tr>`).join('')||'<tr><td class="l muted" colspan="8">Chưa có ai chuyển đi.</td></tr>';
+}
+function leaveSummary(list){const rooms=new Set(list.map(x=>x.h.roomId)).size;return `${list.length} người · ${rooms} phòng`}
+function vLeave(){
+  const all=leaveAll(),months=[...new Set(DB.history.map(h=>(h.moveOut||'').slice(0,7)).filter(Boolean))].sort().reverse(),list=leaveFiltered();
+  if(UI.leaveMonth!=='all'&&!months.includes(UI.leaveMonth))UI.leaveMonth='all';
+  return `<div class="tools"><span class="muted grow" id="leaveSum">${leaveSummary(list)}${all.length!==list.length?` (trên tổng ${all.length} người đã chuyển đi)`:''}</span>
+    <select data-change="leavemonth" aria-label="Lọc theo tháng" style="width:auto"><option value="all">Tất cả các tháng</option>${months.map(m=>`<option value="${m}" ${m===UI.leaveMonth?'selected':''}>Tháng ${m.slice(5)}/${m.slice(0,4)}</option>`).join('')}</select>
+    <input type="search" id="leaveQ" placeholder="Tìm phòng, tên, CCCD" value="${esc(UI.leaveQ||'')}" aria-label="Tìm người chuyển đi">
+    <button class="btn" data-act="leavexlsx" ${all.length?'':'disabled'}>${icon('down',16)}Tải file Excel</button></div>
+  <div class="tw fit ppl"><table><thead><tr><th>Ngày chuyển đi</th><th class="l">Phòng</th><th class="l">Họ và tên</th><th>CMND/CCCD</th><th>Ngày thuê</th><th>Tạm trú (từ → đến)</th><th class="l">Điện thoại</th><th class="l">Ghi chú</th></tr></thead>
+  <tbody id="leaveBody">${leaveRowsHTML(list)}</tbody></table></div>
+  <p class="muted sm" style="margin:0">Khi bấm <b>Trả phòng</b> ở mục Phòng &amp; khách, tất cả người đang ở phòng đó (đại diện và người ở cùng) tự động được ghi vào danh sách này. Nhớ báo xóa tạm trú cho những người đã chuyển đi. Bản ghi trả phòng cũ (trước v5.3) chỉ có tên, không có CCCD.</p>`;
+}
+async function leaveXLSX(){
+  try{await ensureXLSX()}catch(e){return toast('Chưa tải được thư viện Excel (cần Internet).','bad')}
+  const L=leaveFiltered();if(!L.length)return toast('Không có ai để xuất','bad');
+  const rows=[['Ngày chuyển đi','Số phòng','Họ và tên','Vai trò','CMND/CCCD','Ngày sinh','Giới tính','Ngày thuê','Tạm trú từ','Tạm trú đến','Điện thoại','HKTT','Ghi chú']];
+  L.forEach(({h,p})=>rows.push([fmtDate(h.moveOut),h.roomId,p.name||'',p.rep?'Đại diện':'Ở cùng',p.idNo||'',p.dob?fmtDate(p.dob):'',p.sex||'',p.rep?fmtDate(h.moveIn):'',p.tt1?fmtDate(p.tt1):'',p.tt2?fmtDate(p.tt2):'',p.phone||'',p.hk||'',p.rep?(h.note||''):'']));
+  const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[13,9,24,10,16,12,9,12,12,12,14,28,24].map(w=>({wch:w}));
+  rows.forEach((r,i)=>{if(i)[4].forEach(c=>{const a=XLSX.utils.encode_cell({r:i,c});if(ws[a])ws[a]={t:'s',v:String(ws[a].v)}})}); // giữ CCCD dạng chữ, không mất số 0 đầu
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Nguoi chuyen di');XLSX.writeFile(wb,`Nguoi_chuyen_di_${todayISO()}.xlsx`);toast('Đã xuất file Excel');
+}
 function vRooms(){
   const occ=DB.rooms.filter(r=>r.status==='occupied').length;
   const rows=DB.rooms.map(r=>`<div class="lrow room-g"><div class="mono"><b>${esc(r.id)}</b></div>
@@ -1518,7 +1570,7 @@ function vRooms(){
     <div class="sm"><span class="cell-l">Tiền phòng</span>${ruleText(r)}</div><div class="num right"><span class="cell-l">Người</span>${r.status==='occupied'?r.occupants:'–'}</div>
     <div><span class="chip ${r.status==='occupied'?'ok':''}">${r.status==='occupied'?'Đang thuê':'Trống'}</span></div>
     <div class="row full" style="gap:5px;justify-content:flex-end"><button class="btn sm" data-act="roomedit" data-room="${esc(r.id)}">${icon('edit',14)}Sửa</button>${r.status==='occupied'?`<button class="btn sm" data-act="moveout" data-room="${esc(r.id)}">Trả phòng</button>`:''}</div></div>`).join('');
-  const hist=DB.history.slice().reverse().map(h=>`<tr><td class="l"><b class="mono">${esc(h.roomId)}</b></td><td class="l">${esc(h.name)}</td><td>${fmtDate(h.moveIn)||'–'}</td><td>${fmtDate(h.moveOut)}</td><td class="num">${money(h.deposit)}</td><td class="num">${money(h.refund)}</td><td class="l">${esc(h.note||'')}</td></tr>`).join('');
+  const hist=DB.history.slice().reverse().map(h=>`<tr><td class="l"><b class="mono">${esc(h.roomId)}</b></td><td class="l">${esc(h.name)}${(h.members||[]).length?` <span class="muted sm">+ ${h.members.length} người ở cùng</span>`:''}</td><td>${fmtDate(h.moveIn)||'–'}</td><td>${fmtDate(h.moveOut)}</td><td class="num">${money(h.deposit)}</td><td class="num">${money(h.refund)}</td><td class="l">${esc(h.note||'')}</td></tr>`).join('');
   return `<div class="tools"><span class="muted grow">${occ} phòng đang thuê · ${DB.rooms.length-occ} trống · tổng tiền cọc ${money(DB.rooms.reduce((a,r)=>a+(r.status==='occupied'?r.tenant.deposit||0:0),0))}đ</span><button class="btn primary" data-act="roomedit" data-room="">${icon('plus',16)}Thêm phòng</button></div>
   <div class="lst"><div class="lrow head room-g"><div>Phòng</div><div>Khách thuê</div><div>Ngày thuê</div><div class="right">Tiền cọc</div><div>Tiền phòng</div><div class="right">Người</div><div>Tình trạng</div><div></div></div>${rows}</div>
   ${DB.history.length?`<div class="card"><h2>Lịch sử trả phòng</h2><div class="tw"><table><thead><tr><th class="l">Phòng</th><th class="l">Khách</th><th>Ngày thuê</th><th>Ngày trả</th><th>Tiền cọc</th><th>Hoàn cọc</th><th class="l">Ghi chú</th></tr></thead><tbody>${hist}</tbody></table></div></div>`:''}`;
@@ -1638,10 +1690,10 @@ function showConflict(rem,why){
 async function syncDiag(){
   const o=$('#diagout');if(!o)return;o.textContent='Đang kiểm tra…';
   const L=[],add=(k,v)=>L.push(k+': '+v),fmt=t=>t?new Date(t).toLocaleString('vi-VN'):'-',sh=x=>(x||'').slice(0,6)||'-';
-  add('Phiên bản','v5.2');add('Địa chỉ app',location.origin+location.pathname);
+  add('Phiên bản','v5.4');add('Địa chỉ app',location.origin+location.pathname);
   add('Nơi lưu',CFG.driver||'(chưa kết nối)');add('Trạng thái',Sync.state+(Sync.msg?' – '+Sync.msg:''));
   add('Máy này: rev',DB.rev+' · rev đã đồng bộ '+CFG.syncRev);add('Máy này: pid',sh(DB.pid)+' · pid đã đồng bộ '+sh(CFG.syncPid));
-  add('Máy này: sửa lần cuối',fmt(DB.updatedAt)+' · '+Object.keys(DB.months).length+' tháng');
+  add('Máy này: sửa lần cuối',fmt(DB.updatedAt)+' · '+Object.keys(DB.months).length+' tháng · '+peopleCount(DB)+' người ở');
   if(CFG.driver==='gdrive'){
     add('Token Google',GD.valid()?('còn '+Math.round((GD.exp-Date.now())/60000)+' phút'):'hết hạn hoặc chưa có');
     add('Client ID',(CFG.gClientId||'').slice(0,14)+'…');
@@ -1652,7 +1704,7 @@ async function syncDiag(){
       fl.forEach((f,i)=>add('  tệp '+(i+1),f.id.slice(0,8)+'… sửa '+fmt(f.modifiedTime)+' · '+f.size+' byte'));
       add('Tệp máy này đang dùng',(CFG.gFileId||'').slice(0,8)+'…');
       const t=await GD.pull(),rem=t&&safeParse(t);
-      if(rem)add('Trên Drive',`rev ${rem.rev} · pid ${sh(rem.pid)} · sửa ${fmt(rem.updatedAt)} · ${Object.keys(rem.months||{}).length} tháng`);else add('Trên Drive','trống hoặc không đọc được');
+      if(rem)add('Trên Drive',`rev ${rem.rev} · pid ${sh(rem.pid)} · sửa ${fmt(rem.updatedAt)} · ${Object.keys(rem.months||{}).length} tháng · ${peopleCount(rem)} người ở`);else add('Trên Drive','trống hoặc không đọc được');
       if(rem)add('Kết luận',rem.pid===CFG.syncPid?'Máy này ĐÃ khớp với Drive':'Máy này KHÁC Drive (bấm "Đồng bộ ngay")');
     }catch(e){add('LỖI',e.message||String(e))}
   }
@@ -1787,6 +1839,11 @@ async function exportXLSX(){
   head(ps,1,['Số phòng','Họ và tên','Vai trò','CMND/CCCD','Ngày thuê','Tiền cọc (đ)','Tạm trú từ','Tạm trú đến','Tình trạng tạm trú','Tạm vắng từ','Tạm vắng đến','Tình trạng tạm vắng']);
   let qr=2;DB.rooms.filter(r=>r.status==='occupied').forEach(rm=>peopleOf(rm).forEach(p=>{const a=resTT(p),b=resTV(p);
     body(ps,qr,[rm.id,p.name,p.rep?'Đại diện':'Ở cùng',p.idNo,p.rep?fmtDate(rm.tenant.moveIn):'',p.rep?(rm.tenant.deposit||0):'',p.tt1?fmtDate(p.tt1):'',p.tt2?fmtDate(p.tt2):'',a.txt,p.tv1?fmtDate(p.tv1):'',p.tv2?fmtDate(p.tv2):'',b?b.txt:''],{fmt:{5:NUM},center:[0,2,4,6,7,9,10],zebra:(qr-2)%2});ps.getCell(qr,1).font={name:FONT,bold:true};qr++}));
+  /* ===== Sheet: Người chuyển đi ===== */
+  if((DB.history||[]).length){const ls=wb.addWorksheet('Người chuyển đi',{views:[{state:'frozen',ySplit:1,showGridLines:true}]});setup(ls,true);
+    [13,9,24,11,18,13,13,13,20].forEach((w,i)=>ls.getColumn(i+1).width=w);
+    head(ls,1,['Ngày chuyển đi','Số phòng','Họ và tên','Vai trò','CMND/CCCD','Ngày thuê','Tạm trú từ','Tạm trú đến','Ghi chú']);
+    leaveAll().forEach(({h,p},i)=>{body(ls,i+2,[fmtDate(h.moveOut),h.roomId,p.name||'',p.rep?'Đại diện':'Ở cùng',p.idNo||'',p.rep?fmtDate(h.moveIn):'',p.tt1?fmtDate(p.tt1):'',p.tt2?fmtDate(p.tt2):'',p.rep?(h.note||''):''],{center:[0,1,3,5,6,7],zebra:i%2})})}
   const buf=await wb.xlsx.writeBuffer(),a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=`Doi_soat_tien_tro_${k.slice(5)}-${k.slice(0,4)}.xlsx`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800);toast('Đã xuất file Excel');
 }
@@ -1985,6 +2042,7 @@ document.addEventListener('input',e=>{
   if(t.dataset.room&&t.dataset.f){setField(t.dataset.room,t.dataset.f,t.value);refreshCard(t.dataset.room);scheduleSave();return}
   if(t.id==='entryQ'){UI.entryQ=t.value;$('#cards').innerHTML=entryHTML(UI.month);refreshEntryHead()}
   if(t.id==='payQ'){UI.payQ=t.value;$('#payList').innerHTML=payListOnly()}
+  if(t.id==='leaveQ'){UI.leaveQ=t.value;const l=leaveFiltered();$('#leaveBody').innerHTML=leaveRowsHTML(l);$('#leaveSum').textContent=leaveSummary(l)}
 });
 let saveT=null;function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(()=>{saveT=null;save()},400)}
 function flushAll(){if(saveT){clearTimeout(saveT);saveT=null;save()}clearTimeout(persistTimer);persistLocal();Sync.flush()}
@@ -2003,6 +2061,7 @@ document.addEventListener('change',e=>{
   if(c==='msel')setMonth(t.value);
   else if(c==='noticedate'){UI.noticeDate=t.value||null;render()}
   else if(c==='noticeroom'){UI.noticeRoom=t.value;render()}
+  else if(c==='leavemonth'){UI.leaveMonth=t.value;render()}
   else if(c==='reproom'){UI.reportRoom=t.value;render()}
   else if(c==='lossmeter'){DB.months[UI.month].lossMeter=t.dataset.v;save();render()}
   else if(t.id==='fileJson'&&t.files[0]){importJSON(t.files[0]);t.value=''}
@@ -2033,6 +2092,8 @@ document.addEventListener('click',async e=>{
    case 'unlock':m.locked=false;save();render();toast('Đã mở khóa tháng');break;
    case 'memadd':{const box=$('#memRows');if(box){box.insertAdjacentHTML('beforeend',memRowHTML({}));const l=box.lastElementChild;l.scrollIntoView({block:'nearest'});$('.m-name',l).focus()}break}
    case 'memdel':{const row=el.closest('.memrow');if(row)row.remove();break}
+   case 'leavexlsx':leaveXLSX();break;
+   case 'syncwarnoff':UI.syncWarnOff=true;renderSyncChips();break;
    case 'rfilter':UI.peopleFilter=el.dataset.v;render();break;
    case 'eview':CFG.entryView=el.dataset.v;saveCfg();render();break;
    case 'efilter':UI.entryFilter=el.dataset.v;render();break;
@@ -2072,8 +2133,9 @@ document.addEventListener('click',async e=>{
    case 'roomdel':{const used=Object.values(DB.months).some(x=>x.recs[id]);if(used)return toast('Phòng này đã có số liệu trong các tháng, không xóa được. Hãy đặt tình trạng “Trống”.','bad');DB.rooms=DB.rooms.filter(r=>r.id!==id);save();closeModal(true);render();break}
    case 'moveout':moveOutModal(id);break;
    case 'moveoutsave':{const r=roomById(id),owed=debtOf(id),dep=r.tenant.deposit||0,refund=parseInt0($('#mrefund').value)||0;
-      DB.history.push({roomId:id,name:r.tenant.name,moveIn:r.tenant.moveIn,moveOut:$('#mdate').value,deposit:dep,refund,note:$('#mnote').value.trim(),members:(r.members||[]).map(x=>x.name).filter(Boolean)});
-      r.tenant={name:'',phone:'',idNo:'',moveIn:'',deposit:0,note:''};r.members=[];r.status='vacant';save();closeModal(true);render();toast('Đã ghi nhận trả phòng '+id);break}
+      DB.history.push({roomId:id,name:r.tenant.name,moveIn:r.tenant.moveIn,moveOut:$('#mdate').value,deposit:dep,refund,note:$('#mnote').value.trim(),members:(r.members||[]).map(x=>x.name).filter(Boolean),
+        people:peopleOf(r).filter(p=>p.name||p.idNo).map(p=>({rep:p.rep,name:p.name,idNo:p.idNo,dob:p.dob,sex:p.sex,hk:p.hk,hkOwner:p.hkOwner,group:p.group,ttPlace:p.ttPlace,phone:p.phone,tt1:p.tt1,tt2:p.tt2,note:p.note}))});
+      r.tenant={name:'',phone:'',idNo:'',moveIn:'',deposit:0,note:''};r.members=[];r.status='vacant';save();closeModal(true);render();toast('Đã ghi nhận trả phòng '+id+' · '+DB.history[DB.history.length-1].people.length+' người vào danh sách chuyển đi');break}
    case 'syncchip':if(!Sync.driver){UI.view='settings';await loadSnaps();render()}else if(Sync.state==='needauth')reauth();else if(Sync.state==='error'||Sync.state==='idle')Sync.push();break;
    case 'syncnow':if(Sync.driver){Sync.pullAndMerge().then(()=>{if(Sync.state==='idle')toast('Đã đồng bộ xong')}).catch(x=>{setSync(x.code==='auth'?'needauth':'error',x.message);toast(x.message||'Lỗi đồng bộ','bad')})}break;
    case 'syncdiag':syncDiag();break;
@@ -2096,10 +2158,11 @@ document.addEventListener('click',async e=>{
 });
 function debtOf(id){const k=UI.month,m=DB.months[k];if(!m.recs[id])return 0;return Math.round(calc(roomById(id),m.recs[id],m).total-paidOf(m,id).total)}
 function moveOutModal(id){
-  const r=roomById(id),owed=Math.max(0,debtOf(id)),dep=r.tenant.deposit||0;
+  const r=roomById(id),owed=Math.max(0,debtOf(id)),dep=r.tenant.deposit||0,ppl=peopleOf(r).filter(p=>p.name||p.idNo);
   openModal(`Trả phòng ${id} · ${r.tenant.name}`,`<div class="fg"><label class="f">Ngày trả phòng<input id="mdate" type="date" value="${todayISO()}"></label>
     <label class="f">Hoàn lại tiền cọc<input id="mrefund" type="text" inputmode="numeric" class="numin" data-money="1" value="${money(Math.max(0,dep-owed))}"></label>
     <div class="full sm muted">Tiền cọc ${money(dep)}đ − còn nợ ${money(owed)}đ (${monthLabel(UI.month).toLowerCase()}) = ${money(dep-owed)}đ. Chỉnh lại số hoàn cọc nếu cần.</div>
+    <div class="full"><div class="sm"><b>${ppl.length} người sẽ được ghi vào danh sách chuyển đi:</b></div><div class="sm muted">${ppl.map(p=>esc(p.name||p.idNo)+(p.rep?' (đại diện)':'')).join(' · ')||'Chưa có tên người ở'}</div></div>
     <label class="f full">Ghi chú<textarea id="mnote"></textarea></label></div><p class="muted sm" style="margin:0">Phòng chuyển sang “Trống” và không tính tiền từ tháng tạo sau. Số liệu các tháng cũ được giữ nguyên.</p>`,
     `<button class="btn" data-act="mclose">Hủy</button><button class="btn primary" data-act="moveoutsave" data-room="${esc(id)}">Xác nhận trả phòng</button>`);
 }
@@ -2214,7 +2277,7 @@ async function boot0(){
   sortRooms();UI.view=NAV.some(n=>n.id===CFG.view)?CFG.view:'dash';ensureMonthSelected();
   try{if(!DB.history)DB.history=[]}catch(e){}
   await loadSnaps();render();
-  window.addEventListener('beforeunload',flushAll);window.addEventListener('pagehide',flushAll);
+  window.addEventListener('beforeunload',flushAll);window.addEventListener('beforeunload',e=>{if(Sync.driver&&DB.rev>CFG.syncRev){e.preventDefault();e.returnValue=''}});window.addEventListener('pagehide',flushAll);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)flushAll();else Sync.checkRemote()});
   window.addEventListener('focus',()=>Sync.checkRemote());
   setInterval(()=>{if(!document.hidden)Sync.checkRemote()},60000);
