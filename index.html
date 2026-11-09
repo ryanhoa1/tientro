@@ -326,6 +326,21 @@ svg.chart .b1{fill:var(--line2)}svg.chart .b2{fill:var(--accent)}
 .mgr-sec{border:1px solid var(--line);border-radius:12px;padding:12px;margin:0 0 12px;display:flex;flex-direction:column;gap:8px}
 .mgr-sec h4{margin:0;font-size:14px}.mgr-sec p{margin:0}
 .mgr-sec.dng{border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
+.ppl-m{display:none}
+@media (max-width:700px){
+  .tw.ppl{display:none}.ppl-m{display:block}
+  .ppl-bar>input{flex:1 1 100%;min-width:0}
+  .pm-room{display:grid;grid-template-columns:62px minmax(0,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden}
+  .pm-room.pm-flat{grid-template-columns:minmax(0,1fr)}
+  .pm-id{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;background:var(--surface2);border-right:1px solid var(--line);padding:6px 2px;text-align:center}
+  .pm-rid{flex:none;min-width:46px;font-size:16px}
+  .pm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;min-height:50px;border-top:1px solid var(--line);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .pm-row:first-child{border-top:0}.pm-row:active{background:var(--surface2)}
+  .pm-name{flex:1;min-width:0;font-weight:600;font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+  .pm-rep{display:block;font-size:11px;font-weight:500;color:var(--accent);margin-top:1px}
+  .pm-sub{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:1px}
+  .pm-st{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 #login{position:fixed;inset:0;z-index:9999;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
 #login .box{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:28px 24px;text-align:center}
@@ -727,7 +742,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.4 · cảnh báo đồng bộ</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.5 · người ở: gọn trên điện thoại, tìm kiếm, sắp xếp</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave'].includes(UI.view);
@@ -1211,22 +1226,39 @@ function resAlertLi(){
   const al=resAlerts();if(!al.length)return '';const a=al[0];
   return `<li>${chip(a.st.lv==='bad'?'bad':'warn',al.length+' mục')}<span class="grow">tạm trú / tạm vắng cần xử lý, gấp nhất: ${esc(a.r.id)} · ${esc(a.p.name||'(chưa tên)')} – ${a.kind.toLowerCase()} ${esc(a.st.txt.toLowerCase())}</span><button class="btn sm" data-act="nav" data-v="people">Xem</button></li>`;
 }
-function vPeople(){
-  const f=UI.peopleFilter||'all';
+function pplData(){
+  const f=UI.peopleFilter||'all',q=normTxt(UI.peopleQ||''),so=UI.peopleSort||'room';
   const all=[];DB.rooms.filter(r=>r.status==='occupied').forEach(r=>peopleOf(r).forEach(p=>all.push({r,p,tt:resTT(p),tv:resTV(p)})));
   const bad=x=>(x.tt.lv==='bad'||x.tt.lv==='warn')||(x.tv&&(x.tv.lv==='bad'||x.tv.lv==='warn'));
-  const nAlert=all.filter(bad).length,nNone=all.filter(x=>x.tt.lv==='none').length,nDup=findDupGroups().length;
-  const list=all.filter(x=>f==='alert'?bad(x):f==='none'?x.tt.lv==='none':true);
-  const rows=list.map(({r,p,tt,tv})=>`<tr><td class="l"><b class="mono">${esc(r.id)}</b></td><td class="l"><b>${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}</b> ${p.rep?chip('acc','Đại diện'):''}${(p.dob||p.sex||p.hk)?`<div class="muted sm">${esc([p.dob?'sinh '+fmtDate(p.dob):'',p.sex,p.hk?'HKTT: '+p.hk:''].filter(Boolean).join(' · '))}</div>`:''}${(p.hkOwner||p.group||p.ttPlace||p.phone)?`<div class="muted sm" title="${esc(p.ttPlace?'Đăng ký tạm trú tại: '+p.ttPlace:'')}">${esc([p.hkOwner?'Chủ hộ HKTT: '+p.hkOwner:'',p.group?'Nhóm ở trọ: '+p.group:'',p.phone?'ĐT: '+p.phone:''].filter(Boolean).join(' · '))}</div>`:''}</td>
+  let list=all.filter(x=>(f==='alert'?bad(x):f==='none'?x.tt.lv==='none':true)&&(!q||normTxt([x.r.id,x.p.name,x.p.idNo,x.p.phone].join(' ')).includes(q)));
+  if(so==='expiry'){const k=x=>x.tt.d==null?1e9:x.tt.d;list=list.slice().sort((a,b)=>k(a)-k(b))}
+  return {f,so,all,list,bad};
+}
+function pplRowsHTML(list){
+  return list.map(({r,p,tt,tv})=>`<tr><td class="l"><b class="mono">${esc(r.id)}</b></td><td class="l"><b>${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}</b> ${p.rep?chip('acc','Đại diện'):''}${(p.dob||p.sex||p.hk)?`<div class="muted sm">${esc([p.dob?'sinh '+fmtDate(p.dob):'',p.sex,p.hk?'HKTT: '+p.hk:''].filter(Boolean).join(' · '))}</div>`:''}${(p.hkOwner||p.group||p.ttPlace||p.phone)?`<div class="muted sm" title="${esc(p.ttPlace?'Đăng ký tạm trú tại: '+p.ttPlace:'')}">${esc([p.hkOwner?'Chủ hộ HKTT: '+p.hkOwner:'',p.group?'Nhóm ở trọ: '+p.group:'',p.phone?'ĐT: '+p.phone:''].filter(Boolean).join(' · '))}</div>`:''}</td>
     <td class="num">${esc(p.idNo)||'–'}</td><td>${p.rep?fmtDate(r.tenant.moveIn)||'–':'<span class="muted">–</span>'}</td><td class="num">${p.rep&&r.tenant.deposit?money(r.tenant.deposit):'<span class="muted">–</span>'}</td>
     <td>${p.tt1||p.tt2?`${fmtDate(p.tt1)||'…'} → ${fmtDate(p.tt2)||'…'}`:'–'}</td><td class="l">${lvChip(tt)}</td>
     <td>${p.tv1||p.tv2?`${fmtDate(p.tv1)||'…'} → ${fmtDate(p.tv2)||'…'}`:'–'}</td><td class="l">${lvChip(tv)}</td>
-    <td><button class="btn sm ghost" data-act="roomedit" data-room="${esc(r.id)}" aria-label="Sửa phòng ${esc(r.id)}">${icon('edit',14)}</button></td></tr>`).join('');
-  return `<div class="tools"><span class="muted grow">${all.length} người ở · ${nAlert} cần chú ý · ${nNone} chưa nhập hạn tạm trú · cảnh báo trước ${RES_WARN()} ngày</span>
-    <button class="btn" data-act="peopleimport">${icon('down',16)}Nhập từ Excel</button><button class="btn${nDup?' primary':' ghost'}" data-act="peopledup" title="Tìm và gộp người bị nhập trùng trong cùng phòng">Gộp người trùng${nDup?` (${nDup})`:''}</button><button class="btn ghost" data-act="peopletpl" title="Tải file Excel mẫu đúng định dạng">File mẫu</button><button class="btn primary" data-act="policerep" title="Xuất danh sách để gửi công an (Excel hoặc in PDF)">${icon('down',16)}Báo cáo công an</button><input type="file" id="filePeople" accept=".xlsx,.xls" hidden>
+    <td><button class="btn sm ghost" data-act="roomedit" data-room="${esc(r.id)}" aria-label="Sửa phòng ${esc(r.id)}">${icon('edit',14)}</button></td></tr>`).join('')||'<tr><td class="l muted" colspan="10">Không có ai phù hợp.</td></tr>';
+}
+function pplMobHTML(list,byRoom){
+  const row=({r,p,tt,tv},showId)=>`<div class="pm-row" data-act="roomedit" data-room="${esc(r.id)}" role="button" tabindex="0" aria-label="Sửa phòng ${esc(r.id)}">${showId?`<b class="pm-rid mono">${esc(r.id)}</b>`:''}<div class="pm-name">${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}${p.rep?'<span class="pm-rep">Đại diện</span>':''}${p.tt2?`<span class="pm-sub">Hạn tạm trú ${esc(fmtDate(p.tt2))}</span>`:''}</div><div class="pm-st">${lvChip(tt)}${tv?lvChip(tv):''}</div></div>`;
+  if(!list.length)return '<p class="muted sm">Không có ai phù hợp.</p>';
+  if(!byRoom)return `<div class="pm-room pm-flat"><div class="pm-list">${list.map(x=>row(x,true)).join('')}</div></div>`;
+  const grp=[];list.forEach(x=>{const g=grp[grp.length-1];if(g&&g.r.id===x.r.id)g.items.push(x);else grp.push({r:x.r,items:[x]})});
+  return grp.map(g=>`<div class="pm-room"><div class="pm-id mono">${esc(g.r.id)}</div><div class="pm-list">${g.items.map(x=>row(x,false)).join('')}</div></div>`).join('');
+}
+function pplSummary(d){const n=d.all.filter(d.bad).length,nn=d.all.filter(x=>x.tt.lv==='none').length;return `${d.all.length} người ở · ${n} cần chú ý · ${nn} chưa nhập hạn tạm trú · cảnh báo trước ${RES_WARN()} ngày`+(d.list.length!==d.all.length?` · đang hiện ${d.list.length}`:'')}
+function vPeople(){
+  const d=pplData(),{f,so,list}=d,nDup=findDupGroups().length;
+  return `<div class="tools"><span class="muted grow" id="pplSum">${pplSummary(d)}</span>
+    <button class="btn" data-act="peopleimport">${icon('down',16)}Nhập từ Excel</button><button class="btn${nDup?' primary':' ghost'}" data-act="peopledup" title="Tìm và gộp người bị nhập trùng trong cùng phòng">Gộp người trùng${nDup?` (${nDup})`:''}</button><button class="btn ghost" data-act="peopletpl" title="Tải file Excel mẫu đúng định dạng">File mẫu</button><button class="btn primary" data-act="policerep" title="Xuất danh sách để gửi công an (Excel hoặc in PDF)">${icon('down',16)}Báo cáo công an</button><input type="file" id="filePeople" accept=".xlsx,.xls" hidden></div>
+  <div class="tools ppl-bar"><input type="search" id="pplQ" placeholder="Tìm phòng, tên, CCCD, số điện thoại" value="${esc(UI.peopleQ||'')}" aria-label="Tìm người ở" class="grow">
+    <select data-change="peoplesort" aria-label="Sắp xếp" style="width:auto"><option value="room" ${so==='room'?'selected':''}>Xếp theo phòng</option><option value="expiry" ${so==='expiry'?'selected':''}>Hết hạn trước</option></select>
     <div class="seg" role="group" aria-label="Lọc">${[['all','Tất cả'],['alert','Cần chú ý'],['none','Chưa có hạn tạm trú']].map(([v,l])=>`<button data-act="rfilter" data-v="${v}" aria-pressed="${f===v}">${l}</button>`).join('')}</div></div>
+  <div class="ppl-m" id="pplMob">${pplMobHTML(list,so==='room')}</div>
   <div class="tw fit ppl"><table><thead><tr><th class="l">Phòng</th><th class="l">Họ và tên</th><th>CMND/CCCD</th><th>Ngày thuê</th><th>Tiền cọc</th><th>Tạm trú (từ → đến)</th><th class="l">Tình trạng</th><th>Tạm vắng (từ → đến)</th><th class="l">Tình trạng</th><th></th></tr></thead>
-  <tbody>${rows||'<tr><td class="l muted" colspan="10">Không có ai phù hợp.</td></tr>'}</tbody></table></div>
+  <tbody id="pplRows">${pplRowsHTML(list)}</tbody></table></div>
   <p class="muted sm" style="margin:0">Người đứng tên thuê là <b>đại diện phòng</b>, ngày thuê và tiền cọc tính theo đại diện. Thêm hoặc sửa người ở cùng phòng ở nút sửa (bút chì) hoặc mục Phòng &amp; khách. Khác với khoản “Tiền giấy tạm trú” (phí thu hằng tháng).</p>`;
 }
 const memRowHTML=m=>`<div class="memrow"><label class="f">Họ và tên<input type="text" class="m-name" value="${esc(m.name||'')}"></label><label class="f">CMND/CCCD<input type="text" class="m-id" value="${esc(m.idNo||'')}"></label>
@@ -2042,6 +2074,7 @@ document.addEventListener('input',e=>{
   if(t.dataset.room&&t.dataset.f){setField(t.dataset.room,t.dataset.f,t.value);refreshCard(t.dataset.room);scheduleSave();return}
   if(t.id==='entryQ'){UI.entryQ=t.value;$('#cards').innerHTML=entryHTML(UI.month);refreshEntryHead()}
   if(t.id==='payQ'){UI.payQ=t.value;$('#payList').innerHTML=payListOnly()}
+  if(t.id==='pplQ'){UI.peopleQ=t.value;const d=pplData();$('#pplRows').innerHTML=pplRowsHTML(d.list);$('#pplMob').innerHTML=pplMobHTML(d.list,d.so==='room');$('#pplSum').textContent=pplSummary(d)}
   if(t.id==='leaveQ'){UI.leaveQ=t.value;const l=leaveFiltered();$('#leaveBody').innerHTML=leaveRowsHTML(l);$('#leaveSum').textContent=leaveSummary(l)}
 });
 let saveT=null;function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(()=>{saveT=null;save()},400)}
@@ -2061,6 +2094,7 @@ document.addEventListener('change',e=>{
   if(c==='msel')setMonth(t.value);
   else if(c==='noticedate'){UI.noticeDate=t.value||null;render()}
   else if(c==='noticeroom'){UI.noticeRoom=t.value;render()}
+  else if(c==='peoplesort'){UI.peopleSort=t.value;render()}
   else if(c==='leavemonth'){UI.leaveMonth=t.value;render()}
   else if(c==='reproom'){UI.reportRoom=t.value;render()}
   else if(c==='lossmeter'){DB.months[UI.month].lossMeter=t.dataset.v;save();render()}
