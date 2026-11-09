@@ -766,7 +766,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.13 · tự lưu bản sao trước khi trả phòng</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.14 · quyết toán điện nước tính từ số đã ghi gần nhất</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave'].includes(UI.view);
@@ -2305,19 +2305,25 @@ function settleCalc(id,v){
   const days=Math.max(0,d1-d0+1),ratio=v.prorate?days/dim:1,P=m.prices;
   const f=n=>v.prorate?roundK(n*ratio):(n||0);
   const rentFull=rec.rent!=null?rec.rent:rentAuto(r,rec.people,m);
+  // Số đã ghi trong tháng (rec.eNew/wNew) coi như đã tính ở phiếu tháng; số cũ của lần quyết toán = số mới nhất đã ghi
   const eOld=rec.eOld||0,wOld=rec.wOld||0,eNew=v.e,wNew=v.w;
-  const eUse=(eNew!=null&&eNew>eOld)?eNew-eOld:0,wUse=(wNew!=null&&wNew>wOld)?wNew-wOld:0;
+  const eBase=rec.eNew!=null?Math.max(rec.eNew,eOld):eOld,wBase=rec.wNew!=null?Math.max(rec.wNew,wOld):wOld;
+  const eSeg1=eBase-eOld,wSeg1=wBase-wOld;
+  const eUse=(eNew!=null&&eNew>eBase)?eNew-eBase:0,wUse=(wNew!=null&&wNew>wBase)?wNew-wBase:0;
+  const eBad=eNew!=null&&eNew<eBase,wBad=wNew!=null&&wNew<wBase;
   const ePr=rec.ePrice!=null?rec.ePrice:P.elec,wPr=rec.wPrice!=null?rec.wPrice:P.water;
   const lines=[
-    {k:'rent',name:'Tiền phòng',label:'Tiền phòng'+(v.prorate?` (${days}/${dim} ngày)`:''),det:v.prorate?`${money(rentFull)}đ × ${days}/${dim} ngày (${pad(d0)}–${pad(d1)}/${pad(M)})`:'Tính đủ tháng',amt:f(rentFull),full:rentFull},
-    {k:'elec',name:'Tiền điện',label:`Tiền điện (${eUse} số × ${money(ePr)})`,det:`Số cũ ${eOld} – số mới ${eNew==null?'…':eNew} = ${eUse} kWh × ${money(ePr)}đ`,amt:eUse*ePr},
-    {k:'water',name:'Tiền nước',label:`Tiền nước (${wUse} khối × ${money(wPr)})`,det:`Số cũ ${wOld} – số mới ${wNew==null?'…':wNew} = ${wUse} m³ × ${money(wPr)}đ`,amt:wUse*wPr}];
+    {k:'rent',name:'Tiền phòng',label:'Tiền phòng'+(v.prorate?` (${days}/${dim} ngày)`:''),det:v.prorate?`${money(rentFull)}đ × ${days}/${dim} ngày (${pad(d0)}–${pad(d1)}/${pad(M)})`:'Tính đủ tháng',amt:f(rentFull),full:rentFull}];
+  if(eSeg1>0)lines.push({k:'elec',name:'Tiền điện',label:`Tiền điện đã ghi (${eSeg1} số × ${money(ePr)})`,det:`Đã ghi trong tháng: số cũ ${eOld} – số mới ${eBase} = ${eSeg1} kWh × ${money(ePr)}đ`,amt:eSeg1*ePr});
+  lines.push({k:'elec',name:'Tiền điện',label:`Tiền điện mới (${eUse} số × ${money(ePr)})`,det:`Số cũ ${eBase} – số mới ${eNew==null?'…':eNew} = ${eUse} kWh × ${money(ePr)}đ`,amt:eUse*ePr});
+  if(wSeg1>0)lines.push({k:'water',name:'Tiền nước',label:`Tiền nước đã ghi (${wSeg1} khối × ${money(wPr)})`,det:`Đã ghi trong tháng: số cũ ${wOld} – số mới ${wBase} = ${wSeg1} m³ × ${money(wPr)}đ`,amt:wSeg1*wPr});
+  lines.push({k:'water',name:'Tiền nước',label:`Tiền nước mới (${wUse} khối × ${money(wPr)})`,det:`Số cũ ${wBase} – số mới ${wNew==null?'…':wNew} = ${wUse} m³ × ${money(wPr)}đ`,amt:wUse*wPr});
   [['trash','Tiền rác'],['internet','Internet'],['cable','Cáp Tivi'],['anqp','Tiền ANQP']].forEach(([key,lb])=>{const x=rec[key]||0;if(x)lines.push({k:key,name:lb,label:lb+(v.prorate?` (${days}/${dim} ngày)`:''),det:v.prorate?`${money(x)}đ × ${days}/${dim} ngày`:'Tính đủ tháng',amt:f(x),full:x})});
   if(rec.tamtru)lines.push({k:'tamtru',name:'Giấy tạm trú',label:'Tạm trú',det:'',amt:rec.tamtru});
   if(rec.debt)lines.push({k:'debt',name:'Nợ tháng trước',label:'Nợ tháng trước',det:'',amt:rec.debt});
   if(v.other)lines.push({k:'other',name:'Khoản khác',label:'Khoản trừ khác'+(v.otherNote?' ('+v.otherNote+')':''),det:v.otherNote||'',amt:v.other});
   const total=lines.reduce((a,x)=>a+x.amt,0),paid=paidOf(m,id).total,need=total-paid,dep=r.tenant.deposit||0,net=need-dep;
-  return {mk,m,rec,days,dim,lines,total,paid,need,dep,net,refund:Math.max(0,-net),collect:Math.max(0,net),eOld,wOld,eNew,wNew,ratio,d0,d1,date:dt,r,P};
+  return {mk,m,rec,days,dim,lines,total,paid,need,dep,net,refund:Math.max(0,-net),collect:Math.max(0,net),eOld,wOld,eNew,wNew,eBase,wBase,eBad,wBad,ratio,d0,d1,date:dt,r,P};
 }
 function settleSlipHTML(id,v){
   const S=settleCalc(id,v),st=DB.settings,room=S.r,dash=x=>x?money(x):'–';
@@ -2337,7 +2343,7 @@ function settleSlipHTML(id,v){
     <b>Phần thanh toán (đã cấn trừ):</b>
     <div class="payrow"><div class="paycol"><div class="pay"><span>– Tổng cộng phải trả:</span><span class="r mono">${money(S.total)}</span><span>– Trừ đã thanh toán trước:</span><span class="r mono">− ${money(S.paid)}</span><span>– Trừ tiền cọc:</span><span class="r mono">− ${money(S.dep)}</span>
       <b>${S.net>0?'Khách còn phải trả:':S.net<0?'Chủ trọ hoàn lại:':'Còn lại:'}</b><b class="r mono big">${money(Math.abs(S.net))}</b></div>${S.collect>0?bank:''}</div>${qr}</div>
-    <div style="margin:8px 0">${S.collect>0?box('#fdecea','#b3261e','KHÁCH CẦN THANH TOÁN',S.collect,'(= '+money(S.total)+' − '+money(S.paid)+' đã trả − '+money(S.dep)+' tiền cọc)'):S.refund>0?box('#e6f4ee','#0a6c5a','CHỦ TRỌ HOÀN LẠI CHO KHÁCH',S.refund,'(= '+money(S.paid+S.dep)+' đã trả + cọc − '+money(S.total)+' phải trả)'):box('#f1f1f1','#333','KHÔNG PHÁT SINH THÊM',0,'Hai bên đã thanh toán đủ')}</div>
+    <div style="margin:8px 0">${S.collect>0?box('#fdecea','#b3261e','KHÁCH CẦN THANH TOÁN',S.collect,'(= '+money(S.total)+' − '+money(S.paid)+' đã trả − '+money(S.dep)+' tiền cọc)'):S.refund>0?box('#e6f4ee','#0a6c5a','CHỦ TRỌ HOÀN LẠI CHO KHÁCH',S.refund,'(= '+money(S.paid)+' đã trả + '+money(S.dep)+' cọc − '+money(S.total)+' phải trả)'):box('#f1f1f1','#333','KHÔNG PHÁT SINH THÊM',0,'Hai bên đã thanh toán đủ')}</div>
     <div class="sig"><div>Quản lý Nhà trọ<small>${esc(st.manager)}</small></div><div>Người Trọ<small>(ký, ghi rõ họ tên)</small></div></div></div>`;
 }
 function settleRead(){
@@ -2350,14 +2356,14 @@ function settleText(id,S,date){
 }
 function settleRefresh(id){
   const v=settleRead(),S=settleCalc(id,v);
-  $('#sbody').innerHTML=`<div style="overflow-x:auto">${settleSlipHTML(id,v)}</div>${S.eNew==null||S.wNew==null?'<div class="sm" style="margin-top:6px;color:var(--bad)">Chưa nhập số điện hoặc số nước cuối: phần chưa nhập đang tính 0đ.</div>':''}${S.days===0?'<div class="sm" style="color:var(--bad);margin-top:6px">Ngày trả phòng nằm trước đầu '+esc(monthLabel(S.mk).toLowerCase())+'.</div>':''}`;
+  $('#sbody').innerHTML=`<div style="overflow-x:auto">${settleSlipHTML(id,v)}</div>${S.eNew==null||S.wNew==null?'<div class="sm" style="margin-top:6px;color:var(--bad)">Chưa nhập số điện hoặc số nước mới nhất: phần chưa nhập đang tính 0đ.</div>':''}${S.eBad||S.wBad?'<div class="sm" style="margin-top:6px;color:var(--bad)">Số mới nhập đang nhỏ hơn số cũ, hãy kiểm tra lại.</div>':''}${S.days===0?'<div class="sm" style="color:var(--bad);margin-top:6px">Ngày trả phòng nằm trước đầu '+esc(monthLabel(S.mk).toLowerCase())+'.</div>':''}`;
   const rf=$('#mrefund');if(rf&&!rf.dataset.touched)rf.value=money(S.refund);
 }
 function moveOutModal(id){
-  const r=roomById(id),ppl=peopleOf(r).filter(p=>p.name||p.idNo),m=DB.months[UI.month],rec=m&&m.recs[id]||{};
+  const r=roomById(id),ppl=peopleOf(r).filter(p=>p.name||p.idNo),m=DB.months[UI.month],rec=m&&m.recs[id]||{},eB=rec.eNew!=null?Math.max(rec.eNew,rec.eOld||0):(rec.eOld||0),wB=rec.wNew!=null?Math.max(rec.wNew,rec.wOld||0):(rec.wOld||0);
   openModal(`Quyết toán trả phòng ${id} · ${r.tenant.name}`,`<div id="settleForm" data-room="${esc(id)}"><div class="fg"><label class="f">Ngày trả phòng<input id="mdate" type="date" value="${todayISO()}" data-settle="1"></label>
-    <label class="f">Số điện cuối <span class="muted sm">(cũ ${rec.eOld!=null?rec.eOld:'–'})</span><input id="me" type="text" inputmode="numeric" class="numin" data-settle="1" value="${rec.eNew!=null?rec.eNew:''}"></label>
-    <label class="f">Số nước cuối <span class="muted sm">(cũ ${rec.wOld!=null?rec.wOld:'–'})</span><input id="mw" type="text" inputmode="numeric" class="numin" data-settle="1" value="${rec.wNew!=null?rec.wNew:''}"></label>
+    <label class="f">Số điện mới nhất hôm nay <span class="muted sm">(số cũ: ${eB})</span><input id="me" type="text" inputmode="numeric" class="numin" data-settle="1" placeholder="Nhập số điện hiện tại"></label>
+    <label class="f">Số nước mới nhất hôm nay <span class="muted sm">(số cũ: ${wB})</span><input id="mw" type="text" inputmode="numeric" class="numin" data-settle="1" placeholder="Nhập số nước hiện tại"></label>
     <label class="f full" style="flex-direction:row;align-items:center;gap:8px"><input id="mpro" type="checkbox" data-settle="1" checked style="width:auto"> Tính tiền phòng và phí cố định theo số ngày ở trong tháng</label>
     <label class="f">Khoản trừ khác (hư hỏng, dọn dẹp…)<input id="mother" type="text" inputmode="numeric" class="numin" data-money="1" data-settle="1" placeholder="0"></label>
     <label class="f">Nội dung khoản trừ<input id="mothern" type="text" data-settle="1"></label></div>
