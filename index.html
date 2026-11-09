@@ -766,7 +766,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.8 · chọn nhiều phòng rồi xác nhận đã gửi</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.12 · quyết toán cấn trừ cọc, ra một số tiền</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave'].includes(UI.view);
@@ -1214,9 +1214,9 @@ function vRecon(){
    <p class="muted sm" style="margin:8px 0 0">Chênh lệch âm là khách còn thiếu, dương là trả dư. Số này tự chuyển thành “Nợ tháng trước” khi tạo tháng kế tiếp.</p></div>`;
 }
 /* Tạo ảnh PNG của phiếu (kèm mã QR). Mã QR được đổi sang PNG trước khi chụp để luôn hiện trong ảnh. */
-async function slipBlob(){
+async function slipBlob(html){
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-  const host=document.createElement('div');host.style.cssText='position:fixed;left:-9999px;top:0;width:660px;background:#fff';host.innerHTML=slipHTML(UI.month,UI.noticeRoom);document.body.appendChild(host);
+  const host=document.createElement('div');host.style.cssText='position:fixed;left:-9999px;top:0;width:660px;background:#fff';host.innerHTML=html||slipHTML(UI.month,UI.noticeRoom);document.body.appendChild(host);
   try{
     for(const img of $$('img',host)){
       if(!/^data:image\/svg/.test(img.src))continue;
@@ -1668,7 +1668,7 @@ function vRooms(){
     <div class="sm"><span class="cell-l">Tiền phòng</span>${ruleText(r)}</div><div class="num right"><span class="cell-l">Người</span>${r.status==='occupied'?r.occupants:'–'}</div>
     <div><span class="chip ${r.status==='occupied'?'ok':''}">${r.status==='occupied'?'Đang thuê':'Trống'}</span></div>
     <div class="row full" style="gap:5px;justify-content:flex-end"><button class="btn sm" data-act="roomedit" data-room="${esc(r.id)}">${icon('edit',14)}Sửa</button>${r.status==='occupied'?`<button class="btn sm" data-act="moveout" data-room="${esc(r.id)}">Trả phòng</button>`:''}</div></div>`).join('');
-  const hist=DB.history.slice().reverse().map(h=>`<tr><td class="l"><b class="mono">${esc(h.roomId)}</b></td><td class="l">${esc(h.name)}${(h.members||[]).length?` <span class="muted sm">+ ${h.members.length} người ở cùng</span>`:''}</td><td>${fmtDate(h.moveIn)||'–'}</td><td>${fmtDate(h.moveOut)}</td><td class="num">${money(h.deposit)}</td><td class="num">${money(h.refund)}</td><td class="l">${esc(h.note||'')}</td></tr>`).join('');
+  const hist=DB.history.slice().reverse().map(h=>`<tr><td class="l"><b class="mono">${esc(h.roomId)}</b></td><td class="l">${esc(h.name)}${(h.members||[]).length?` <span class="muted sm">+ ${h.members.length} người ở cùng</span>`:''}</td><td>${fmtDate(h.moveIn)||'–'}</td><td>${fmtDate(h.moveOut)}</td><td class="num">${money(h.deposit)}</td><td class="num">${money(h.refund)}${h.settle&&h.settle.collect>0?`<div class="sm" style="color:var(--bad)">khách trả ${money(h.settle.collect)}</div>`:''}</td><td class="l">${esc(h.note||'')}${h.settle?`<div class="muted sm">Quyết toán ${esc(monthLabel(h.settle.month).toLowerCase())}: ${money(h.settle.total)}đ${h.settle.prorate?' ('+h.settle.days+'/'+h.settle.dim+' ngày)':''}</div>`:''}</td></tr>`).join('');
   return `<div class="tools"><span class="muted grow">${occ} phòng đang thuê · ${DB.rooms.length-occ} trống · tổng tiền cọc ${money(DB.rooms.reduce((a,r)=>a+(r.status==='occupied'?r.tenant.deposit||0:0),0))}đ</span><button class="btn primary" data-act="roomedit" data-room="">${icon('plus',16)}Thêm phòng</button></div>
   <div class="lst"><div class="lrow head room-g"><div>Phòng</div><div>Khách thuê</div><div>Ngày thuê</div><div class="right">Tiền cọc</div><div>Tiền phòng</div><div class="right">Người</div><div>Tình trạng</div><div></div></div>${rows}</div>
   ${DB.history.length?`<div class="card"><h2>Lịch sử trả phòng</h2><div class="tw"><table><thead><tr><th class="l">Phòng</th><th class="l">Khách</th><th>Ngày thuê</th><th>Ngày trả</th><th>Tiền cọc</th><th>Hoàn cọc</th><th class="l">Ghi chú</th></tr></thead><tbody>${hist}</tbody></table></div></div>`:''}`;
@@ -2138,6 +2138,8 @@ const prunePoll=()=>setTimeout(pruneDone,60);
 document.addEventListener('input',e=>{
   const t=e.target;
   if(t.dataset.room&&t.dataset.f){setField(t.dataset.room,t.dataset.f,t.value);refreshCard(t.dataset.room);scheduleSave();return}
+  if(t.dataset&&t.dataset.settle&&$('#settleForm')){if(t.dataset.money&&t.id==='mother'){}settleRefresh($('#settleForm').dataset.room);return}
+  if(t.id==='mrefund'){t.dataset.touched='1'}
   if(t.id==='entryQ'){UI.entryQ=t.value;$('#cards').innerHTML=entryHTML(UI.month);refreshEntryHead()}
   if(t.id==='payQ'){UI.payQ=t.value;$('#payList').innerHTML=payListOnly()}
   if(t.id==='pplQ'){UI.peopleQ=t.value;const d=pplData();$('#pplRows').innerHTML=pplRowsHTML(d.list);$('#pplMob').innerHTML=pplMobHTML(d.list,d.so==='room');$('#pplSum').textContent=pplSummary(d)}
@@ -2258,10 +2260,19 @@ document.addEventListener('click',async e=>{
    case 'roomsave':saveRoom(id);break;
    case 'roomdel':{const used=Object.values(DB.months).some(x=>x.recs[id]);if(used)return toast('Phòng này đã có số liệu trong các tháng, không xóa được. Hãy đặt tình trạng “Trống”.','bad');DB.rooms=DB.rooms.filter(r=>r.id!==id);save();closeModal(true);render();break}
    case 'moveout':moveOutModal(id);break;
-   case 'moveoutsave':{const r=roomById(id),owed=debtOf(id),dep=r.tenant.deposit||0,refund=parseInt0($('#mrefund').value)||0;
-      DB.history.push({roomId:id,name:r.tenant.name,moveIn:r.tenant.moveIn,moveOut:$('#mdate').value,deposit:dep,refund,note:$('#mnote').value.trim(),members:(r.members||[]).map(x=>x.name).filter(Boolean),
+   case 'moveoutsave':{const r=roomById(id),dep=r.tenant.deposit||0,refund=parseInt0($('#mrefund').value)||0,v=settleRead(),S=settleCalc(id,v);
+      DB.history.push({roomId:id,name:r.tenant.name,moveIn:r.tenant.moveIn,moveOut:v.date,deposit:dep,refund,note:$('#mnote').value.trim(),members:(r.members||[]).map(x=>x.name).filter(Boolean),
+        settle:{month:S.mk,days:S.days,dim:S.dim,prorate:v.prorate,lines:S.lines.map(x=>({label:x.label,amt:x.amt})),total:S.total,paid:S.paid,need:S.need,collect:S.collect},
         people:peopleOf(r).filter(p=>p.name||p.idNo).map(p=>({rep:p.rep,name:p.name,idNo:p.idNo,dob:p.dob,sex:p.sex,hk:p.hk,hkOwner:p.hkOwner,group:p.group,ttPlace:p.ttPlace,phone:p.phone,tt1:p.tt1,tt2:p.tt2,note:p.note}))});
-      r.tenant={name:'',phone:'',idNo:'',moveIn:'',deposit:0,note:''};r.members=[];r.status='vacant';save();closeModal(true);render();toast('Đã ghi nhận trả phòng '+id+' · '+DB.history[DB.history.length-1].people.length+' người vào danh sách chuyển đi');break}
+      if(!S.m.locked){const rc=S.rec;if(v.e!=null)rc.eNew=v.e;if(v.w!=null)rc.wNew=v.w;S.lines.forEach(x=>{if(['rent','trash','internet','cable','anqp'].includes(x.k))rc[x.k]=x.amt})}
+      r.tenant={name:'',phone:'',idNo:'',moveIn:'',deposit:0,note:''};r.members=[];r.status='vacant';save();closeModal(true);render();toast('Đã quyết toán và trả phòng '+id+(S.collect>0?' · khách cần thanh toán '+money(S.collect)+'đ':(refund>0?' · hoàn lại khách '+money(refund)+'đ':' · không phát sinh')));break}
+   case 'settleprint':{const html=settleSlipHTML(id,settleRead()),root=$('#print-root');root.className='per1';root.innerHTML=html;document.body.classList.add('printing');
+      const done=()=>{document.body.classList.remove('printing');root.innerHTML='';window.removeEventListener('afterprint',done)};window.addEventListener('afterprint',done);setTimeout(()=>window.print(),80);break}
+   case 'settleimg':{const html=settleSlipHTML(id,settleRead()),nm='QuyetToan_'+String(id).replace(/\s+/g,'')+'_'+todayISO()+'.png';toast('Đang tạo ảnh phiếu…');
+      try{const blob=await slipBlob(html);let ok=false;
+        if(navigator.clipboard&&window.ClipboardItem&&window.isSecureContext){try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);ok=true;toast('Đã sao chép ảnh phiếu quyết toán. Mở Zalo và nhấn Ctrl+V để dán')}catch(x){}}
+        if(!ok){saveBlob(blob,nm);toast('Đã tải ảnh phiếu về, gửi ảnh này qua Zalo')}}catch(x){toast('Không tạo được ảnh: '+(x.message||x),'bad')}break}
+   case 'settlecopy':{const v=settleRead();copyText(settleText(id,settleCalc(id,v),v.date));break}
    case 'syncchip':if(!Sync.driver){UI.view='settings';await loadSnaps();render()}else if(Sync.state==='needauth')reauth();else if(Sync.state==='error'||Sync.state==='idle')Sync.push();break;
    case 'syncnow':if(Sync.driver){Sync.pullAndMerge().then(()=>{if(Sync.state==='idle')toast('Đã đồng bộ xong')}).catch(x=>{setSync(x.code==='auth'?'needauth':'error',x.message);toast(x.message||'Lỗi đồng bộ','bad')})}break;
    case 'syncdiag':syncDiag();break;
@@ -2283,14 +2294,80 @@ document.addEventListener('click',async e=>{
   }
 });
 function debtOf(id){const k=UI.month,m=DB.months[k];if(!m.recs[id])return 0;return Math.round(calc(roomById(id),m.recs[id],m).total-paidOf(m,id).total)}
+/* Quyết toán trả phòng: tính tiền theo số ngày ở thực tế + số điện nước cuối, trừ vào tiền cọc */
+const roundK=n=>Math.round((n||0)/1000)*1000;
+function settleCalc(id,v){
+  const r=roomById(id),dt=v.date||todayISO(),ym=dt.slice(0,7),mk=(DB.months[ym]&&DB.months[ym].recs[id])?ym:UI.month,m=DB.months[mk],rec=m.recs[id];
+  const [Y,M]=mk.split('-').map(Number),dim=new Date(Y,M,0).getDate();
+  let d0=1,d1=dim;
+  if(dt.slice(0,7)===mk)d1=Math.min(dim,+dt.slice(8,10));else if(dt<mk+'-01')d1=0;
+  const mi=r.tenant.moveIn||'';if(mi.slice(0,7)===mk)d0=+mi.slice(8,10);
+  const days=Math.max(0,d1-d0+1),ratio=v.prorate?days/dim:1,P=m.prices;
+  const f=n=>v.prorate?roundK(n*ratio):(n||0);
+  const rentFull=rec.rent!=null?rec.rent:rentAuto(r,rec.people,m);
+  const eOld=rec.eOld||0,wOld=rec.wOld||0,eNew=v.e,wNew=v.w;
+  const eUse=(eNew!=null&&eNew>eOld)?eNew-eOld:0,wUse=(wNew!=null&&wNew>wOld)?wNew-wOld:0;
+  const ePr=rec.ePrice!=null?rec.ePrice:P.elec,wPr=rec.wPrice!=null?rec.wPrice:P.water;
+  const lines=[
+    {k:'rent',name:'Tiền phòng',label:'Tiền phòng'+(v.prorate?` (${days}/${dim} ngày)`:''),det:v.prorate?`${money(rentFull)}đ × ${days}/${dim} ngày (${pad(d0)}–${pad(d1)}/${pad(M)})`:'Tính đủ tháng',amt:f(rentFull),full:rentFull},
+    {k:'elec',name:'Tiền điện',label:`Tiền điện (${eUse} số × ${money(ePr)})`,det:`Số cũ ${eOld} – số mới ${eNew==null?'…':eNew} = ${eUse} kWh × ${money(ePr)}đ`,amt:eUse*ePr},
+    {k:'water',name:'Tiền nước',label:`Tiền nước (${wUse} khối × ${money(wPr)})`,det:`Số cũ ${wOld} – số mới ${wNew==null?'…':wNew} = ${wUse} m³ × ${money(wPr)}đ`,amt:wUse*wPr}];
+  [['trash','Tiền rác'],['internet','Internet'],['cable','Cáp Tivi'],['anqp','Tiền ANQP']].forEach(([key,lb])=>{const x=rec[key]||0;if(x)lines.push({k:key,name:lb,label:lb+(v.prorate?` (${days}/${dim} ngày)`:''),det:v.prorate?`${money(x)}đ × ${days}/${dim} ngày`:'Tính đủ tháng',amt:f(x),full:x})});
+  if(rec.tamtru)lines.push({k:'tamtru',name:'Giấy tạm trú',label:'Tạm trú',det:'',amt:rec.tamtru});
+  if(rec.debt)lines.push({k:'debt',name:'Nợ tháng trước',label:'Nợ tháng trước',det:'',amt:rec.debt});
+  if(v.other)lines.push({k:'other',name:'Khoản khác',label:'Khoản trừ khác'+(v.otherNote?' ('+v.otherNote+')':''),det:v.otherNote||'',amt:v.other});
+  const total=lines.reduce((a,x)=>a+x.amt,0),paid=paidOf(m,id).total,need=total-paid,dep=r.tenant.deposit||0,net=need-dep;
+  return {mk,m,rec,days,dim,lines,total,paid,need,dep,net,refund:Math.max(0,-net),collect:Math.max(0,net),eOld,wOld,eNew,wNew,ratio,d0,d1,date:dt,r,P};
+}
+function settleSlipHTML(id,v){
+  const S=settleCalc(id,v),st=DB.settings,room=S.r,dash=x=>x?money(x):'–';
+  const rows=S.lines.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.name||x.label)}</td><td>${esc(x.det||'')}</td><td class="r">${x.k==='debt'||x.k==='other'||x.k==='tamtru'?money(x.amt):dash(x.amt)}</td></tr>`).join('');
+  let qr='';
+  if(S.collect>0&&st.qrOn!=='0'&&st.bankBin&&st.bankAcc){const src=qrImg(vietQRPayload(st.bankBin,String(st.bankAcc).replace(/\s+/g,''),S.collect,noAccent('Phong '+String(id).replace(/\s+/g,'')+' quyet toan tra phong').slice(0,50)));if(src)qr=`<div class="qrbox"><img src="${src}" alt="Mã QR chuyển khoản">Quét mã bằng app ngân hàng.<br>Đã có sẵn số tiền ${money(S.collect)}đ và nội dung.</div>`}
+  const bank=st.bankAcc?`<div class="pay" style="grid-template-columns:auto 1fr"><span>Chuyển khoản:</span><b>${esc(st.bankName)} · ${esc(st.bankAcc)}${st.bankHolder?' · '+esc(st.bankHolder):''}</b></div>`:'';
+  const box=(bg,fg,t,n,sub)=>`<div style="min-width:200px;border:2px solid ${fg};background:${bg};color:${fg};border-radius:8px;padding:7px 10px;text-align:center"><div style="font-size:11.5px;font-weight:600">${t}</div><div style="font-size:19px;font-weight:700;font-family:'IBM Plex Mono',monospace">${money(n)}đ</div><div style="font-size:11px">${sub}</div></div>`;
+  return `<div class="paper">
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px"><img src="${BRAND.logo}" width="46" height="46" alt="" style="border-radius:10px;display:block"><div style="text-align:left"><div style="font-size:15px;font-weight:700;color:#0a6c5a;line-height:1.25">${esc(st.propertyName||BRAND.name)}</div><div style="font-size:11.5px;color:#444;line-height:1.35">${esc(st.address||BRAND.addr)}${st.phone?' · ĐT '+esc(st.phone):''}</div></div></div>
+    <h4>PHIẾU QUYẾT TOÁN TRẢ PHÒNG</h4><div class="ph">Ngày ${fmtDate(S.date)}</div>
+    <div class="pm"><span>Kính gửi: <b>${esc(room.tenant.name)}</b>${(room.members||[]).length?' (đại diện phòng)':''}</span><span>CMND/CCCD số: ${esc(room.tenant.idNo)||'………'}</span></div>
+    <div class="pm"><span>Phòng số: <b>${esc(room.id)}</b></span><span>Thuê trọ ngày: ${fmtDate(room.tenant.moveIn)||'………'}</span><span>Trả phòng ngày: <b>${fmtDate(S.date)}</b></span></div>${(room.members||[]).filter(x=>x.name).length?`<div class="pm"><span>Người ở cùng: ${esc(room.members.filter(x=>x.name).map(x=>x.name).join(', '))}</span></div>`:''}
+    <p style="margin:8px 0 2px">Xin thông báo quyết toán tiền phòng và các chi phí dịch vụ <b>tháng ${+S.mk.slice(5)}/${S.mk.slice(0,4)}</b> (từ ngày ${pad(S.d0)} đến hết ngày ${pad(S.d1)}), như sau:</p>
+    <table><thead><tr><th style="width:36px">STT</th><th style="width:100px">Khoản</th><th>Chi tiết</th><th style="width:110px">Thành tiền</th></tr></thead><tbody>${rows}
+      <tr class="tot"><td colspan="3" style="text-align:right">Tổng cộng phải trả</td><td class="r">${money(S.total)}</td></tr></tbody></table>
+    <b>Phần thanh toán (đã cấn trừ):</b>
+    <div class="payrow"><div class="paycol"><div class="pay"><span>– Tổng cộng phải trả:</span><span class="r mono">${money(S.total)}</span><span>– Trừ đã thanh toán trước:</span><span class="r mono">− ${money(S.paid)}</span><span>– Trừ tiền cọc:</span><span class="r mono">− ${money(S.dep)}</span>
+      <b>${S.net>0?'Khách còn phải trả:':S.net<0?'Chủ trọ hoàn lại:':'Còn lại:'}</b><b class="r mono big">${money(Math.abs(S.net))}</b></div>${S.collect>0?bank:''}</div>${qr}</div>
+    <div style="margin:8px 0">${S.collect>0?box('#fdecea','#b3261e','KHÁCH CẦN THANH TOÁN',S.collect,'(= '+money(S.total)+' − '+money(S.paid)+' đã trả − '+money(S.dep)+' tiền cọc)'):S.refund>0?box('#e6f4ee','#0a6c5a','CHỦ TRỌ HOÀN LẠI CHO KHÁCH',S.refund,'(= '+money(S.paid+S.dep)+' đã trả + cọc − '+money(S.total)+' phải trả)'):box('#f1f1f1','#333','KHÔNG PHÁT SINH THÊM',0,'Hai bên đã thanh toán đủ')}</div>
+    <div class="sig"><div>Quản lý Nhà trọ<small>${esc(st.manager)}</small></div><div>Người Trọ<small>(ký, ghi rõ họ tên)</small></div></div></div>`;
+}
+function settleRead(){
+  const num=i=>{const x=$('#'+i);return x&&x.value.trim()!==''?parseInt0(x.value):null};
+  return {date:$('#mdate').value,e:num('me'),w:num('mw'),prorate:$('#mpro').checked,other:num('mother')||0,otherNote:($('#mothern').value||'').trim()};
+}
+function settleText(id,S,date){
+  const r=roomById(id),L=S.lines.map(x=>`- ${x.label}: ${money(x.amt)}đ`).join('\n');
+  return `QUYẾT TOÁN TRẢ PHÒNG ${id}\nKhách: ${r.tenant.name||''}\nNgày trả phòng: ${fmtDate(date)} (${monthLabel(S.mk)})\n${L}\nTổng cộng phải trả: ${money(S.total)}đ\nĐã thanh toán trước: ${money(S.paid)}đ\nTrừ tiền cọc: ${money(S.dep)}đ\n`+(S.collect>0?`=> KHÁCH CẦN THANH TOÁN: ${money(S.collect)}đ`:S.refund>0?`=> CHỦ TRỌ HOÀN LẠI KHÁCH: ${money(S.refund)}đ`:'=> Không phát sinh thêm, hai bên đã thanh toán đủ');
+}
+function settleRefresh(id){
+  const v=settleRead(),S=settleCalc(id,v);
+  $('#sbody').innerHTML=`<div style="overflow-x:auto">${settleSlipHTML(id,v)}</div>${S.eNew==null||S.wNew==null?'<div class="sm" style="margin-top:6px;color:var(--bad)">Chưa nhập số điện hoặc số nước cuối: phần chưa nhập đang tính 0đ.</div>':''}${S.days===0?'<div class="sm" style="color:var(--bad);margin-top:6px">Ngày trả phòng nằm trước đầu '+esc(monthLabel(S.mk).toLowerCase())+'.</div>':''}`;
+  const rf=$('#mrefund');if(rf&&!rf.dataset.touched)rf.value=money(S.refund);
+}
 function moveOutModal(id){
-  const r=roomById(id),owed=Math.max(0,debtOf(id)),dep=r.tenant.deposit||0,ppl=peopleOf(r).filter(p=>p.name||p.idNo);
-  openModal(`Trả phòng ${id} · ${r.tenant.name}`,`<div class="fg"><label class="f">Ngày trả phòng<input id="mdate" type="date" value="${todayISO()}"></label>
-    <label class="f">Hoàn lại tiền cọc<input id="mrefund" type="text" inputmode="numeric" class="numin" data-money="1" value="${money(Math.max(0,dep-owed))}"></label>
-    <div class="full sm muted">Tiền cọc ${money(dep)}đ − còn nợ ${money(owed)}đ (${monthLabel(UI.month).toLowerCase()}) = ${money(dep-owed)}đ. Chỉnh lại số hoàn cọc nếu cần.</div>
-    <div class="full"><div class="sm"><b>${ppl.length} người sẽ được ghi vào danh sách chuyển đi:</b></div><div class="sm muted">${ppl.map(p=>esc(p.name||p.idNo)+(p.rep?' (đại diện)':'')).join(' · ')||'Chưa có tên người ở'}</div></div>
-    <label class="f full">Ghi chú<textarea id="mnote"></textarea></label></div><p class="muted sm" style="margin:0">Phòng chuyển sang “Trống” và không tính tiền từ tháng tạo sau. Số liệu các tháng cũ được giữ nguyên.</p>`,
-    `<button class="btn" data-act="mclose">Hủy</button><button class="btn primary" data-act="moveoutsave" data-room="${esc(id)}">Xác nhận trả phòng</button>`);
+  const r=roomById(id),ppl=peopleOf(r).filter(p=>p.name||p.idNo),m=DB.months[UI.month],rec=m&&m.recs[id]||{};
+  openModal(`Quyết toán trả phòng ${id} · ${r.tenant.name}`,`<div id="settleForm" data-room="${esc(id)}"><div class="fg"><label class="f">Ngày trả phòng<input id="mdate" type="date" value="${todayISO()}" data-settle="1"></label>
+    <label class="f">Số điện cuối <span class="muted sm">(cũ ${rec.eOld!=null?rec.eOld:'–'})</span><input id="me" type="text" inputmode="numeric" class="numin" data-settle="1" value="${rec.eNew!=null?rec.eNew:''}"></label>
+    <label class="f">Số nước cuối <span class="muted sm">(cũ ${rec.wOld!=null?rec.wOld:'–'})</span><input id="mw" type="text" inputmode="numeric" class="numin" data-settle="1" value="${rec.wNew!=null?rec.wNew:''}"></label>
+    <label class="f full" style="flex-direction:row;align-items:center;gap:8px"><input id="mpro" type="checkbox" data-settle="1" checked style="width:auto"> Tính tiền phòng và phí cố định theo số ngày ở trong tháng</label>
+    <label class="f">Khoản trừ khác (hư hỏng, dọn dẹp…)<input id="mother" type="text" inputmode="numeric" class="numin" data-money="1" data-settle="1" placeholder="0"></label>
+    <label class="f">Nội dung khoản trừ<input id="mothern" type="text" data-settle="1"></label></div>
+    <div id="sbody" style="margin:10px 0"></div>
+    <div class="fg"><label class="f">Số tiền hoàn lại cho khách (đã cấn trừ cọc)<input id="mrefund" type="text" inputmode="numeric" class="numin" data-money="1"></label>
+    <label class="f">Ghi chú<textarea id="mnote"></textarea></label></div>
+    <div class="full sm muted" style="margin-top:6px"><b>${ppl.length} người sẽ được ghi vào danh sách chuyển đi:</b> ${ppl.map(p=>esc(p.name||p.idNo)+(p.rep?' (đại diện)':'')).join(' · ')||'chưa có tên người ở'}</div>
+    <p class="muted sm" style="margin:6px 0 0">Tiền tính tới hết ngày trả phòng, làm tròn đến nghìn đồng. Tiền cọc được cấn trừ vào khoản phải trả: còn dư thì khách thanh toán, âm thì chủ trọ hoàn lại. Xác nhận sẽ ghi số điện nước cuối và số tiền đã quyết toán vào tháng này (nếu tháng chưa chốt), toàn bộ thành viên chuyển sang danh sách người chuyển đi và phòng chuyển sang “Trống”.</p></div>`,
+    `<button class="btn" data-act="mclose">Hủy</button><button class="btn" data-act="settleimg" data-room="${esc(id)}">${icon('copy',14)}Sao chép ảnh phiếu</button><button class="btn" data-act="settleprint" data-room="${esc(id)}">In phiếu</button><button class="btn" data-act="settlecopy" data-room="${esc(id)}">Sao chép chữ</button><button class="btn primary" data-act="moveoutsave" data-room="${esc(id)}">Xác nhận trả phòng</button>`,{wide:true});
+  settleRefresh(id);
 }
 function saveRoom(oldId){
   const isNew=!oldId,id=isNew?$('#rid').value.trim().replace(/\s+/g,' ').toUpperCase():oldId;
