@@ -294,6 +294,8 @@ svg.chart .b1{fill:var(--line2)}svg.chart .b2{fill:var(--accent)}
 }
 
 /* v5.16: sổ thuế */
+#app tr.wife td,.wife td{background:rgba(255,214,0,.28)}
+#print-root.police tr.wife td{background:#fff2a8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .tmchip{display:inline-flex;flex-direction:column;align-items:center;gap:0;min-width:58px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:6px 10px;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--ink);line-height:1.25}
 .tmchip small{font-size:10.5px;font-weight:500;color:var(--muted)}
 .tmchip[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}.tmchip[aria-pressed="true"] small{color:#fff;opacity:.85}
@@ -774,7 +776,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.18 · Tính tiền: sửa tay tổng tạm trú, rác, điện</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.19 · Tính tiền theo đợt thu, đưa bx, phiếu thu từng đợt</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave','tax'].includes(UI.view);
@@ -1031,7 +1033,7 @@ function payModal(id){
     <div class="fg"><label class="f">Hình thức<select id="pm"><option value="ck">Chuyển khoản</option><option value="tm">Tiền mặt</option></select></label>
       <label class="f">Số tiền<input id="pa" type="text" inputmode="numeric" class="numin" data-money="1" value="${left>0?money(left):''}"></label>
       <label class="f">Ngày trả<input id="pd" type="date" value="${todayISO()}"></label>
-      <label class="f">Đợt thu<select id="pb">${Array.from({length:S.batches||3},(_,i)=>`<option value="${i+1}">Đợt ${i+1}</option>`).join('')}</select></label>
+      <label class="f">Đợt thu<select id="pb">${Array.from({length:S.batches||3},(_,i)=>`<option value="${i+1}" ${(m.curBatch||1)===i+1?'selected':''}>Đợt ${i+1}</option>`).join('')}</select></label>
       <label class="f full">Ghi chú<input id="pn" type="text" placeholder="vd: đưa bx"></label></div>`,
     `<button class="btn" data-act="mclose">Đóng</button><button class="btn primary" data-act="payadd" data-room="${esc(id)}">${icon('check',16)}Ghi nhận</button>`,{onClose:()=>render()});
 }
@@ -2298,61 +2300,126 @@ function vProfit(){
   <div class="card"><h2>Lợi nhuận theo tháng</h2><div class="tw"><table><thead><tr><th class="l">Tháng</th><th>Phải thu</th><th>Đã thu</th><th>Tiền tạm trú</th><th>Thu trừ tạm trú</th><th>Tiền rác</th><th>Điện thực chi (nhập)</th><th>Thu trừ tạm trú, rác, điện</th><th>Chi nước</th><th>Chi khác</th><th>Tổng chi</th><th>Lợi nhuận</th><th>Biên</th><th>Lãi điện</th><th>Lãi nước</th></tr></thead><tbody>${rows||'<tr><td class="l muted" colspan="15">Chưa có dữ liệu.</td></tr>'}${totRow}</tbody></table></div>
   <p class="muted sm" style="margin:10px 0 0"><b>Thu trừ tạm trú</b> = đã thu − tiền tạm trú. <b>Thu trừ tạm trú, rác, điện</b> = đã thu − tiền tạm trú − tiền rác − số tiền điện thực chi bạn nhập trong ô (ô này cũng là khoản chi điện ở mục Đối soát, nhập một nơi là đủ). Lợi nhuận = đã thu thực tế − chi phí đã nhập ở Đối soát. “Lãi điện/nước” = tiền điện (gồm bơm) hoặc nước đã tính khách − tiền điện/nước thực trả nhà cung cấp.</p></div>`;
 }
-/* ---------- Báo cáo: Tính tiền (thu trừ tạm trú, rác, điện thực chi) ---------- */
-function netData(k){
-  const m=DB.months[k],rooms=monthRooms(k),ov=m.calc||{};
-  const rows=rooms.map(r=>{const rec=m.recs[r.id],c=calc(r,rec,m),ps=(m.payments[r.id]||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-    return {id:r.id,name:(r.tenant&&r.tenant.name)||'',total:c.total,
-      ck:ps.filter(p=>p.method==='ck').reduce((a,p)=>a+(p.amount||0),0),tm:ps.filter(p=>p.method!=='ck').reduce((a,p)=>a+(p.amount||0),0),
-      notes:[...new Set(ps.map(p=>p.note).filter(Boolean))].join('; '),dates:[...new Set(ps.map(p=>p.date).filter(Boolean))].map(fmtDate).join(', ')}});
-  const s=monthStats(k),ee=(m.expenses||[]).filter(y=>y.cat==='elec'),elec=ee.reduce((a,y)=>a+y.amount,0);
-  const ck=rows.reduce((a,x)=>a+x.ck,0),tm=rows.reduce((a,x)=>a+x.tm,0),tt=ov.tamtru!=null?ov.tamtru:s.tamtru,tr=ov.trash!=null?ov.trash:s.trash;
-  return {k,rows,billed:rows.reduce((a,x)=>a+x.total,0),ck,tm,got:ck+tm,tt,tr,elec,multi:ee.length>1,autoTt:s.tamtru,autoTr:s.trash,ovTt:ov.tamtru!=null,ovTr:ov.trash!=null,ded:tt+tr+elec,left:ck+tm-tt-tr-elec};
+/* ---------- Báo cáo: Tính tiền theo đợt thu (v5.19) ---------- */
+const DKIND=[['tamtru',/tạm\s*trú/i,'Tiền tạm trú'],['trash',/rác/i,'Tiền rác'],['elec',/điện/i,'Tiền điện thực chi']];
+const dedKind=d=>{if(d.kind)return d.kind;const x=DKIND.find(y=>y[1].test(d.label||''));return x?x[0]:''};
+const dedList=(m,b,kind)=>(m.deductions||[]).filter(d=>(d.batch||1)===b&&dedKind(d)===kind);
+const legacyElec=m=>(m.expenses||[]).filter(y=>y.cat==='elec').reduce((a,y)=>a+y.amount,0);
+function syncElec(m){const tot=(m.deductions||[]).filter(d=>dedKind(d)==='elec').reduce((a,d)=>a+d.amount,0);
+  m.expenses=(m.expenses||[]).filter(y=>y.cat!=='elec');if(tot>0)m.expenses.push({id:uid(),cat:'elec',label:'Tiền điện thực chi',amount:tot})}
+/* amount=null: xóa khoản của đợt này để về mặc định */
+function setDed(m,b,kind,amount){
+  m.deductions=m.deductions||[];
+  if(kind==='elec'&&b!==1&&!m.deductions.some(d=>dedKind(d)==='elec')){const l=legacyElec(m);if(l>0)m.deductions.push({id:uid(),batch:1,kind:'elec',label:'Tiền điện thực chi',amount:l})}
+  m.deductions=m.deductions.filter(d=>!((d.batch||1)===b&&dedKind(d)===kind));
+  if(amount!=null)m.deductions.push({id:uid(),batch:b,kind,label:DKIND.find(x=>x[0]===kind)[2],amount});
+  if(kind==='elec')syncElec(m);
+}
+const wifeOf=p=>p.toWife!=null?!!p.toWife:/(^|[^a-z0-9])bx([^a-z0-9]|$)|bà\s*xã|vợ/i.test(p.note||'');
+function netEff(k,b,kind){
+  const m=DB.months[k],l=dedList(m,b,kind);
+  if(l.length)return {v:l.reduce((a,d)=>a+d.amount,0),auto:false,n:l.length};
+  if(b===1){
+    if(kind==='elec')return {v:(m.deductions||[]).some(d=>dedKind(d)==='elec')?0:legacyElec(m),auto:true,n:0};
+    const s=monthStats(k);return {v:kind==='trash'?s.trash:s.tamtru,auto:true,n:0};
+  }
+  return {v:0,auto:true,n:0};
+}
+function netRows(k,b){
+  const m=DB.months[k],out=[];
+  monthRooms(k).forEach(r=>{const rec=m.recs[r.id],c=calc(r,rec,m),all=m.payments[r.id]||[],name=(r.tenant&&r.tenant.name)||'';
+    const ps=all.filter(p=>(p.batch||1)===b).sort((x,y)=>(x.date||'').localeCompare(y.date||''));
+    if(!ps.length){if(b===1&&!all.length)out.push({id:r.id,name,total:c.total,first:true,p:null});return}
+    ps.forEach((p,i)=>out.push({id:r.id,name,total:c.total,first:i===0,p}))});
+  return out;
+}
+function netBatch(k,b){
+  const m=DB.months[k],rows=netRows(k,b),pays=rows.filter(x=>x.p).map(x=>x.p);
+  const ck=pays.filter(p=>p.method==='ck').reduce((a,p)=>a+p.amount,0),tm=pays.filter(p=>p.method!=='ck').reduce((a,p)=>a+p.amount,0);
+  const wp=pays.filter(wifeOf),wife=wp.reduce((a,p)=>a+p.amount,0);
+  const E={tamtru:netEff(k,b,'tamtru'),trash:netEff(k,b,'trash'),elec:netEff(k,b,'elec')};
+  const others=(m.deductions||[]).filter(d=>(d.batch||1)===b&&!dedKind(d)),oth=others.reduce((a,d)=>a+d.amount,0);
+  const gross=ck+tm,net=gross-wife,ded=E.tamtru.v+E.trash.v+E.elec.v+oth;
+  return {k,b,rows,ck,tm,gross,wife,nWife:wp.length,net,E,others,oth,ded,left:net-ded};
 }
 function vNet(){
   const k=UI.month;if(!k||!DB.months[k])return '<div class="card"><p class="muted">Chưa có tháng nào.</p></div>';
-  const N=netData(k);
-  const body=N.rows.map(x=>`<tr><td class="l"><b class="mono">${esc(x.id)}</b></td><td class="l">${esc(x.name)}</td><td class="num">${money(x.total)}</td><td class="num">${x.ck?money(x.ck):''}</td><td class="num">${x.tm?money(x.tm):''}</td><td class="l">${esc(x.notes)}</td><td class="l">${esc(x.dates)}</td></tr>`).join('');
-  const inp=(f,val,auto,ov,dis,tip)=>`<input class="numin" style="width:130px;text-align:right" inputmode="numeric" autocomplete="off" data-money="1" data-change="${f==='elec'?'elecreal':'netovr'}" data-mk="${k}" data-f="${f}" value="${(f==='elec'&&!val)?'':money(val)}" placeholder="${f==='elec'?'nhập số tiền':''}" ${dis?'disabled title="'+tip+'"':''} aria-label="${f}">`;
-  const line=(label,cell,b)=>`<tr><td class="l">${b?'<b>'+label+'</b>':label}</td><td class="num">${cell}</td></tr>`;
-  return `<div class="card"><h2>Tính tiền ${monthLabel(k)}<span class="sp"></span><button class="btn" data-act="netxlsx">${icon('down',14)}Xuất Excel</button></h2>
-    <div class="tw"><table><thead><tr><th class="l">Số phòng</th><th class="l">Tên</th><th>Số tiền</th><th>Đã trả CK</th><th>Đã trả tiền mặt</th><th class="l">Ghi chú</th><th class="l">Ngày trả</th></tr></thead><tbody>${body||'<tr><td class="l muted" colspan="7">Chưa có phòng.</td></tr>'}
-    <tr class="tax-tot"><td class="l" colspan="2"><b>Tổng</b></td><td class="num"><b>${money(N.billed)}</b></td><td class="num"><b>${money(N.ck)}</b></td><td class="num"><b>${money(N.tm)}</b></td><td colspan="2"></td></tr></tbody></table></div></div>
-  <div class="card"><h2>Tổng hợp sau khi trừ</h2><div class="tw"><table style="max-width:560px"><tbody>
-    ${line('Tiền chuyển khoản (CK)',money(N.ck))}
-    ${line('Tiền mặt (TM)',money(N.tm))}
-    ${line('Tiền CK + TM (đã thu)',money(N.got),1)}
-    ${line('Trừ tiền tạm trú <span class="muted sm">'+(N.ovTt?'(đã sửa tay)':'(tự tính, có thể gõ số khác)')+'</span>',(N.ovTt?`<button class="btn sm ghost" data-act="netreset" data-mk="${k}" data-f="tamtru" title="Về số tự tính ${money(N.autoTt)}">↺ ${money(N.autoTt)}</button> `:'')+inp('tamtru',N.tt,N.autoTt,N.ovTt))}
-    ${line('Trừ tiền rác <span class="muted sm">'+(N.ovTr?'(đã sửa tay)':'(tự tính, có thể gõ số khác)')+'</span>',(N.ovTr?`<button class="btn sm ghost" data-act="netreset" data-mk="${k}" data-f="trash" title="Về số tự tính ${money(N.autoTr)}">↺ ${money(N.autoTr)}</button> `:'')+inp('trash',N.tr,N.autoTr,N.ovTr))}
-    ${line('Trừ tiền điện thực chi <span class="muted sm">(bạn nhập)</span>',inp('elec',N.elec,0,1,N.multi,'Có nhiều khoản điện, sửa ở mục Đối soát'))}
-    ${line('Tổng trừ (tạm trú + rác + điện)',money(N.ded),1)}
-    <tr class="tax-tot"><td class="l"><b>Số tiền còn lại</b></td><td class="num ${N.left<0?'neg':'pos'}" style="font-size:1.15em"><b>${money(N.left)}</b></td></tr></tbody></table></div>
-    <p class="muted sm" style="margin:10px 0 0">Số tiền còn lại = Tiền CK + TM − tiền tạm trú − tiền rác − tiền điện thực chi. Tạm trú và rác mặc định lấy tổng từ phiếu của tháng; bạn có thể gõ thẳng số tổng khác vào ô, bấm nút ↺ để về số tự tính. Tiền điện bạn nhập là số thực trả nhà cung cấp, không lấy từ tiền thu của người thuê; số này cũng là khoản chi điện ở Đối soát và tab Lợi nhuận.</p></div>`;
+  const m=DB.months[k],nb=DB.settings.batches||3;
+  if(m.calc){const o=m.calc;if(o.tamtru!=null&&!dedList(m,1,'tamtru').length)setDed(m,1,'tamtru',o.tamtru);if(o.trash!=null&&!dedList(m,1,'trash').length)setDed(m,1,'trash',o.trash);delete m.calc}
+  if(UI.netBk!==k){UI.netBk=k;UI.netB=m.curBatch||1}
+  const b=Math.min(Math.max(1,UI.netB||1),nb),cur=Math.min(m.curBatch||1,nb),N=netBatch(k,b),E=N.E;
+  const tabs=`<div class="seg tabs" role="group" aria-label="Đợt thu">${Array.from({length:nb},(_,i)=>`<button data-act="netdot" data-b="${i+1}" aria-pressed="${b===i+1}">Đợt ${i+1}${cur===i+1?' ●':''}</button>`).join('')}</div>`;
+  const bopt=v=>Array.from({length:nb},(_,i)=>`<option value="${i+1}" ${v===i+1?'selected':''}>Đợt ${i+1}</option>`).join('');
+  const body=N.rows.map(x=>{const p=x.p,w=p&&wifeOf(p);
+    return `<tr${w?' class="wife"':''}><td class="l"><b class="mono">${x.first?esc(x.id):''}</b></td><td class="l">${x.first?esc(x.name):''}</td><td class="num">${x.first?money(x.total):''}</td><td class="num">${p&&p.method==='ck'?money(p.amount):''}</td><td class="num">${p&&p.method!=='ck'?money(p.amount):''}</td><td class="l">${p?esc(p.note||''):''}</td><td class="l">${p&&p.date?fmtDate(p.date):''}</td><td style="text-align:center">${p?`<input type="checkbox" data-change="towife" data-mk="${k}" data-rid="${esc(x.id)}" data-pid="${p.id}" ${w?'checked':''} aria-label="Đã đưa bx">`:''}</td><td>${p?`<select data-change="paybatch" data-mk="${k}" data-rid="${esc(x.id)}" data-pid="${p.id}" style="width:auto;padding:3px 6px" aria-label="Đợt thu">${bopt(p.batch||1)}</select>`:''}</td></tr>`}).join('');
+  const inp=kind=>{const e=E[kind];return `${(kind!=='elec'&&b===1&&!e.auto)?`<button class="btn sm ghost" data-act="dedkindreset" data-bt="${b}" data-kind="${kind}" title="Về số tự tính">↺</button> `:''}<input class="numin" style="width:130px;text-align:right" inputmode="numeric" autocomplete="off" data-money="1" data-change="dedkind" data-bt="${b}" data-kind="${kind}" value="${(e.v||e.n||kind!=='elec')?money(e.v):''}" placeholder="nhập số tiền" ${e.n>1?'disabled title="Có nhiều khoản, sửa ở trang Thu tiền"':''}>`};
+  const line=(label,cell,bold)=>`<tr><td class="l">${bold?'<b>'+label+'</b>':label}</td><td class="num">${cell}</td></tr>`;
+  const tag=kind=>E[kind].auto&&kind!=='elec'&&b===1?' <span class="muted sm">(tự tính, có thể gõ số khác)</span>':'';
+  const sumAll=Array.from({length:nb},(_,i)=>netBatch(k,i+1));
+  const sa=sumAll.map(x=>`<tr><td class="l"><button class="btn sm ghost" data-act="netdot" data-b="${x.b}"><b>Đợt ${x.b}</b></button></td><td class="num">${money(x.gross)}</td><td class="num">${money(x.wife)}</td><td class="num">${money(x.ded)}</td><td class="num"><b>${money(x.left)}</b></td></tr>`).join('')+
+    `<tr class="tax-tot"><td class="l"><b>Cộng cả tháng</b></td><td class="num">${money(sumAll.reduce((a,x)=>a+x.gross,0))}</td><td class="num">${money(sumAll.reduce((a,x)=>a+x.wife,0))}</td><td class="num">${money(sumAll.reduce((a,x)=>a+x.ded,0))}</td><td class="num"><b>${money(sumAll.reduce((a,x)=>a+x.left,0))}</b></td></tr>`;
+  return `${tabs}
+  <div class="banner" style="margin-top:10px">${icon('alert',20)}<div class="grow">Đang thu vào <b>đợt ${cur}</b> (dấu ●): khoản thu mới ghi ở trang Thu tiền sẽ tự vào đợt này.
+    ${cur!==b?`<button class="btn sm" data-act="netcur" data-b="${b}">Đặt đợt ${b} làm đợt đang thu</button>`:''}
+    ${cur===b&&b<nb?`<button class="btn sm primary" data-act="netclose" data-b="${b}">Chốt đợt ${b}, thu tiếp vào đợt ${b+1}</button>`:''}</div></div>
+  <div class="card"><h2>Phiếu thu đợt ${b} · ${monthLabel(k)}<span class="sp"></span><button class="btn" data-act="netprint" data-b="${b}">${icon('print',14)}In phiếu</button><button class="btn" data-act="netxlsx" data-b="${b}">${icon('down',14)}Xuất Excel</button></h2>
+    <div class="tw"><table><thead><tr><th class="l">Số phòng</th><th class="l">Tên</th><th>Số tiền</th><th>Đã trả CK</th><th>Đã trả tiền mặt</th><th class="l">Ghi chú</th><th class="l">Ngày trả</th><th title="Tiền đã đưa trực tiếp cho bx, được trừ ra khi tính">Đã đưa bx</th><th>Đợt</th></tr></thead><tbody>${body||'<tr><td class="l muted" colspan="9">Đợt này chưa có khoản thu nào.</td></tr>'}
+    <tr class="tax-tot"><td class="l" colspan="2"><b>Tổng thu đợt ${b}</b></td><td></td><td class="num"><b>${money(N.ck)}</b></td><td class="num"><b>${money(N.tm)}</b></td><td colspan="4"></td></tr></tbody></table></div>
+    <p class="muted sm" style="margin:10px 0 0">Dòng tô vàng là khoản đã đưa trực tiếp cho bx (tự nhận khi ghi chú có chữ “bx”, hoặc bạn tick ô “Đã đưa bx”). Đợt 1 hiện cả phòng chưa thu; đợt 2, 3 chỉ hiện các khoản thu của chính đợt đó, không tính lại khoản đã thu ở đợt trước. Đổi một khoản sang đợt khác ở cột “Đợt”.</p></div>
+  <div class="card"><h2>Tính tiền đợt ${b}</h2><div class="tw"><table style="max-width:600px"><tbody>
+    ${line('Thu chuyển khoản (CK)',money(N.ck))}
+    ${line('Thu tiền mặt (TM)',money(N.tm))}
+    ${line('Tổng thu đợt '+b,money(N.gross),1)}
+    ${line('Trừ tiền đã đưa bx <span class="muted sm">('+N.nWife+' khoản)</span>',money(N.wife))}
+    ${line('Tiền thực nhận (đã trừ phần đưa bx)',money(N.net),1)}
+    ${line('Trừ tiền tạm trú'+tag('tamtru'),inp('tamtru'))}
+    ${line('Trừ tiền rác'+tag('trash'),inp('trash'))}
+    ${line('Trừ tiền điện thực chi <span class="muted sm">(bạn nhập)</span>',inp('elec'))}
+    ${N.others.map(d=>line('Trừ '+esc(d.label)+` <button class="btn icon sm ghost" data-act="deddel" data-id="${d.id}" aria-label="Xóa khoản trừ">${icon('x',14)}</button>`,money(d.amount))).join('')}
+    ${line('Tổng trừ chi phí',money(N.ded),1)}
+    <tr class="tax-tot"><td class="l"><b>Số tiền còn lại (chuyển cho bx)</b></td><td class="num ${N.left<0?'neg':'pos'}" style="font-size:1.15em"><b>${money(N.left)}</b></td></tr></tbody></table></div>
+    <div class="row" style="margin-top:10px"><input type="text" id="dl${b}" placeholder="Khoản trừ khác" style="flex:1;min-width:120px"><input type="text" id="da${b}" inputmode="numeric" class="numin" data-money="1" placeholder="Số tiền" style="width:120px"><button class="btn sm" data-act="dedadd" data-b="${b}">${icon('plus',14)}Thêm</button></div>
+    <p class="muted sm" style="margin:10px 0 0">Số tiền còn lại = Tổng thu − tiền đã đưa bx − tạm trú − rác − điện − khoản trừ khác. Ở đợt 1, tạm trú và rác tự lấy tổng của tháng (gõ số khác để đổi, bấm ↺ để về số tự tính); từ đợt 2 mặc định là 0 vì đã trừ ở đợt 1, bạn vẫn có thể nhập thêm nếu phát sinh. Tiền điện là số thực trả nhà cung cấp, không lấy từ tiền thu của người thuê, và cũng là khoản chi điện ở tab Lợi nhuận. Các khoản trừ này dùng chung với trang Thu tiền.</p></div>
+  <div class="card"><h2>Tổng kết các đợt · ${monthLabel(k)}</h2><div class="tw"><table><thead><tr><th class="l">Đợt</th><th>Tổng thu</th><th>Đã đưa bx</th><th>Chi phí trừ</th><th>Chuyển cho bx</th></tr></thead><tbody>${sa}</tbody></table></div></div>`;
 }
-async function netXLSX(){
+async function netXLSX(b){
   try{await loadScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js')}catch(e){return toast('Chưa tải được thư viện Excel (cần Internet).','bad')}
-  const k=UI.month,N=netData(k),FONT='Calibri',NUM='#,##0;[Red]-#,##0;""';
-  const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet(`Tháng ${k.slice(5)}-${k.slice(0,4)}`);
-  const thin={style:'thin',color:{argb:'FF555555'}},BD={top:thin,left:thin,bottom:thin,right:thin};
-  [10,26,16,16,18,26,26].forEach((w,i)=>ws.getColumn(i+1).width=w);
-  ws.mergeCells('A1:G1');const t=ws.getCell('A1');t.value=`THÁNG ${k.slice(5)}/${k.slice(0,4)}`;t.font={name:FONT,bold:true,size:14};t.alignment={horizontal:'center'};
-  const hr=ws.getRow(2);['SỐ PHÒNG','TÊN','SỐ TIỀN','ĐÃ TRẢ CK','ĐÃ TRẢ TIỀN MẶT','GHI CHÚ','NGÀY TRẢ'].forEach((h,i)=>{const c=hr.getCell(i+1);c.value=h;c.font={name:FONT,bold:true};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.border=BD;c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9E1F2'}}});
+  const k=UI.month,N=netBatch(k,b),FONT='Calibri',NUM='#,##0;[Red]-#,##0;""';
+  const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet(`Đợt ${b} - T${k.slice(5)}-${k.slice(0,4)}`);
+  const thin={style:'thin',color:{argb:'FF555555'}},BD={top:thin,left:thin,bottom:thin,right:thin},YEL={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}};
+  [10,26,15,15,17,22,14,15].forEach((w,i)=>ws.getColumn(i+1).width=w);
+  ws.mergeCells('A1:H1');const t=ws.getCell('A1');t.value=`PHIẾU THU ĐỢT ${b} – THÁNG ${k.slice(5)}/${k.slice(0,4)}`;t.font={name:FONT,bold:true,size:14};t.alignment={horizontal:'center'};
+  const hr=ws.getRow(2);hr.height=30;['SỐ PHÒNG','TÊN','SỐ TIỀN','ĐÃ TRẢ CK','ĐÃ TRẢ TIỀN MẶT','GHI CHÚ','NGÀY TRẢ','ĐÃ ĐƯA BX'].forEach((h,i)=>{const c=hr.getCell(i+1);c.value=h;c.font={name:FONT,bold:true};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.border=BD;c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9E1F2'}}});
   let r=3;const r0=r;
-  N.rows.forEach(x=>{const row=ws.getRow(r++);[x.id,x.name,x.total||null,x.ck||null,x.tm||null,x.notes,x.dates].forEach((v,i)=>{const c=row.getCell(i+1);c.value=v;c.font={name:FONT,bold:i===0};c.border=BD;if(i>=2&&i<=4){c.numFmt=NUM;c.alignment={horizontal:'right'}}else c.alignment={horizontal:i===0?'center':'left',wrapText:true}})});
-  const last=r-1,tr=ws.getRow(r++);
-  [[3,N.billed,'C'],[4,N.ck,'D'],[5,N.tm,'E']].forEach(([i,v,L])=>{const c=tr.getCell(i);c.value={formula:`SUM(${L}${r0}:${L}${last})`,result:v};c.numFmt=NUM;c.font={name:FONT,bold:true,color:{argb:'FFC00000'}};c.border=BD;c.alignment={horizontal:'right'}});
+  N.rows.forEach(x=>{const p=x.p,w=p&&wifeOf(p),row=ws.getRow(r++);
+    [x.first?x.id:'',x.first?x.name:'',x.first?x.total:null,p&&p.method==='ck'?p.amount:null,p&&p.method!=='ck'?p.amount:null,p?p.note||'':'',p&&p.date?fmtDate(p.date):'',w?p.amount:null].forEach((v,i)=>{const c=row.getCell(i+1);c.value=v;c.font={name:FONT,bold:i===0};c.border=BD;if(i===2||i===3||i===4||i===7){c.numFmt=NUM;c.alignment={horizontal:'right'}}else c.alignment={horizontal:i===0||i===6?'center':'left',wrapText:true};if(w)c.fill=YEL})});
+  const last=Math.max(r-1,r0),tr=ws.getRow(r++);
+  [[3,N.rows.reduce((a,x)=>a+(x.first?x.total:0),0),'C'],[4,N.ck,'D'],[5,N.tm,'E'],[8,N.wife,'H']].forEach(([i,v,L])=>{const c=tr.getCell(i);c.value={formula:`SUM(${L}${r0}:${L}${last})`,result:v};c.numFmt=NUM;c.font={name:FONT,bold:true,color:{argb:'FFC00000'}};c.border=BD;c.alignment={horizontal:'right'}});
   tr.getCell(2).value='Tổng';tr.getCell(2).font={name:FONT,bold:true};tr.getCell(2).border=BD;
   const tot=r-1;r++;
-  const sumRow=(label,val,q={})=>{const row=ws.getRow(r);ws.mergeCells(r,1,r,3);const a=row.getCell(1);a.value=label;a.font={name:FONT,bold:!!q.b,size:q.size||11};a.alignment={horizontal:'left'};const c=row.getCell(4);c.value=val;c.numFmt=NUM;c.font={name:FONT,bold:!!q.b,size:q.size||11,color:q.red?{argb:'FFC00000'}:undefined};c.alignment={horizontal:'right'};c.border=BD;r++;return r-1};
-  const rGot=sumRow('Tiền CK + TM',{formula:`D${tot}+E${tot}`,result:N.got},{b:1});
-  const rT=sumRow('Trừ tiền tạm trú',N.tt);
-  const rR=sumRow('Trừ tiền rác',N.tr);
-  const rE=sumRow('Trừ tiền điện thực chi',N.elec);
-  sumRow('Tiền tạm trú + rác + điện',{formula:`D${rT}+D${rR}+D${rE}`,result:N.ded});
-  sumRow('Số tiền còn lại',{formula:`D${rGot}-D${rT}-D${rR}-D${rE}`,result:N.left},{b:1,red:1,size:13});
+  const sumRow=(label,val,q={})=>{const row=ws.getRow(r);ws.mergeCells(r,1,r,3);const a=row.getCell(1);a.value=label;a.font={name:FONT,bold:!!q.b,size:q.size||11};const c=row.getCell(4);c.value=val;c.numFmt=NUM;c.font={name:FONT,bold:!!q.b,size:q.size||11,color:q.red?{argb:'FFC00000'}:undefined};c.alignment={horizontal:'right'};c.border=BD;if(q.y)c.fill=YEL;r++;return r-1};
+  const rG=sumRow(`Tổng thu đợt ${b} (CK + TM)`,{formula:`D${tot}+E${tot}`,result:N.gross},{b:1});
+  const rW=sumRow('Trừ tiền đã đưa bx',{formula:`H${tot}`,result:N.wife},{y:1});
+  const rN=sumRow('Tiền thực nhận',{formula:`D${rG}-D${rW}`,result:N.net},{b:1});
+  const ds=[sumRow('Trừ tiền tạm trú',N.E.tamtru.v),sumRow('Trừ tiền rác',N.E.trash.v),sumRow('Trừ tiền điện thực chi',N.E.elec.v)];
+  N.others.forEach(d=>ds.push(sumRow('Trừ '+d.label,d.amount)));
+  const rD=sumRow('Tổng trừ chi phí',{formula:`SUM(D${ds[0]}:D${ds[ds.length-1]})`,result:N.ded},{b:1});
+  sumRow('Số tiền còn lại (chuyển cho bx)',{formula:`D${rN}-D${rD}`,result:N.left},{b:1,red:1,size:13});
   ws.pageSetup={paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0};ws.views=[{state:'frozen',ySplit:2}];
   const buf=await wb.xlsx.writeBuffer(),a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=`Tinh_tien_thang_${k}.xlsx`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800);toast('Đã xuất bảng tính tiền');
+  a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=`Phieu_thu_dot_${b}_${k}.xlsx`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800);toast(`Đã xuất phiếu thu đợt ${b}`);
+}
+function netPrint(b){
+  const k=UI.month,N=netBatch(k,b),E=N.E;
+  const rows=N.rows.map(x=>{const p=x.p,w=p&&wifeOf(p);return `<tr${w?' class="wife"':''}><td class="c">${x.first?esc(x.id):''}</td><td>${x.first?esc(x.name):''}</td><td class="r">${x.first?money(x.total):''}</td><td class="r">${p&&p.method==='ck'?money(p.amount):''}</td><td class="r">${p&&p.method!=='ck'?money(p.amount):''}</td><td>${p?esc(p.note||''):''}</td><td class="c">${p&&p.date?fmtDate(p.date):''}</td><td class="r">${w?money(p.amount):''}</td></tr>`}).join('');
+  const sl=(l,v,bold)=>`<tr${bold?' class="sub"':''}><td colspan="3" class="r">${l}</td><td class="r" colspan="2">${money(v)}</td></tr>`;
+  const html=`<h3>PHIẾU THU ĐỢT ${b} – THÁNG ${k.slice(5)}/${k.slice(0,4)}</h3><table><thead><tr><th>Số phòng</th><th>Tên</th><th>Số tiền</th><th>Đã trả CK</th><th>Đã trả tiền mặt</th><th>Ghi chú</th><th>Ngày trả</th><th>Đã đưa bx</th></tr></thead><tbody>${rows}<tr class="sub"><td colspan="3" class="r">Tổng</td><td class="r">${money(N.ck)}</td><td class="r">${money(N.tm)}</td><td colspan="2"></td><td class="r">${money(N.wife)}</td></tr></tbody></table>
+  <table style="margin-top:12px;width:60%"><tbody>${sl('Tổng thu đợt '+b+' (CK + TM)',N.gross,1)}${sl('Trừ tiền đã đưa bx',N.wife)}${sl('Tiền thực nhận',N.net,1)}${sl('Trừ tiền tạm trú',E.tamtru.v)}${sl('Trừ tiền rác',E.trash.v)}${sl('Trừ tiền điện thực chi',E.elec.v)}${N.others.map(d=>sl('Trừ '+esc(d.label),d.amount)).join('')}${sl('Tổng trừ chi phí',N.ded,1)}${sl('Số tiền còn lại (chuyển cho bx)',N.left,1)}</tbody></table>`;
+  const root=$('#print-root');root.className='police';root.innerHTML=html;
+  const st=document.createElement('style');st.id='taxPage';st.textContent='@page{size:A4 portrait;margin:12mm}#print-root.police table{font-size:11.5px}';document.head.appendChild(st);
+  document.body.classList.add('printing');
+  const done=()=>{document.body.classList.remove('printing');root.innerHTML='';root.className='';st.remove();window.removeEventListener('afterprint',done)};
+  window.addEventListener('afterprint',done);setTimeout(()=>window.print(),80);
 }
 function vReport(){
   const t=UI.reportTab||'main';
@@ -2459,8 +2526,10 @@ document.addEventListener('change',e=>{
   else if(c==='peoplesort'){UI.peopleSort=t.value;render()}
   else if(c==='leavemonth'){UI.leaveMonth=t.value;render()}
   else if(c==='reproom'){UI.reportRoom=t.value;render()}
-  else if(c==='netovr'){const mm=DB.months[t.dataset.mk];if(mm){mm.calc=mm.calc||{};const raw=t.value.trim(),v=raw===''?null:parseInt0(t.value),au=monthStats(t.dataset.mk)[t.dataset.f==='trash'?'trash':'tamtru'];if(v==null||v===au)delete mm.calc[t.dataset.f];else mm.calc[t.dataset.f]=v;save();render()}}
-  else if(c==='elecreal'){const mm=DB.months[t.dataset.mk];if(mm){const v=parseInt0(t.value);mm.expenses=(mm.expenses||[]).filter(y=>y.cat!=='elec');if(v>0)mm.expenses.push({id:uid(),cat:'elec',label:'Tiền điện thực chi',amount:v});save();render()}}
+  else if(c==='towife'){const mm=DB.months[t.dataset.mk],p=mm&&(mm.payments[t.dataset.rid]||[]).find(x=>x.id===t.dataset.pid);if(p){p.toWife=t.checked;save();render()}}
+  else if(c==='paybatch'){const mm=DB.months[t.dataset.mk],p=mm&&(mm.payments[t.dataset.rid]||[]).find(x=>x.id===t.dataset.pid);if(p){p.batch=+t.value;save();render()}}
+  else if(c==='dedkind'){const mm=DB.months[UI.month],b=+t.dataset.bt,kd=t.dataset.kind,raw=t.value.trim();if(mm){if(raw==='')setDed(mm,b,kd,null);else{const v=parseInt0(t.value);setDed(mm,b,kd,v==null?0:v)}save();render()}}
+  else if(c==='elecreal'){const mm=DB.months[t.dataset.mk];if(mm){const v=parseInt0(t.value)||0,oth=(mm.deductions||[]).filter(d=>dedKind(d)==='elec'&&(d.batch||1)!==1).reduce((a,d)=>a+d.amount,0);if(v>0){mm.deductions=(mm.deductions||[]).filter(d=>!(dedKind(d)==='elec'&&(d.batch||1)===1));mm.deductions.push({id:uid(),batch:1,kind:'elec',label:'Tiền điện thực chi',amount:Math.max(0,v-oth)});syncElec(mm)}else{mm.deductions=(mm.deductions||[]).filter(d=>dedKind(d)!=='elec');mm.expenses=(mm.expenses||[]).filter(y=>y.cat!=='elec')}save();render()}}
   else if(c==='taxbasis'){taxData();UI.tax.basis=t.value;render()}
   else if(c==='taxmethod'){taxData();UI.tax.method=t.value;render()}
   else if(c==='taxroom'){taxData();UI.tax.room=t.value;render()}
@@ -2515,8 +2584,12 @@ document.addEventListener('click',async e=>{
    case 'taxedit':taxEditModal(el.dataset.k,el.dataset.room,el.dataset.id);break;
    case 'taxsave':{const pm=DB.months[el.dataset.k],pp=pm&&(pm.payments[el.dataset.room]||[]).find(x=>x.id===el.dataset.id);if(pp){const v=parseInt0($('#txRent').value),cur=taxLedger().find(x=>x.pid===pp.id);pp.date=$('#txDate').value||'';pp.method=$('#txMeth').value;if(!(cur&&v===cur.rent&&pp.rentAmt==null))pp.rentAmt=Math.max(0,Math.min(pp.amount,v==null?0:v));save()}closeModal();render();toast('Đã lưu phần tiền phòng');break}
    case 'taxauto':{const pm=DB.months[el.dataset.k],pp=pm&&(pm.payments[el.dataset.room]||[]).find(x=>x.id===el.dataset.id);if(pp){delete pp.rentAmt;save()}closeModal();render();toast('Đã về cách tính tự động');break}
-   case 'netxlsx':netXLSX();break;
-   case 'netreset':{const mm=DB.months[el.dataset.mk];if(mm&&mm.calc){delete mm.calc[el.dataset.f];save();render()}break}
+   case 'netxlsx':netXLSX(+el.dataset.b);break;
+   case 'netprint':netPrint(+el.dataset.b);break;
+   case 'netdot':UI.netB=+el.dataset.b;if(UI.view!=='report'||UI.reportTab!=='net'){UI.view='report';UI.reportTab='net'}render();break;
+   case 'netcur':m.curBatch=+el.dataset.b;save();render();break;
+   case 'netclose':{const nb=DB.settings.batches||3,b=+el.dataset.b;m.curBatch=Math.min(nb,b+1);UI.netB=m.curBatch;save();render();toast(`Đã chốt đợt ${b}. Khoản thu mới sẽ ghi vào đợt ${m.curBatch}`);break}
+   case 'dedkindreset':{setDed(m,+el.dataset.bt,el.dataset.kind,null);save();render();break}
    case 'rtab':UI.reportTab=el.dataset.v;render();window.scrollTo(0,0);break;
    case 'rephist':UI.reportRoom=el.dataset.room;UI.reportTab='main';render();window.scrollTo(0,0);break;
    case 'gorecon':UI.month=el.dataset.m;CFG.month=UI.month;UI.view='recon';CFG.view='recon';saveCfg();render();window.scrollTo(0,0);break;
@@ -2526,7 +2599,7 @@ document.addEventListener('click',async e=>{
    case 'detail':detailModal(id);break;
    case 'recalcdebt':{const rec=m.recs[id];rec.debt=debtFromPrev(UI.month,id);save();detailModal(id);toast('Đã tính lại nợ từ tháng trước: '+money(rec.debt)+'đ');break}
    case 'pay':payModal(id);break;
-   case 'payquick':{const left=calc(roomById(id),m.recs[id],m).total-paidOf(m,id).total;if(addPayment(id,el.dataset.m,left,todayISO(),1,''))render();break}
+   case 'payquick':{const left=calc(roomById(id),m.recs[id],m).total-paidOf(m,id).total;if(addPayment(id,el.dataset.m,left,todayISO(),m.curBatch||1,''))render();break}
    case 'payadd':{const amt=parseInt0($('#pa').value);if(!(amt>0))return toast('Hãy nhập số tiền lớn hơn 0','bad');addPayment(id,$('#pm').value,amt,$('#pd').value,+$('#pb').value,$('#pn').value.trim());payModal(id);toast('Đã ghi nhận khoản thu');break}
    case 'paydel':m.payments[id]=(m.payments[id]||[]).filter(p=>p.id!==el.dataset.id);save();payModal(id);break;
    case 'clearpays':confirmBox('Xóa khoản thu','Xóa toàn bộ khoản thu và khoản trừ của '+monthLabel(UI.month).toLowerCase()+'?','Xóa hết',()=>{m.payments={};m.deductions=[];save();render()});break;
