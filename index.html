@@ -774,7 +774,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.17 · Báo cáo: tab Tính tiền, cột thu trừ tạm trú/rác/điện (kèm Sổ thuế v5.16)</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.18 · Tính tiền: sửa tay tổng tạm trú, rác, điện</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave','tax'].includes(UI.view);
@@ -2313,7 +2313,7 @@ function vNet(){
   const k=UI.month;if(!k||!DB.months[k])return '<div class="card"><p class="muted">Chưa có tháng nào.</p></div>';
   const N=netData(k);
   const body=N.rows.map(x=>`<tr><td class="l"><b class="mono">${esc(x.id)}</b></td><td class="l">${esc(x.name)}</td><td class="num">${money(x.total)}</td><td class="num">${x.ck?money(x.ck):''}</td><td class="num">${x.tm?money(x.tm):''}</td><td class="l">${esc(x.notes)}</td><td class="l">${esc(x.dates)}</td></tr>`).join('');
-  const inp=(f,val,auto,ov,dis,tip)=>`<input class="numin" style="width:130px;text-align:right" inputmode="numeric" autocomplete="off" data-money="1" data-change="${f==='elec'?'elecreal':'netovr'}" data-mk="${k}" data-f="${f}" value="${(f==='elec'?val:ov)?money(val):''}" placeholder="${f==='elec'?'nhập số tiền':money(auto)}" ${dis?'disabled title="'+tip+'"':''} aria-label="${f}">`;
+  const inp=(f,val,auto,ov,dis,tip)=>`<input class="numin" style="width:130px;text-align:right" inputmode="numeric" autocomplete="off" data-money="1" data-change="${f==='elec'?'elecreal':'netovr'}" data-mk="${k}" data-f="${f}" value="${(f==='elec'&&!val)?'':money(val)}" placeholder="${f==='elec'?'nhập số tiền':''}" ${dis?'disabled title="'+tip+'"':''} aria-label="${f}">`;
   const line=(label,cell,b)=>`<tr><td class="l">${b?'<b>'+label+'</b>':label}</td><td class="num">${cell}</td></tr>`;
   return `<div class="card"><h2>Tính tiền ${monthLabel(k)}<span class="sp"></span><button class="btn" data-act="netxlsx">${icon('down',14)}Xuất Excel</button></h2>
     <div class="tw"><table><thead><tr><th class="l">Số phòng</th><th class="l">Tên</th><th>Số tiền</th><th>Đã trả CK</th><th>Đã trả tiền mặt</th><th class="l">Ghi chú</th><th class="l">Ngày trả</th></tr></thead><tbody>${body||'<tr><td class="l muted" colspan="7">Chưa có phòng.</td></tr>'}
@@ -2322,12 +2322,12 @@ function vNet(){
     ${line('Tiền chuyển khoản (CK)',money(N.ck))}
     ${line('Tiền mặt (TM)',money(N.tm))}
     ${line('Tiền CK + TM (đã thu)',money(N.got),1)}
-    ${line('Trừ tiền tạm trú'+(N.ovTt?'':' <span class="muted sm">(tự tính)</span>'),inp('tamtru',N.tt,N.autoTt,N.ovTt))}
-    ${line('Trừ tiền rác'+(N.ovTr?'':' <span class="muted sm">(tự tính)</span>'),inp('trash',N.tr,N.autoTr,N.ovTr))}
+    ${line('Trừ tiền tạm trú <span class="muted sm">'+(N.ovTt?'(đã sửa tay)':'(tự tính, có thể gõ số khác)')+'</span>',(N.ovTt?`<button class="btn sm ghost" data-act="netreset" data-mk="${k}" data-f="tamtru" title="Về số tự tính ${money(N.autoTt)}">↺ ${money(N.autoTt)}</button> `:'')+inp('tamtru',N.tt,N.autoTt,N.ovTt))}
+    ${line('Trừ tiền rác <span class="muted sm">'+(N.ovTr?'(đã sửa tay)':'(tự tính, có thể gõ số khác)')+'</span>',(N.ovTr?`<button class="btn sm ghost" data-act="netreset" data-mk="${k}" data-f="trash" title="Về số tự tính ${money(N.autoTr)}">↺ ${money(N.autoTr)}</button> `:'')+inp('trash',N.tr,N.autoTr,N.ovTr))}
     ${line('Trừ tiền điện thực chi <span class="muted sm">(bạn nhập)</span>',inp('elec',N.elec,0,1,N.multi,'Có nhiều khoản điện, sửa ở mục Đối soát'))}
     ${line('Tổng trừ (tạm trú + rác + điện)',money(N.ded),1)}
     <tr class="tax-tot"><td class="l"><b>Số tiền còn lại</b></td><td class="num ${N.left<0?'neg':'pos'}" style="font-size:1.15em"><b>${money(N.left)}</b></td></tr></tbody></table></div>
-    <p class="muted sm" style="margin:10px 0 0">Số tiền còn lại = Tiền CK + TM − tiền tạm trú − tiền rác − tiền điện thực chi. Tạm trú và rác tự lấy từ phiếu của tháng; muốn khác thì gõ số vào ô (xóa trống để về tự tính). Tiền điện bạn nhập là số thực trả nhà cung cấp, không lấy từ tiền thu của người thuê; số này cũng là khoản chi điện ở Đối soát và tab Lợi nhuận.</p></div>`;
+    <p class="muted sm" style="margin:10px 0 0">Số tiền còn lại = Tiền CK + TM − tiền tạm trú − tiền rác − tiền điện thực chi. Tạm trú và rác mặc định lấy tổng từ phiếu của tháng; bạn có thể gõ thẳng số tổng khác vào ô, bấm nút ↺ để về số tự tính. Tiền điện bạn nhập là số thực trả nhà cung cấp, không lấy từ tiền thu của người thuê; số này cũng là khoản chi điện ở Đối soát và tab Lợi nhuận.</p></div>`;
 }
 async function netXLSX(){
   try{await loadScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js')}catch(e){return toast('Chưa tải được thư viện Excel (cần Internet).','bad')}
@@ -2459,7 +2459,7 @@ document.addEventListener('change',e=>{
   else if(c==='peoplesort'){UI.peopleSort=t.value;render()}
   else if(c==='leavemonth'){UI.leaveMonth=t.value;render()}
   else if(c==='reproom'){UI.reportRoom=t.value;render()}
-  else if(c==='netovr'){const mm=DB.months[t.dataset.mk];if(mm){mm.calc=mm.calc||{};const raw=t.value.trim(),v=raw===''?null:parseInt0(t.value);if(v==null)delete mm.calc[t.dataset.f];else mm.calc[t.dataset.f]=v;save();render()}}
+  else if(c==='netovr'){const mm=DB.months[t.dataset.mk];if(mm){mm.calc=mm.calc||{};const raw=t.value.trim(),v=raw===''?null:parseInt0(t.value),au=monthStats(t.dataset.mk)[t.dataset.f==='trash'?'trash':'tamtru'];if(v==null||v===au)delete mm.calc[t.dataset.f];else mm.calc[t.dataset.f]=v;save();render()}}
   else if(c==='elecreal'){const mm=DB.months[t.dataset.mk];if(mm){const v=parseInt0(t.value);mm.expenses=(mm.expenses||[]).filter(y=>y.cat!=='elec');if(v>0)mm.expenses.push({id:uid(),cat:'elec',label:'Tiền điện thực chi',amount:v});save();render()}}
   else if(c==='taxbasis'){taxData();UI.tax.basis=t.value;render()}
   else if(c==='taxmethod'){taxData();UI.tax.method=t.value;render()}
@@ -2516,6 +2516,7 @@ document.addEventListener('click',async e=>{
    case 'taxsave':{const pm=DB.months[el.dataset.k],pp=pm&&(pm.payments[el.dataset.room]||[]).find(x=>x.id===el.dataset.id);if(pp){const v=parseInt0($('#txRent').value),cur=taxLedger().find(x=>x.pid===pp.id);pp.date=$('#txDate').value||'';pp.method=$('#txMeth').value;if(!(cur&&v===cur.rent&&pp.rentAmt==null))pp.rentAmt=Math.max(0,Math.min(pp.amount,v==null?0:v));save()}closeModal();render();toast('Đã lưu phần tiền phòng');break}
    case 'taxauto':{const pm=DB.months[el.dataset.k],pp=pm&&(pm.payments[el.dataset.room]||[]).find(x=>x.id===el.dataset.id);if(pp){delete pp.rentAmt;save()}closeModal();render();toast('Đã về cách tính tự động');break}
    case 'netxlsx':netXLSX();break;
+   case 'netreset':{const mm=DB.months[el.dataset.mk];if(mm&&mm.calc){delete mm.calc[el.dataset.f];save();render()}break}
    case 'rtab':UI.reportTab=el.dataset.v;render();window.scrollTo(0,0);break;
    case 'rephist':UI.reportRoom=el.dataset.room;UI.reportTab='main';render();window.scrollTo(0,0);break;
    case 'gorecon':UI.month=el.dataset.m;CFG.month=UI.month;UI.view='recon';CFG.view='recon';saveCfg();render();window.scrollTo(0,0);break;
