@@ -1840,7 +1840,7 @@ function taxExportModal(){
   const D=taxData();if(!D.rows.length)return toast('Chưa có khoản thu nào trong các tháng đã chọn','bad');
   const H=taxHead(),tRent=taxSum(D.rows,e=>e.rent);
   openModal('Xuất sổ thuế / báo cáo doanh thu',`
-    <p class="muted" style="margin:0 0 10px">${esc(taxPeriod(D.sel))} · <b>${D.rows.length}</b> lượt thu · doanh thu tiền phòng <b class="mono">${money(tRent)}</b> đ. Mỗi tháng xuất ra <b>một trang riêng</b> (Excel: mỗi tháng một sheet) liệt kê từng phòng: số tiền phòng, ngày thu, hình thức thanh toán, có tổng cộng và tổng chuyển khoản / tiền mặt. Thêm một trang <b>Tổng hợp</b> ở đầu.</p>
+    <p class="muted" style="margin:0 0 10px">${esc(taxPeriod(D.sel))} · <b>${D.rows.length}</b> lượt thu · doanh thu tiền phòng <b class="mono">${money(tRent)}</b> đ. Mỗi tháng xuất ra <b>một trang riêng</b> (Excel: mỗi tháng một sheet) theo <b>mẫu sổ S1a-HKD</b> của thuế (Ngày tháng · Diễn giải · Số tiền). Mỗi dòng là một lần thu: ngày thu, phòng, người thuê, chuyển khoản / tiền mặt, số tiền phòng; cuối trang có Tổng cộng. Thêm một trang <b>Tổng hợp</b> ở đầu.</p>
     <div class="fg">
       <label class="f full">Tên hộ / cá nhân kinh doanh<input type="text" id="txName" value="${esc(H.name)}" placeholder="vd: Bùi Văn Hòa"></label>
       <label class="f">Mã số thuế<input type="text" id="txMst" value="${esc(H.mst)}" placeholder="MST hoặc số CCCD"></label>
@@ -1890,26 +1890,30 @@ async function taxXLSX(o){
     [['B',2,MR.reduce((a,m)=>a+taxMonthList(D,m.k).length,0)],['C',3,taxSum(MR,m=>m.ck)],['D',4,taxSum(MR,m=>m.tm)],['E',5,taxSum(MR,m=>m.rent)]].forEach(([L,i,v])=>{const c=tr.getCell(i);c.value={formula:MR.length?`SUM(${L}${r0}:${L}${r-1})`:'0',result:v};c.numFmt=i===2?'0':NUM;c.alignment={horizontal:i===2?'center':'right'}});
     sign(ws,r+3,5);
   }
-  /* Mỗi tháng một trang (một sheet) */
+  /* Mỗi tháng một sheet, theo mẫu S1a-HKD: Ngày tháng | Diễn giải | Số tiền */
+  const desc=e=>`Thu tiền thuê phòng ${e.roomId}${e.name?' – '+e.name:''} – ${e.method==='ck'?'chuyển khoản':'tiền mặt'}${e.k!==e.mo?' (kỳ tháng '+e.k.slice(5)+'/'+e.k.slice(0,4)+')':''}`;
   MR.forEach(m=>{const list=taxMonthList(D,m.k);
     const ws=wb.addWorksheet(`Tháng ${m.k.slice(5)}-${m.k.slice(0,4)}`.slice(0,31));page(ws);
-    [6,10,26,14,16,20,24].forEach((w,i)=>ws.getColumn(i+1).width=w);
-    top(ws,7,`CHI TIẾT THU TIỀN PHÒNG – THÁNG ${m.k.slice(5)}/${m.k.slice(0,4)}`,D.T.basis==='date'?'Theo tháng nhận tiền (ngày thu) · chỉ tính tiền thuê phòng':'Theo kỳ tiền phòng của tháng · chỉ tính tiền thuê phòng');
-    head(ws,8,['STT','Phòng','Người thuê','Ngày thu','Hình thức','Số tiền (tiền phòng)','Ghi chú']);
-    let r=9;const r0=r;
-    list.forEach((e,i)=>{const row=ws.getRow(r);
-      cell(row,1,i+1,{h:'center'});cell(row,2,e.roomId,{h:'center'});cell(row,3,e.name);cell(row,4,e.date?toDate(e.date):'(chưa ghi ngày)',{h:'center',fmt:'dd/mm/yyyy'});cell(row,5,e.method==='ck'?'Chuyển khoản':'Tiền mặt',{h:'center'});cell(row,6,e.rent,{num:1,h:'right'});
-      cell(row,7,[e.k!==m.k?`Kỳ tiền phòng ${e.k.slice(5)}/${e.k.slice(0,4)}`:'',e.note,e.manual?'đã sửa tay':''].filter(Boolean).join(' · '));r++});
-    if(!list.length){const row=ws.getRow(r);ws.mergeCells(r,1,r,7);cell(row,1,'Không có khoản thu tiền phòng',{h:'center'});r++}
-    const last=r-1,ck=list.filter(e=>e.method==='ck'),tm=list.filter(e=>e.method!=='ck');
-    const tot=(label,formula,val,bold)=>{const row=ws.getRow(r);for(let i=1;i<=7;i++){const c=cell(row,i,'',{bold});if(bold)c.fill=fillG}
-      ws.mergeCells(r,1,r,5);const a=row.getCell(1);a.value=label;a.alignment={horizontal:'right',vertical:'middle'};a.font={name:FONT,size:11,bold};
-      const c=row.getCell(6);c.value={formula:list.length?formula:'0',result:val};c.numFmt=NUM;c.alignment={horizontal:'right'};r++};
-    tot('TỔNG CỘNG',`SUM(F${r0}:F${last})`,taxSum(list,e=>e.rent),true);
-    tot('Trong đó: chuyển khoản',`SUMIF(E${r0}:E${last},"Chuyển khoản",F${r0}:F${last})`,taxSum(ck,e=>e.rent),false);
-    tot('Trong đó: tiền mặt',`SUMIF(E${r0}:E${last},"Tiền mặt",F${r0}:F${last})`,taxSum(tm,e=>e.rent),false);
-    ws.views=[{state:'frozen',ySplit:8,showGridLines:false}];ws.pageSetup.printTitlesRow='8:8';
-    sign(ws,r+2,7);
+    [15,78,20].forEach((w,i)=>ws.getColumn(i+1).width=w);
+    line(ws,1,3,'HỘ, CÁ NHÂN KINH DOANH: '+(H.name||'..............................'),{bold:true});
+    line(ws,2,3,'Địa chỉ: '+(H.addr||'..............................'));
+    line(ws,3,3,'Mã số thuế: '+(H.mst||'..............................'));
+    line(ws,4,3,'Địa điểm kinh doanh: '+(H.place||'..............................'));
+    line(ws,6,3,'SỔ DOANH THU BÁN HÀNG HÓA, DỊCH VỤ',{center:true,bold:true,size:15,h:26});
+    line(ws,7,3,`Mẫu số S1a-HKD · Ngành nghề: cho thuê phòng trọ · Kỳ kê khai: Tháng ${m.k.slice(5)}/${m.k.slice(0,4)}`,{center:true,it:true});
+    head(ws,9,['Ngày tháng','Diễn giải','Số tiền (đồng)']);
+    const sub=ws.getRow(10);['A','B','1'].forEach((t,i)=>{const c=sub.getCell(i+1);c.value=t;c.font={name:FONT,italic:true,size:10};c.alignment={horizontal:'center'};c.border=BD});
+    let r=11;const r0=r;
+    list.forEach(e=>{const row=ws.getRow(r);cell(row,1,e.date?toDate(e.date):'',{h:'center',fmt:'dd/mm/yyyy'});cell(row,2,desc(e));cell(row,3,e.rent,{num:1,h:'right'});r++});
+    if(!list.length){const row=ws.getRow(r);cell(row,1,'');cell(row,2,'Không có khoản thu tiền phòng');cell(row,3,0,{num:1,h:'right'});r++}
+    const last=r-1,tr=ws.getRow(r);
+    cell(tr,1,'');cell(tr,2,'Tổng cộng',{bold:true,h:'right'});cell(tr,3,{formula:`SUM(C${r0}:C${last})`,result:taxSum(list,e=>e.rent)},{bold:true,num:1,h:'right'});
+    [1,2,3].forEach(i=>tr.getCell(i).fill=fillG);r++;
+    const note=(t,f,v)=>{const row=ws.getRow(r);const a=row.getCell(2);a.value=t;a.font={name:FONT,italic:true,size:10};a.alignment={horizontal:'right'};const c=row.getCell(3);c.value={formula:f,result:v};c.numFmt=NUM;c.font={name:FONT,italic:true,size:10};c.alignment={horizontal:'right'};r++};
+    note('Trong đó thu bằng chuyển khoản',`SUMIF(B${r0}:B${last},"*chuyển khoản*",C${r0}:C${last})`,taxSum(list.filter(e=>e.method==='ck'),e=>e.rent));
+    note('Trong đó thu bằng tiền mặt',`SUMIF(B${r0}:B${last},"*tiền mặt*",C${r0}:C${last})`,taxSum(list.filter(e=>e.method!=='ck'),e=>e.rent));
+    ws.views=[{state:'frozen',ySplit:10,showGridLines:false}];ws.pageSetup.printTitlesRow='9:10';
+    sign(ws,r+2,3);
   });
   const buf=await wb.xlsx.writeBuffer(),a=document.createElement('a'),f=D.sel[0],l=D.sel[D.sel.length-1];
   a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -1920,9 +1924,10 @@ function taxPrint(o){
   const D=taxData(),H=taxHead(),MR=taxMonthRows(D),period=taxPeriod(D.sel),now=new Date();
   const hdr=t=>`<div class="ph"><b>HỘ, CÁ NHÂN KINH DOANH: ${esc(H.name||'.............')}</b><br>Địa chỉ: ${esc(H.addr)}${H.mst?' · MST: '+esc(H.mst):''}<br>Địa điểm kinh doanh: ${esc(H.place)}</div><h3>${t}</h3>`;
   const sig=`<div class="sigs"><div><i>Ngày ${now.getDate()} tháng ${now.getMonth()+1} năm ${now.getFullYear()}</i><br><b>NGƯỜI ĐẠI DIỆN HỘ KINH DOANH</b><br><i>(Ký, họ tên)</i><div class="sg"></div><b>${esc(H.sign)}</b></div></div>`;
+  const desc=e=>`Thu tiền thuê phòng ${esc(e.roomId)}${e.name?' – '+esc(e.name):''} – ${e.method==='ck'?'chuyển khoản':'tiền mặt'}${e.k!==e.mo?' (kỳ tháng '+e.k.slice(5)+'/'+e.k.slice(0,4)+')':''}`;
   const pages=MR.map(m=>{const list=taxMonthList(D,m.k);
-    const trs=list.map((e,i)=>`<tr><td class="c">${i+1}</td><td class="c">${esc(e.roomId)}</td><td>${esc(e.name)}</td><td class="c">${e.date?fmtDate(e.date):'(chưa ghi ngày)'}</td><td class="c">${e.method==='ck'?'Chuyển khoản':'Tiền mặt'}</td><td class="r">${money(e.rent)}</td></tr>`).join('')||'<tr><td colspan="6" class="c">Không có khoản thu tiền phòng</td></tr>';
-    return `<div class="tpage">${hdr(`CHI TIẾT THU TIỀN PHÒNG – THÁNG ${m.k.slice(5)}/${m.k.slice(0,4)}`)}<p class="sub">${D.T.basis==='date'?'Theo tháng nhận tiền (ngày thu)':'Theo kỳ tiền phòng của tháng'} · chỉ tính tiền thuê phòng</p><table><thead><tr><th style="width:36px">STT</th><th style="width:60px">Phòng</th><th>Người thuê</th><th style="width:100px">Ngày thu</th><th style="width:100px">Hình thức</th><th style="width:110px">Số tiền</th></tr></thead><tbody>${trs}<tr class="sub"><td colspan="5" class="r">TỔNG CỘNG</td><td class="r">${money(m.rent)}</td></tr><tr><td colspan="5" class="r">Trong đó: chuyển khoản</td><td class="r">${money(m.ck)}</td></tr><tr><td colspan="5" class="r">Trong đó: tiền mặt</td><td class="r">${money(m.tm)}</td></tr></tbody></table>${sig}</div>`}).join('');
+    const trs=list.map(e=>`<tr><td class="c">${e.date?fmtDate(e.date):''}</td><td>${desc(e)}</td><td class="r">${money(e.rent)}</td></tr>`).join('')||'<tr><td></td><td>Không có khoản thu tiền phòng</td><td class="r">0</td></tr>';
+    return `<div class="tpage"><div class="ph"><b>HỘ, CÁ NHÂN KINH DOANH: ${esc(H.name||'.............')}</b><br>Địa chỉ: ${esc(H.addr)}<br>Mã số thuế: ${esc(H.mst||'.............')}<br>Địa điểm kinh doanh: ${esc(H.place)}</div><h3>SỔ DOANH THU BÁN HÀNG HÓA, DỊCH VỤ</h3><p class="sub">Mẫu số S1a-HKD · Ngành nghề: cho thuê phòng trọ · Kỳ kê khai: Tháng ${m.k.slice(5)}/${m.k.slice(0,4)}</p><table><thead><tr><th style="width:95px">Ngày tháng</th><th>Diễn giải</th><th style="width:120px">Số tiền</th></tr><tr><th><i>A</i></th><th><i>B</i></th><th><i>1</i></th></tr></thead><tbody>${trs}<tr class="sub"><td></td><td class="r">Tổng cộng</td><td class="r">${money(m.rent)}</td></tr></tbody></table><p style="text-align:right;font-style:italic;margin:4px 0">Trong đó: chuyển khoản ${money(m.ck)} · tiền mặt ${money(m.tm)}</p>${sig}</div>`}).join('');
   const sum=`<div class="tpage">${hdr('TỔNG HỢP DOANH THU TIỀN PHÒNG THEO THÁNG')}<p class="sub">${esc(period)}</p><table><thead><tr><th>Tháng</th><th>Số lượt thu</th><th>Chuyển khoản</th><th>Tiền mặt</th><th>Doanh thu tiền phòng</th></tr></thead><tbody>${MR.map(m=>`<tr><td class="c">${m.k.slice(5)}/${m.k.slice(0,4)}</td><td class="c">${taxMonthList(D,m.k).length}</td><td class="r">${money(m.ck)}</td><td class="r">${money(m.tm)}</td><td class="r"><b>${money(m.rent)}</b></td></tr>`).join('')}<tr class="sub"><td class="c">Cộng</td><td class="c">${MR.reduce((a,m)=>a+taxMonthList(D,m.k).length,0)}</td><td class="r">${money(taxSum(MR,m=>m.ck))}</td><td class="r">${money(taxSum(MR,m=>m.tm))}</td><td class="r">${money(taxSum(MR,m=>m.rent))}</td></tr></tbody></table>${sig}</div>`;
   const root=$('#print-root');root.className='police';root.innerHTML=sum+pages;
   const st=document.createElement('style');st.id='taxPage';st.textContent='@page{size:A4 portrait;margin:12mm}#print-root.police table{font-size:11.5px}#print-root.police .tpage{page-break-after:always}#print-root.police .tpage:last-child{page-break-after:auto}';document.head.appendChild(st);
