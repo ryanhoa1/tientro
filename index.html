@@ -776,7 +776,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.20 · Tính tiền theo đợt: rác, tạm trú theo phòng đã thu</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.21 · Đợt 1 trừ cả tháng, đợt 2-3 loại bỏ rác/tạm trú</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave','tax'].includes(UI.view);
@@ -998,12 +998,13 @@ function batchBlock(k,b){
   const m=DB.months[k],dis='';let ck=0,tm=0;
   Object.values(m.payments).flat().forEach(p=>{if((p.batch||1)===b){if(p.method==='ck')ck+=p.amount;else tm+=p.amount}});
   const ded=m.deductions.filter(d=>(d.batch||1)===b),dsum=ded.reduce((a,d)=>a+d.amount,0),s=monthStats(k);
-  return `<div class="card"><h2>Đợt ${b}<span class="sp"></span><span class="chip">Còn lại <b class="mono">${money(ck+tm-dsum)}đ</b></span></h2>
+  const N=netBatch(k,b),auto=['tamtru','trash','elec'].filter(x=>N.E[x].auto&&N.E[x].v>0).map(x=>`<li><span class="grow">− ${DKIND.find(y=>y[0]===x)[2]} <span class="muted sm">(tự tính)</span></span><span class="mono">${money(N.E[x].v)}</span></li>`).join('');
+  return `<div class="card"><h2>Đợt ${b}<span class="sp"></span><span class="chip">Còn lại <b class="mono">${money(N.left)}đ</b></span></h2>
    <div class="grid g2" style="gap:10px"><div class="kpi"><span class="s">Tiền chuyển khoản</span><span class="mono">${money(ck)}</span></div><div class="kpi"><span class="s">Tiền mặt</span><span class="mono">${money(tm)}</span></div></div>
    <div class="row sp" style="margin:10px 0 4px"><b>Tổng thu đợt ${b}</b><b class="mono">${money(ck+tm)}</b></div>
-   <ul class="list-plain">${ded.map(d=>`<li><span class="grow">− ${esc(d.label)}</span><span class="mono">${money(d.amount)}</span><button class="btn icon sm ghost" data-act="deddel" data-id="${d.id}" aria-label="Xóa khoản trừ">${icon('x',14)}</button></li>`).join('')||'<li class="muted sm">Chưa có khoản trừ (tiền rác, tiền điện…)</li>'}</ul>
+   <ul class="list-plain">${ded.map(d=>`<li><span class="grow">− ${esc(d.label)}</span><span class="mono">${money(d.amount)}</span><button class="btn icon sm ghost" data-act="deddel" data-id="${d.id}" aria-label="Xóa khoản trừ">${icon('x',14)}</button></li>`).join('')||'<li class="muted sm">Chưa có khoản trừ nhập tay</li>'}${N.wife?`<li><span class="grow">− Đã đưa bx</span><span class="mono">${money(N.wife)}</span></li>`:''}${auto}</ul>
    <div class="row" style="margin-top:8px"><input type="text" id="dl${b}" placeholder="Khoản trừ" style="flex:1;min-width:110px"><input type="text" id="da${b}" inputmode="numeric" class="numin" data-money="1" placeholder="Số tiền" style="width:120px"><button class="btn sm" data-act="dedadd" data-b="${b}">${icon('plus',14)}Thêm</button></div>
-   <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-act="dedfill" data-b="${b}" data-w="trash">+ Tiền rác ${money(s.trash)}</button><button class="btn sm ghost" data-act="dedfill" data-b="${b}" data-w="elec">+ Tiền điện ${money(s.elecTotal)}</button></div></div>`;
+   <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-act="dedfill" data-b="${b}" data-w="trash">+ Tiền rác ${money(s.trash)}</button><span class="muted sm">Tiền điện thực chi và chi tiết: Báo cáo → Tính tiền</span></div></div>`;
 }
 function vPay(){
   const k=UI.month,m=DB.months[k],s=monthStats(k),rows=payRows(k);
@@ -2323,8 +2324,8 @@ function netEff(k,b,kind){
     if(kind==='elec')return {v:(m.deductions||[]).some(d=>dedKind(d)==='elec')?0:legacyElec(m),auto:true,n:0};
   }
   if(kind==='elec')return {v:0,auto:true,n:0};
-  if(DB.settings.rtMode==='month')return {v:b===1?monthStats(k)[kind==='trash'?'trash':'tamtru']:0,auto:true,n:0};
-  return {v:netCollectedPart(k,b,kind==='trash'?'trash':'tamtru'),auto:true,n:0};
+  if(DB.settings.rtMode==='paid')return {v:netCollectedPart(k,b,kind==='trash'?'trash':'tamtru'),auto:true,n:0};
+  return {v:b===1?monthStats(k)[kind==='trash'?'trash':'tamtru']:0,auto:true,n:0};
 }
 /* rác / tạm trú "đã thu" trong đợt b: chia theo phần phiếu mỗi phòng đã nộp ở đợt đó (đủ phiếu thì đủ khoản) */
 function netCollectedPart(k,b,f){
@@ -2363,7 +2364,7 @@ function vNet(){
     return `<tr${w?' class="wife"':''}><td class="l"><b class="mono">${x.first?esc(x.id):''}</b></td><td class="l">${x.first?esc(x.name):''}</td><td class="num">${x.first?money(x.total):''}</td><td class="num">${p&&p.method==='ck'?money(p.amount):''}</td><td class="num">${p&&p.method!=='ck'?money(p.amount):''}</td><td class="l">${p?esc(p.note||''):''}</td><td class="l">${p&&p.date?fmtDate(p.date):''}</td><td style="text-align:center">${p?`<input type="checkbox" data-change="towife" data-mk="${k}" data-rid="${esc(x.id)}" data-pid="${p.id}" ${w?'checked':''} aria-label="Đã đưa bx">`:''}</td><td>${p?`<select data-change="paybatch" data-mk="${k}" data-rid="${esc(x.id)}" data-pid="${p.id}" style="width:auto;padding:3px 6px" aria-label="Đợt thu">${bopt(p.batch||1)}</select>`:''}</td></tr>`}).join('');
   const inp=kind=>{const e=E[kind];return `${(kind!=='elec'&&!e.auto)?`<button class="btn sm ghost" data-act="dedkindreset" data-bt="${b}" data-kind="${kind}" title="Về số tự tính">↺</button> `:''}<input class="numin" style="width:130px;text-align:right" inputmode="numeric" autocomplete="off" data-money="1" data-change="dedkind" data-bt="${b}" data-kind="${kind}" value="${(e.v||e.n||kind!=='elec')?money(e.v):''}" placeholder="nhập số tiền" ${e.n>1?'disabled title="Có nhiều khoản, sửa ở trang Thu tiền"':''}>`};
   const line=(label,cell,bold)=>`<tr><td class="l">${bold?'<b>'+label+'</b>':label}</td><td class="num">${cell}</td></tr>`;
-  const rtm=DB.settings.rtMode==='month'?'month':'paid',tag=kind=>E[kind].auto&&kind!=='elec'&&(rtm==='paid'||b===1)?` <span class="muted sm">(${rtm==='paid'?'tự tính theo phòng đã thu':'tự tính cả tháng'}, có thể gõ số khác)</span>`:'';
+  const rtm=DB.settings.rtMode==='paid'?'paid':'month',tag=kind=>{if(kind==='elec'||!E[kind].auto)return '';if(rtm==='paid')return ' <span class="muted sm">(tự tính theo phòng đã thu, có thể gõ số khác)</span>';return b===1?' <span class="muted sm">(tự tính cả tháng, có thể gõ số khác)</span>':' <span class="muted sm">(đã trừ hết ở đợt 1)</span>'};
   const sumAll=Array.from({length:nb},(_,i)=>netBatch(k,i+1));
   const sa=sumAll.map(x=>`<tr><td class="l"><button class="btn sm ghost" data-act="netdot" data-b="${x.b}"><b>Đợt ${x.b}</b></button></td><td class="num">${money(x.gross)}</td><td class="num">${money(x.wife)}</td><td class="num">${money(x.ded)}</td><td class="num"><b>${money(x.left)}</b></td></tr>`).join('')+
     `<tr class="tax-tot"><td class="l"><b>Cộng cả tháng</b></td><td class="num">${money(sumAll.reduce((a,x)=>a+x.gross,0))}</td><td class="num">${money(sumAll.reduce((a,x)=>a+x.wife,0))}</td><td class="num">${money(sumAll.reduce((a,x)=>a+x.ded,0))}</td><td class="num"><b>${money(sumAll.reduce((a,x)=>a+x.left,0))}</b></td></tr>`;
@@ -2388,8 +2389,8 @@ function vNet(){
     ${line('Tổng trừ chi phí',money(N.ded),1)}
     <tr class="tax-tot"><td class="l"><b>Số tiền còn lại (chuyển cho bx)</b></td><td class="num ${N.left<0?'neg':'pos'}" style="font-size:1.15em"><b>${money(N.left)}</b></td></tr></tbody></table></div>
     <div class="row" style="margin-top:10px"><input type="text" id="dl${b}" placeholder="Khoản trừ khác" style="flex:1;min-width:120px"><input type="text" id="da${b}" inputmode="numeric" class="numin" data-money="1" placeholder="Số tiền" style="width:120px"><button class="btn sm" data-act="dedadd" data-b="${b}">${icon('plus',14)}Thêm</button></div>
-    <label class="f" style="margin-top:10px;max-width:420px">Cách tự tính tiền rác và tạm trú<select data-change="rtmode"><option value="paid" ${rtm==='paid'?'selected':''}>Theo phòng đã thu trong từng đợt (khuyên dùng)</option><option value="month" ${rtm==='month'?'selected':''}>Trừ cả tháng ở đợt 1, các đợt sau không trừ</option></select></label>
-    <p class="muted sm" style="margin:10px 0 0">Số tiền còn lại = Tổng thu − tiền đã đưa bx − tạm trú − rác − điện − khoản trừ khác. Tiền thu của mỗi phòng ở mọi đợt vẫn gồm cả tiền điện người thuê đóng, không bị trừ. Tiền rác và tạm trú chỉ trừ phần đã thu của các phòng trong đợt đó (đợt sau không trừ lại phần đợt trước đã trừ). <b>Tiền điện thực chi</b> là hóa đơn điện lực bạn nhập một lần (thường ở đợt 1) và chỉ trừ ở đợt đó. Gõ số khác vào ô để đổi, bấm ↺ để về số tự tính. Số điện cũng là khoản chi điện ở tab Lợi nhuận; các khoản trừ dùng chung với trang Thu tiền.</p></div></div>
+    <label class="f" style="margin-top:10px;max-width:420px">Cách tự tính tiền rác và tạm trú<select data-change="rtmode"><option value="month" ${rtm==='month'?'selected':''}>Trừ cả tháng ở đợt 1, đợt 2 và 3 loại bỏ</option><option value="paid" ${rtm==='paid'?'selected':''}>Theo phòng đã thu trong từng đợt</option></select></label>
+    <p class="muted sm" style="margin:10px 0 0">Số tiền còn lại = Tổng thu − tiền đã đưa bx − tạm trú − rác − điện − khoản trừ khác. <b>Đợt 1</b> trừ toàn bộ chi phí phát sinh của tháng: tạm trú, rác (tự lấy tổng cả tháng) và tiền điện thực chi (hóa đơn điện lực bạn nhập). <b>Đợt 2 và 3</b> không trừ lại các khoản đó; tiền thu của mỗi phòng vẫn giữ nguyên, gồm cả điện và nước của phòng. Gõ số khác vào ô để đổi, bấm ↺ để về số tự tính. Số điện cũng là khoản chi điện ở tab Lợi nhuận; các khoản trừ dùng chung với trang Thu tiền.</p></div></div></div>
   <div class="card"><h2>Tổng kết các đợt · ${monthLabel(k)}</h2><div class="tw"><table><thead><tr><th class="l">Đợt</th><th>Tổng thu</th><th>Đã đưa bx</th><th>Chi phí trừ</th><th>Chuyển cho bx</th></tr></thead><tbody>${sa}</tbody></table></div></div>`;
 }
 async function netXLSX(b){
