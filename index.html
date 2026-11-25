@@ -1746,8 +1746,8 @@ const dNbsp=s=>s;
 let DOC_NODOM=false;
 function dV(id,def){const el=DOC_NODOM?null:document.querySelector(`#docForm [data-df="${id}"]`);if(el)return el.type==='checkbox'?(el.checked?'1':'0'):el.value;const m=((DB.docMeta||{})[UI.doc&&UI.doc.src])||{};return m[id]!=null?m[id]:def}
 function dG(k,def=''){const el=DOC_NODOM?null:document.querySelector(`#docForm [data-dg="${k}"]`);if(el)return el.value.trim();const g=DB.settings.doc||{};return g[k]!=null?g[k]:def}
-const dGdef={house:()=>(DB.settings.address||'').split(/\s+/)[0]||'',area:()=>DOC_AREA,police:()=>CFG.policeTo||'Công an phường An Phú, TP Hồ Chí Minh',a1n:()=>DB.settings.manager||''};
-const dg=k=>dG(k,dGdef[k]?dGdef[k]():'');
+const dGdef={house:()=>(DB.settings.address||'').split(/\s+/)[0]||'',area:()=>DOC_AREA,police:()=>CFG.policeTo||'Công an phường An Phú, TP Hồ Chí Minh',a1n:()=>DB.settings.manager||'Bùi Văn Hòa',a1id:()=>'074087000932'};
+const dg=k=>{const d=dGdef[k]?dGdef[k]():'';return dG(k,d)||d};
 function docSources(){
   const out=[];
   DB.rooms.filter(r=>r.status==='occupied').forEach(r=>{
@@ -1844,7 +1844,7 @@ function docCT01(src,idx,withMembers){
    <td>.....,ngày......tháng...năm...<br><b>Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ<sup>(6)</sup></b></td>
    <td>.....,ngày....tháng...năm...<br><b>NGƯỜI KÊ KHAI<sup>(7)</sup></b></td></tr>
    <tr><td style="height:95pt"></td><td></td><td></td><td></td></tr>
-   <tr><td></td><td class="dsm" style="text-align:left"><sup>(8)</sup> Họ và tên: ..................<br><sup>(8)</sup> Số định danh cá nhân:................</td><td class="dsm" style="text-align:left"><sup>(8)</sup> Họ và tên: ..................<br><sup>(8)</sup> Số định danh cá nhân:...............</td><td></td></tr></table></div>`;
+   <tr><td></td><td class="dsm" style="text-align:left"><sup>(8)</sup> Họ và tên: ${own?esc(own.toUpperCase()):'..................'}<br><sup>(8)</sup> Số định danh cá nhân: ${ownId?esc(ownId):'................'}</td><td class="dsm" style="text-align:left"><sup>(8)</sup> Họ và tên: ..................<br><sup>(8)</sup> Số định danh cá nhân:...............</td><td></td></tr></table></div>`;
 }
 function docNotes(){
   const L=['(1) Cơ quan đăng ký cư trú.','(2) Trường hợp đăng ký thường trú, đăng ký tạm trú, tách hộ ghi thông tin chủ hộ gia đình mới.',
