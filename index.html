@@ -476,7 +476,7 @@ const CCCD_FILL={};
 function fillCCCD(d){let n=0;(d.rooms||[]).forEach(r=>{const f=CCCD_FILL[r.id];if(f&&r.tenant&&!r.tenant.idNo&&r.status==='occupied'&&String(r.tenant.name||'').trim()===f[0]){r.tenant.idNo=f[1];n++}});return n}
 const BRAND={name:'Nhà trọ Bùi Văn Hòa',addr:'22C/20 KP. Bình Chuẩn 2, P. An Phú, TP.HCM',logo:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQCAIAAABoJHXvAAAf+0lEQVR42u19eXiV1bX3WnvvdzpjEqZAmAkESICEwQFHLIKiYhVrHW4tFkTxOhf169X69bner0VrtVrHUm25TrdK8YpoBRxqFZAyyRBmZA5hzpmH9917fX+8QKnkxJyQUc5+zj95npzzvGf/zlr7t35r7bWQiCD7JZUCAM6Y+2dV6Mi2g/uWbt+6rmrX+urdVeGaZCodT6fS0oHTb+lceHTDNPQugbwBhV0Hduk2omefXu07dQnm17p7WS3MCjACUooYQwQEgI3VVX/bVPm3jWvW7Nrx9eEDiVQSABlnnHGGyBAR8TQEjIgUkSKSSiqpAMgyzN4FHQZ163FhyaAL+5WWFHY5YTMZNhFgUikXAwU0b+1XL3/x8Zdb1+85fAiImKaZui4YB0ACOrrg9F0IgO4CBCBHyWQ6rWwbEIsK2p3VZ+Ckcy8aW1bOABUREdXf2uoLmKOUYAwAPliz/Lcfzf10Y6Vj27phGJrOEBWRInV6Y1TnLiMyZO5Gpex0OpUSmjaqpPSe0VeMGzT0xO1tBMAUEQAwxJW7t0//YPZbyxaCIp/HcwynHEjZLfewUETReAwYu27EuQ9eelV5157H9/mUAJNKcsYJ4MkFcx5/f9b+SNjn8zNER8rc1p/iEpwrUtFotKM/8MC4a+4bMx6PbXgDAXPtdF+45s43Zry9dKFpWqau21IqIszt96lzEwCGqHGeSKdTycQPRpz7uxsnd/LnSaXqONIyAuYoKRhfvXvHjTN+s3bXjoA/KImIVG6jm+CEYxwxHAmVdevx+i0/Hdy1h62klsHOagfMllLj/G+bKm/4w5N7a2ryvL604+R2tmmjNyFqYtEueQVvTL7ngn6lLgT1Asw1yS+2bBj/7C9DyYTf8qQdJ+cDm8FD6kJEEvGAac2542fnFQ+o1Teykz0hZ2zNnh3XvfjraDLpN60cWs0WuqUdx29asWTyuhefWLNnJ2fMUbIuwBQRR777yKEfPP/rqnCNx7TSUubQalbMpPSY1t5wzQ9efHz3kUMc+TcCJ/YNTUWSvOPNGRv37gp6/Wlp59BqCczsoNe/cc+uO9/8gyRJmQCTUnLGfj1vzrvLFgcCwbRju4JhbjU7Zph27GAg+L/LFz0x/z3OmDwh6mXHQy7O+Ypd2x7/618sj1epNqxfcMYE54LzhsnhrWRJIsvyPvbBrBW7tnHOHaX+CRgBIIBU6tG5b4XiUV0I1TbjLQQQjKfsdDgWDceiKTstGG+jXkIppQsRikcfnfu2oxQC0HHAlFKcsfdWLX13+Zc+j9+Rqo0aFgGEo+F2Xt8F/Qae33dgO68vHI1QQzNPLb5sqXwe/7vLF7+3ailnTCkFAMIVHB2lnvxorqsqU1sDjAA0zlPptCT6+fgf/vicizr6AgRwIBL+46JPHvvrO5wzQ9Pttsd4CRkDxKc+nju+fISrC6MjJWfs/TXLv//sdNM0lVJtMd6MxuM+w3jhR7ddP+Lcb/zDm0s/n/rqS9FUyudpkwoAIqbSqTl3/MelZRVSqaO+4uWFHzvSaYu0UOMiHI10zy+Ye/fD148411HSzcwRkSTlKHn9iPPm3v1w9/yCcDSicQFtLx3DHMeZ8cVHR//kjG3cV7V48wbdMNoW10BEjYtwpGZEj+L59/3nuX36O1IKxtnR4gTkyATjjpTn9uk//77/HNGjOByp0bhoW4ULipRuGIu3rN+0r4ozxgBg/rpV1TWHTaFB28lGMkSOGArXXFF+5l/ve6S4YydbOqI2tVRwbkunuGOnD+575PLyM0PhGo7I2hBmRKbQqo8cnr9+NQAwW8pP168GAkSktuMliCgcDU+5aNyfb5tW4PE5Stbh7jQuHCXbeXx/vm3arReNC0fDRMSQtZVDGhGB4NN1q9NSsupwzZrdO7mutYlkPwEJzh0lY6nkoxNuevHGKYbQFJGoM0sLAIJxRWQJ7fkbpzw64aZYKukoKTgnoLbgFYnr2urdO/aFa9iG6j07ag6Zut76ASMAjYtkKqkRvTLxjofHTZBEWI86iONe1P3yD4+b8MrEOwRRMpXUuKC2AJih6ztqDq7fu5st27HVTqc48tZf86RzHo1HO3n9c+566OaRo9x0Ua0MggBqNR1E5IxJpW4eOWrOXQ918vqj8Zje6qkjEQnkdjq9YufXbFN1FbT60wsBDCFCkXBZUY8P7vvFhSVltpI8QwkmEQERENT6E0QAzpit5KiSsg/u+0VZUfdQJGQIgW2BFm/aV8W9Iyv21BzWhWidFuZWqnDGQ+Ga0YOGvXXb/cUdCm3pZKIYioghSlIExBlTRLWaIEeWlk7nYP4V5Wesqdq5bufXlumhY7Jq64xhHKm8usGNM4eEUwnWWtU2jgwBItHQxPPH/uknd3bw+aVStdJ3OJYuj6VTk2c+/87KJZeUVRhCOErWSghd35hnea4aetbeSHjJ5kpDNxiyVktDXAWOm2eXJ+10K+S45FbuSRVLJh4e/8Mnr52oC+HaDdQulUqN8/2R0A0znnxn6cI1u7av2LVtTGm537Rs6dT6LoaoSOlcjB8yXCF+tG6V4IIL3grr+BCQgDQhOB9eKkm1tjiSgAQXqVSSAf3uxlvvH3slEbkFz5lKKDXO11dXTXh++ucbK/MCQdMw1+7e/sn61ef1Ky0M5NlK8treezz6/N6AwZ3zCuatWeY4UtM0Rao1CnUEnI8obYVSjc61aDzWzuv/78n33HDGeUopxhjLQAilkoLxv22qvOa56Zv27w34AraUkshjWjsPHZizckl5j959OhRKKbE2nuLqWKTUiJ7Fg7v1WlC5siYW9RhWaxPqEFEp4toZg1phhV4oGu5XWDTr9gdGlZTZLn3PQAiJiDP+6pef3TTjqcOJhM/ypuVRSV4SeQzzSDw2a9nCooL2Fd17kVLuNz+ZOgKio9SAwqIL+g/6bFPlnsMHvJYlW1/uorUBhoLzULjm/AGDZ029v7RzN0dJLUPW2D1pGGPT/zr7zv95GTkzdePEpBcCSFK6rttKzlq2WBf8/H6l/xR7Tqb7iI6S3fLbXTZk+Mrd2zfu3m5ZntZWLNGKAGOIjGMkVHPdyItem3xP50Ceo1QmzcmNmm0l7/3zK7987y2fx8sZl0rhSTAQkWBc5+LDr5YeisVGlw4RjLt33WrPZSjVzuu7quKsHUcOLd+y3rSs4+n5HGAnUAzGiVQ0Hr9/3NXP3nCLVzdk5itTbt3/4Xjsxy8/PfPzj/z+IB27FpXp8wHR1M0v1q+u3Lv74tJyr25kovsMUSrl0fUry89ISufTdas1ITjjrYSGtDxgBKAxkbZtJZ0nrp3488uvZYzVcSlRKiUY33pg3zUvPLZg7cpgMM9xpY1vz7eDx7K+2r7l75vXXVAyqIMv4GS0M1REnLExA8vzPN75a1dKIl1oshXQ/RYGjAB0zuPJhN8w/jjprp+c87269VzXEy76euM1z01fvXtnMBC0s7mppog8lmdr9d4PVi8b1rO4Z7sOkmrHDBGBSAGM7FPSv0u3eWtWRJNJS9dbHLOWBMwtxwjFIj3bd3r79gfHDix36tBziSSRYGzW8sXXz3hyXyTk93ptx8k2JpFSekzzQCQ0e/mXvTt0Kivq7haR1UJDEBFRKlnWpft5JaWfrF9dHTriNa2TT8rTAjAE0DgPhUNnFfef/e8PDunaw5UqMhFCIiUYf+aT96e++mJaKY9pOtJpQASJiIqUqRsJOz17+aKgx3t27xJFygXo5IdkyGwpe7brcNmQ4Uu3bd5atdtrWS2ou7YMYIjIGA9HQlcOO/vNKfd1y2/nZLgOddwNKoKfzX7957NfNQxLCCGVOgWdFhWREAKRvbdiccKRFw0Y7EqLtbpHzpgjZXtf4MqKMzbtr161Y4tpWKcLYAQgGAegaCw8dfTlv79patDyKFKZLva6hDCUiE+a+dxLn7zv9wcBoVG0PkXEGJqG+enaFZsP7Lt44BBL1zNSR8YUKZ9hXllxxuFEYuGGNYZuMNYCqmOzAkYAgjFHSjuV+uU1N/3qqhsFYwSQSSF0CeHOwwev//1v5q5cEgzkS1LUSHt0/EM8pmf51g1Ltm8Z1X9QvseXyc4QURFpjF8+eJhlmAvWrASGgjc3Zs0JGGlcJFJJk/MZN98x9YKxbmSTiRDaSgrGV+7cdvVz05du3xL0B+2maYSkSHksz4aqXR+uXTmyuH9RXkEdSrEb1Z3Xd2DvTp0/XL0skU6buu4egd81wHShhWLRorx2b0+9/4rBwx0pGeOZCKGrvs9dvfyHL/56Z81Bv9dvyya8/iRJekzP3tCh/12xpH/nbgMKi2wpa229hIiAKKUs79ZzZHH/BZWrDoRDLnX8TgGmcRGKhAZ36zX73x88o2dxWjoaF5i5UZPg/A+ff3TzzGfjTtpreZu6KhkBFSnTMCOpxKzliwoDeSN6Fru+rnbqyFhaOn06FF48sHzhlvU79ld7TE/zqPtNDhgiCsbC4ZqxQ0a8detPizsUOjJjDaFUijGGiP93zp+nvf0nTWi60JzmusQgldKFIILZKxYrgIv6D0LEuqljYTBvfPmIyuo9lTu2WqZFbRowAuKMI2IkEp504dg/3nxnO69fZdac3D4uCdu+9bUXn573jt/nZ4w5zRilIoBr3IamL1i9dGfN4TGlFboQGRUsxhRR0PJcNfTMfdHwl5vWmYbpxnlN5w+aCjAC4ExIKVPJxC++f8Nvrr1Z56KOHi8uWgej4etfeuLtf3wRDOQpoubXgfBY1sYyrS83rVuxc+uYsgq/YTqZqaNUyhDa+PIzkPGP165kjHMumo46NhVgOueJdEoDeOGmqfeMvtzt9JaxHENJjfG1VTuvem76F5vWuQphSxUwuckUReSxrLW7ty9Y99W5fQfWUWTgKsUEMKqkrGu7Dh+uXpaSjqU1VSV1kwCmcxFKxNp7fK9Pue/a4SMd6bjN5zIl+DXGP16/ZsKLv968b2/QH7BbR+cxReQxPTsO7X/3q6XlXXsVdyx0lESsvcjAbaQ2rEef8h69569deTge9eqWbAIa0viAuYSwf5fus6bef6wFj8hE392y+Fe//Pu//fHpUDwe8Hjt1tR1VpHyGNaRWHTWysXd8jtUdOulMivFjDFbyv6FRaP6D/p88/rdB/c1BXVsTMAQUHAeDtdcOLB81m3TBnbu6qjMCqEbNTP2qw/fufONGYjM0o2TG7+0BsxMTbel/MvyRbqmn993IAAooIzUUcmu+e2uGDz8q9073CKDxlWKGwcwAuDIGMNIJPRv53zvtcl3dwwEvzXBrxDueePlX819y2t5BedOi6Yt6u7AoHEuuPhw1T8Ox2JjBw/lyOouMijw+iYMPWtXzZGlW9abpoWAChqHhjQCYASgMSaVjCViD4y75vkbpxhCqyPBL0lyxo/EYz+a8dTMLz72+wMEIFtxD8aj1BHRNMzPN6xZu2fnmNIKj25IqqvIwNT0q4eelXCcTytXCcE1zhvlO54qYG7KOGnbSsqnrp/80LgJBFBHgt+9Sbd5396rX3jsIzfBLyVAa79cjcce3uPxfLVt86ebKi/sV9beF6AMtfsudQSEiwcOKfAH5q1Z4QCZjVFkcEqAuSnjcCIeNK2Zk+6eePaFbrySSc9VSiFji7du/P7z09dV7Qr4A22uFa1SyrKsr/dXz1m97IxefbsVtCelMFORAYBUdHbvfqVF3eetXRlKxD2GeYoJa3aqFZ+RcO/2Hd+/+6GrK850S9ixbloCAAAHohGf5ZFts3GwlNJneQ5GI0e14cxZbwTkjNnSubrizPfveqh3+46haEQXomUsTOM8FAmN7DvgL7c/MLiop6sQ4ren56l7QfuvD+xbsmVdswmmjR63RKLhH58z6vYLL3FvN9XtS13VsXtBh3GDhy7fvnXL3l0e02pwWM1O5cLWhOHnvH/3w8UdOtdxBajW4uqK7r0hwyVJaAv3rAGgolvv+o9TEJxLpYo7dJ5718MThp8TCofc4RnU1IC5KWMiiERDd4658s0p0/Isr1NnF+ha7cyj60AI1GabvRKamp5VCRBnzFEq3+N9c8q0O8eMj0RDROAm3JsKMBettGMn08nHf/iTZ66bpHF0S88gt+pjZ4xJIo3jM9dNevyHP0mmk2nHzhYzls1vhCfSKYuL12+59/4xV0qliIBnrvg8nbHJ9PU5IhFIpe4fc+Vrk+81uUimU5zxLFCvfy8T204VeLz/M+Wno0rK3LYztWZ9jsdhBKdpR1M3L6FIZVKKGYItnetGnNMpELzupd+EknFN6PXkX/W1MAUEBK9MvHNUSdlRPbc2OBQREjDEt5Ytqg7VAACdZlABQHWo5u3lixgyzDCbBgE1LmwpR5WUvTzxDiBQ9d4nVs+7xvF49JJBQy8bNFTWpeeSO1nsP2a/NvX1l47y3dNqms6xgTe3vvbSQ7NfB0SGKDPsgMa5VPLywcPGDqqIx2OCc2oUwND1bIrO7zuAKKOfU0QcMZZK/WTmc796902/aQnOTtcpOCxgWb98941J//18LJXirkyVeZTK+X0Hgpu1aSyXSACAGLC8mf7BkZIhVoWOTHjhsT/+fYHhzyNAdbpOqlJERGj68175bP41LzxeFTpS9zyogOmBesc49XKJCAhElVU7a+34lpZScF65d9flTz86b/XyvECeVE5WQTFnjDOe8cV5M3TLY4ic87oeg2UVApGjnPxA3oerl13+9H9V7t0lOE+fhJl7ebeyaieQ29ihMViiO9RKM61Zyxc/MPb7nYP5tpIC2bGfEumcf7xx7cSXn9l95GAw4NbnYlZxdCKVcpTM+C4iU9c5b8JuWIjoSJlMJDILgyQYN3Q9m2fAtHSCgeDK3dsuferRP026+6KSUkdKPCaOu8WyVTWHZy1frJmmVPWq5hP1tHFT0/YcPjjxT8++OfneAq/veFQBADMXf3rn6zOSjh30+tLS4ciy4oYp2+7eoUO7QFCq2qrDEIBoW/W+SCrRRP2VEDHtOH7DLO3eA7AW3+R2czkUDu08eDAb6ZYQIC2doMe3N1xz1bO//N0Nt9x09oUnko7DsejEPz1bdeSwz+OpZ+Qq6h8Jei3v/LUrxj3zX/dePP6cPiV+0/r6wL4XPpv3ysKPNSYsw0xLmVU9HucsmohfcebZ94yfcKwqGk/WHjWNb62q+tmrrxwIHdFFI1cjMcS0Y3cK5v+/H00q7tLZtmVtghO5weVv5/zlvSWLgz5fdmMepPQYZsq2J8187ostG6ZeMLZ3h06RZGLh1g1PLXhvydcbfZav/jqDyKq6IeDxLdm+5YY/PNnOFzSEOBKLxhJxr8eLiHa2aR4EpZTgfGzFiKDHeygS1rio7eSjVNou79V7WJ9+c5Z8YWh648YJiJi27WHF/cp79T4YCTPEkz8eAWzptPMHxlQM/2DZP5RSWSkCCGArR9OEID7js3lv/OPzfK8v5TiHoiFFEPD4nGxUoexyM45SfsMioHAiLklpTAS8fklKNSgpR0SccwJIOzYAZQr1pVJJ29EFb6ognEDjPGXbbn71ZH9OAACUdmy3jUgD3DICKqUQMeD129KpDtdwZB7dQgAnSw1PZF+RotyOrAI5EZ1anRO6uYrjfbAzGYE7PLoJiTgQHlt1zPU9HuI0uE+lQxIRDaEBQcNygaLhOSFqzHKJ022UesuUCORW868cYDnAGqKX1lcIbxOP2rRCJbR0wZ8QTCrlZG7j4FYEN2le2y32qoOwOUpJpbhgLX7kihbMHTHGUonU13urLigdjIic1SJYuzfsbMfeureKNYE6RUSM8617qxwlOwSCrop98n9JRUGvd9veqmQ6bXj1FrT3lrUw0oT2yoJ5oXi8MD9fylrkRAISjC3euH7N9m2WYZwsc2CDcown/iAsw1izfdsjb8w8u2SAU6s8BsQ5rz5y5C8LP9eFaFn3LFq0ipaEEJFk/KX334Wj5kW1xWoEyDym8Q3z4ggEYKssjhZE0JiL07+qX0LMX7F8/vKlgBmeAQgUGaYphGjZAaGi5WcecG74/JnCuuMJ02+obRwh6gADzNeVxur1m0cAW8GRNFNAPgHyX9/j91hQZ996BHTburTsMSZaQxTpkMxSsYWIDSMKnAf7p4YEZf3ZiARYFeKPrTeWHRE+7V/srK2UebW9iXUcIengoKB8d2Sss0clnSzoowLo60+PLHAu+dy/IcxNQbKtZcVFmxv8CwC2gruKU509tD/ODJ4N8SAIp1kXL91VnLplmcfMcGzmAINGvQ8JFqeeXqkkaBwYZge4xkBJ6OGVFidJbU/JZG2x9o+h23qygUbKABgAa5u1/TktMQdYbuUAy60cYDnAcisHWG7lAMsBlls5wKBJbpSA+k5cphGnA1oSwOIAAEnV5m+EngYWhhAQVJXEqiT6BSG1bczYd94Tejm9vE0f9Ylv1Cf+V7bpHo1yFtZ60TI57YqzRyqtqhSrSrFHKq2dMYaMFGHuDGu9B5ikoxPkJIEibNPV4d9lC2MISYndPeqRAck8ofKE+vmAZA+vIgcZUs7CWiXhQEhInNonNabQBoA+XhV20NBytL4VlxQQQURiTw8BQFRiW+/PI04DVg8cICGPOkmVC5zbynmWk6ZyKwdYbrVOl8gQBReZRnx8Swt5AMzQfDy7qWacE2bZU+Ron0ouuGiG5jytCLCUbTuR0GEAatiddgJbSmhQz1y3b5YtZSgSaRhfRMYpEkrZdssA1sylr+7vske79mMrRmiWV2VZ0e5eZRFE+d71jqxhkPXlHwboSCffmzd+0ADHHWCfJW6MMTsR69GufZ0t0Jtq9KPQhZaw081m4G7zhItLKy4YMJg3sI4UiRy58hfx/fu4boDKbhoS5zyejpUV9Xjr8gcQRZ0XVqAOuUtnHDIPNIamaRJnaZqwdCOeTiGy5kw7MESTcWpQYw8CQhAJd68b6BMJUOhcECACa0C9ttbsxoWARMpjGMyr6arZ7zwh/LN1ZlYvAIZEgEK0HwrKBgRAnuULQKVF+6GAAsmt+27AYzS7XIKgiDyaLjoGglsPVDNNk817R77hNA85gNK6XSYPrbKrPgbUsjnGEMjWuozWul2GpOBoO2tsC4E/Sik7+YOib8fOCzeva8SHbnqxDgEAuWFWPCw6ni1DG6D+PYCQ8WB/UTQamWjaJyVo3FYVCKiU7Nups+hX2AUadXYXEXDGIslENJls7/U3naiLTNO6XaJ1u6RV/a6IKJJIhJMJd4RG4350SacubHiPPppuSJLYaKcoCS5qopF5675ye0dS002DJQkkgVS9XxJINhFaBJB2HESct25VKBbReKP1G0BEh6TQ9YoevUX/wqIeee22Hd7vMcxGO8YIuBBPzZ9zadnQHgXt3Y5vTRDwHWcAlB3dIYJGVe3xGPc0NG3H4YO/XTCHc60RzYshxlPpXgXtBxR2FYWBvMFdu2+p3sNMSzbeoE+vbmzZX33ls7964gc/Hj1g8Gki9H20fvW0WTO37K/2WZbTeLfcGaJMpwd37dEpkCc0zkcNHDJ7+WIiakQjcJTyWtaqPTuuem76yH4D+rQvFIx/h6FylNx6oHrh5nUx2/Y3KlrotutDGDVwiM65AIAxA4YU5hccTsQ1LhqxAZZUym9aUsn5a1bC6TA7hzGPafpNq5E7SCAmHbtzfsGYAYMBQEil+nXqfHafAe8sX2R4dUmycYf8IDK/x3sqcRe0mRkepIgavd8HQ5ZOpc4aNKxfpy5SqaNq/S3njX7vq39QEww4JCJ5uo6IaCxCoHEx5bzRR/HjjBHRmNIh55WUxhLx7/ZJA21vRhyPJ+LnlgwcM7DcHfLFjs25YfeOvhzxaLvi3E5Bq6jRQwXEEO4dfQU7NnGHAQBnTCo1rmzoVcNGRqOR3IjE1jMlKRaNXDV85LiyofLYoFF24lC5h8dNyPP60o7Dcpi1vNrL0mknz+d7aNw1/IQ5meyf8zSlLO/W68FxExKJGM95xZaPETCRiD1w6TXlXXtKKY+7PXZiKlYqNW3M+O8PGxkKh3ShEeTYXcvMidaFFg7XXD3inGljxkul+AkjEdk3TjmO/HfXTy4p6haKRXSu5RBr/k5aOtdCsUj/ou5PXzeZI/sGB2Tf1KxIds1v9/ZtD3QO5MWTCZ3zHGbNixaPJxOdA3lv3fZA1/wCSd9sGs1OJv5SqUFF3d+8bZrXMCPJhC5EDrNmQkuISDLhNcw3b5s2qKi7VOrksJjV2sTdlvL84gGzb3+wgy8QjkUNIXIb2tTLECIUi3bwB2bf/uD5xQNsKWsd4oiZOsE7SgrGv9q1/YbfP7F+z86AP08SNYV2lVuIjCOGI6GBRd1fv3Vaedce7uZnHEsLmaVbztjecM1dr/9+1rJFpmkZmu4oqYhyrL+ROnWiYDxlp5PJxDXDRz5z45TOgbzjMXLWgAGAVJIzTkBPzJ/zxPuz9kcjPp+/7iG3uVVvIYMromg00tHvf2DcD+4bMx6PbXhd5vitwzEUKQRExJW7tk3/6+y3li4CIJ/lcdUtlVPis08fu1sXTcQA2LUjRv6fS6+u6NZLHZuy/i3+s57TTByl3DKg99cs++1Hcz/bVOnYjm4YhqYfQ05RDrzMMi5D5m5Uyk6nUylN1y7oW3r36MsuGzQc8ej21uuj6r/LUil38qEi+rBy5ctffLxk68Y9hw8CENM0QzM0xgCQgMgd4He6AohH62QRERAQgGylUumUcmwAVlRQcGaf/recN3rMwHKGSESKqP5TvTGrXSUgpYgdmxW5cV/Vpxsr/7ZhzZrdO7Ye2pdKpQEBGWOMccY4MGSnIzshRRKUVEopRUoBgWEaxe06lhV1H9V/8IUlpSWduripXUXEWJaN3BtmBm4i/PjvoqrmyIZ9u9fu2bXlQPXmfXv3ho5EUolQPJ6w06chYJamBz0ev2F1Dub37dS5uENhWVH3/oVFXYL5te5eVuv/A7sRYqxTNY4PAAAAAElFTkSuQmCC'};
 function normalizeDB(d){
-  d.settings={...DEFAULT_SETTINGS,...(d.settings||{})};if(!d.settings.propertyName||d.settings.propertyName==='Nhà trọ')d.settings.propertyName=BRAND.name;if(!d.settings.address)d.settings.address=BRAND.addr;d.rooms=d.rooms||[];d.rooms.forEach(r=>{if(!Array.isArray(r.members))r.members=[]});d.months=d.months||{};d.history=d.history||[];d.rev=d.rev||1;d.deviceId=d.deviceId||uid();
+  d.settings={...DEFAULT_SETTINGS,...(d.settings||{})};if(!d.settings.propertyName||d.settings.propertyName==='Nhà trọ')d.settings.propertyName=BRAND.name;if(!d.settings.address)d.settings.address=BRAND.addr;d.rooms=d.rooms||[];d.rooms.forEach(r=>{if(!Array.isArray(r.members))r.members=[]});d.months=d.months||{};d.history=d.history||[];d.docMeta=d.docMeta||{};d.rev=d.rev||1;d.deviceId=d.deviceId||uid();
   Object.values(d.months).forEach(m=>{m.recs=m.recs||{};m.payments=m.payments||{};m.deductions=m.deductions||[];m.expenses=m.expenses||[];m.reminded=m.reminded||{};m.sent=m.sent||{};m.recon=m.recon||{bank:null,cash:null};m.mainMeters=m.mainMeters||[];m.pump=m.pump||{old:0,new:null};
     m.prices=m.prices||{elec:d.settings.elecPrice,water:d.settings.waterPrice,pump:d.settings.pumpPrice,freePeople:d.settings.freePeople,extraPerson:d.settings.extraPerson}});
   return d;
@@ -743,6 +743,7 @@ const NAV=[
  {id:'rooms',label:'Phòng & khách',icon:'door',title:'Phòng & khách thuê'},
  {id:'people',label:'Người ở & tạm trú',icon:'user',title:'Người ở & tạm trú / tạm vắng'},
  {id:'leave',label:'Người chuyển đi',icon:'door',title:'Danh sách người chuyển đi'},
+ {id:'docs',label:'Hợp đồng & CT01',icon:'file',title:'Hợp đồng ở nhờ · Thanh lý · Tờ khai CT01 (tạm trú)'},
  {id:'report',label:'Báo cáo',icon:'chart',title:'Báo cáo'},
  {id:'tax',label:'Sổ thuế',icon:'file',title:'Sổ thuế · doanh thu tiền phòng'},
  {id:'settings',label:'Cài đặt & dữ liệu',icon:'cog',title:'Cài đặt & dữ liệu'}
@@ -776,10 +777,10 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.24 · Khoản trừ chỉ ở đợt 1, thu tiền tự vào đợt đang thu</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.25 · Hợp đồng ở nhờ, thanh lý, tờ khai CT01</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
-  const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave','tax'].includes(UI.view);
+  const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave','tax','docs'].includes(UI.view);
   $('#top').innerHTML=`<button class="btn icon ghost" id="menuBtn" data-act="menu" aria-label="Mở menu">${icon('menu',20)}</button><h1>${cur.title}</h1>`+
     (showM?`<div class="mswitch"><button data-act="mprev" ${i<=0?'disabled':''} aria-label="Tháng trước">${icon('l')}</button>
       <select id="mSel" data-change="msel" aria-label="Chọn tháng">${ks.slice().reverse().map(x=>`<option value="${x}" ${x===k?'selected':''}>${monthLabel(x)}</option>`).join('')}</select>
@@ -793,7 +794,7 @@ function renderChrome(){
 function render(){
   if(syncRecs(UI.month))save();
   renderChrome();
-  const V={dash:vDash,entry:vEntry,table:vTable,pay:vPay,recon:vRecon,notice:vNotice,rooms:vRooms,people:vPeople,leave:vLeave,report:vReport,tax:vTax,settings:vSettings}[UI.view];
+  const V={dash:vDash,entry:vEntry,table:vTable,pay:vPay,recon:vRecon,notice:vNotice,rooms:vRooms,people:vPeople,leave:vLeave,docs:vDocs,report:vReport,tax:vTax,settings:vSettings}[UI.view];
   $('#view').classList.toggle('wide',UI.view==='table'||UI.view==='people'||UI.view==='leave'||UI.view==='tax');$('#view').innerHTML=`<div id="syncWarn">${syncWarn()}</div>`+V();
   $('#side').classList.remove('open');
   if(UI.view==='entry')refreshEntryHead();
@@ -1709,6 +1710,245 @@ function roomModal(id){
     `${isNew?'':`<button class="btn danger" data-act="roomdel" data-room="${esc(r.id)}" style="margin-right:auto">Xóa phòng</button>`}<button class="btn" data-act="mclose">Hủy</button><button class="btn primary" data-act="roomsave" data-room="${esc(id||'')}">Lưu</button>`,{wide:true});
 }
 
+/* ---------- v5.25: Hợp đồng cho ở nhờ, thanh lý hợp đồng, tờ khai CT01 (đăng ký tạm trú) ---------- */
+const DOC_AREA='khu phố Bình Chuẩn 2, phường An Phú, TP Hồ Chí Minh';
+const DOC_TYPES=[['hd','Hợp đồng cho ở nhờ nhà'],['tl','Thanh lý hợp đồng'],['ct01','Tờ khai CT01 (tạm trú)'],['set','Bộ hồ sơ tạm trú: Hợp đồng + CT01']];
+const DOC_CSS=`
+.dpg{font-family:"Times New Roman",Times,serif;color:#000;font-size:13pt;line-height:1.35;background:#fff}
+.dpg p{margin:0 0 5pt;text-align:justify;white-space:normal}
+.dpg .dc{text-align:center}.dpg .db{font-weight:bold}.dpg .dind{text-indent:1.1cm}.dpg .dit{font-style:italic}
+.dpg .dh{font-size:13pt;font-weight:bold;text-align:center;margin:0}
+.dpg .dttl{font-size:14pt;font-weight:bold;text-align:center;margin:14pt 0 10pt}
+.dpg .dsm{font-size:10pt}
+.dpg sup{font-size:8pt;line-height:0}
+.dpg table{border-collapse:collapse;border-spacing:0;width:auto;font-size:inherit}
+.dpg td,.dpg th{padding:0;border:0;background:none;color:#000;font-size:inherit;font-weight:normal;text-align:left;white-space:normal;text-transform:none;letter-spacing:0;position:static;vertical-align:top;font-family:inherit}
+.dpg table.dsg{width:100%;margin-top:8pt}
+.dpg table.dsg td{text-align:center;font-weight:bold;width:50%}
+.dpg .dgap{height:80pt}
+.dpg table.dib{margin:0 0 6pt}
+.dpg table.dib td.dil{padding-right:6pt;white-space:nowrap;vertical-align:middle}
+.dpg table.dib td.dbx{border:1px solid #000;width:19pt;height:19pt;text-align:center;vertical-align:middle;font-size:12pt}
+.dpg table.dg{width:100%;margin:2pt 0 10pt}
+.dpg table.dg th,.dpg table.dg td{border:1px solid #000;padding:3pt 4pt;font-size:11.5pt;text-align:center;vertical-align:middle;height:19pt}
+.dpg table.dg th{font-weight:bold}
+.dpg table.dg td.dl{text-align:left}
+.dpg table.dsg4{width:100%;margin-top:6pt}
+.dpg table.dsg4 td{width:25%;text-align:center;font-size:10.5pt;padding:0 2pt}
+.dpg .dnt p{font-size:11pt;line-height:1.25;margin:0 0 3pt}
+.dpg .ct{font-size:13pt;line-height:1.3}
+`;
+const dparts=iso=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||'');return m?{y:m[1],m:m[2],d:m[3]}:null};
+const dText=iso=>{const p=dparts(iso);return p?`ngày ${p.d} tháng ${p.m} năm ${p.y}`:'ngày ..... tháng ....... năm 2026'};
+function addMonthsISO(iso,n){const p=dparts(iso);if(!p||!(n>0))return '';const dt=new Date(+p.y,+p.m-1+n,1),dim=new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate();dt.setDate(Math.min(+p.d,dim));dt.setDate(dt.getDate()-1);return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`}
+const dDots=(v,n)=>v?esc(v):'.'.repeat(n);
+const dNbsp=s=>s;
+let DOC_NODOM=false;
+function dV(id,def){const el=DOC_NODOM?null:document.querySelector(`#docForm [data-df="${id}"]`);if(el)return el.type==='checkbox'?(el.checked?'1':'0'):el.value;const m=((DB.docMeta||{})[UI.doc&&UI.doc.src])||{};return m[id]!=null?m[id]:def}
+function dG(k,def=''){const el=DOC_NODOM?null:document.querySelector(`#docForm [data-dg="${k}"]`);if(el)return el.value.trim();const g=DB.settings.doc||{};return g[k]!=null?g[k]:def}
+const dGdef={house:()=>(DB.settings.address||'').split(/\s+/)[0]||'',area:()=>DOC_AREA,police:()=>CFG.policeTo||'Công an phường An Phú, TP Hồ Chí Minh',a1n:()=>DB.settings.manager||''};
+const dg=k=>dG(k,dGdef[k]?dGdef[k]():'');
+function docSources(){
+  const out=[];
+  DB.rooms.filter(r=>r.status==='occupied').forEach(r=>{
+    const ppl=peopleOf(r).filter(p=>p.name||p.idNo);if(!ppl.length)return;
+    out.push({key:'r:'+r.id,grp:'Đang thuê',label:`Phòng ${r.id} · ${ppl[0].name||'(chưa tên)'}${ppl.length>1?' (+'+(ppl.length-1)+')':''}`,roomId:r.id,people:ppl,moveIn:(r.tenant||{}).moveIn||'',moveOut:''});
+  });
+  (DB.history||[]).slice().reverse().forEach(h=>{
+    const ppl=(Array.isArray(h.people)&&h.people.length?h.people:[{rep:true,name:h.name||''},...(h.members||[]).map(n=>({rep:false,name:n}))]).filter(p=>p.name||p.idNo).map(p=>({rep:!!p.rep,name:p.name||'',idNo:p.idNo||'',dob:p.dob||'',sex:p.sex||'',hk:p.hk||'',phone:p.phone||''}));
+    if(!ppl.length)return;
+    out.push({key:`h:${h.roomId}:${h.moveOut||''}:${h.name||''}`,grp:'Đã chuyển đi',label:`Phòng ${h.roomId} · ${ppl[0].name||'(chưa tên)'}${ppl.length>1?' (+'+(ppl.length-1)+')':''} · chuyển ${fmtDate(h.moveOut)||'?'}`,roomId:h.roomId,people:ppl,moveIn:h.moveIn||'',moveOut:h.moveOut||''});
+  });
+  return out;
+}
+const dSrc=()=>{const s=docSources();return s.find(x=>x.key===(UI.doc||{}).src)||s[0]||null};
+const dHon=p=>p.sex==='Nữ'?'Bà':p.sex==='Nam'?'Ông':'Ông/bà';
+const dYear=p=>(p.dob||'').slice(0,4);
+const dAddrNo=(dotStreet)=>{const h=dg('house'),st=dg('street');return `${h?esc(h):'..........'}${st?' đường '+esc(st):(dotStreet?' đường ................':'')}`};
+const dAddrFull=()=>`Nhà số ${dAddrNo(true)}, ${esc(dg('area'))}`;
+const dHead=()=>`<p class="dh">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p><p class="dh" style="text-decoration:underline">Độc lập – Tự do – Hạnh phúc</p>`;
+function dOwners(){
+  const o=(n,pre)=>`<p>- ${pre}: ${dDots(dg(n+'n'),48)} SN: ${dDots(dg(n+'sn'),14)}</p><p>CMND/CCCD: ${dDots(dg(n+'id'),24)}, Ngày cấp ${dg(n+'d')?esc(fmtDate(dg(n+'d'))):'..................'}</p>`;
+  const has2=dg('a2n')||dg('a2id');
+  return o('a1','Ông/bà')+(has2?o('a2','Cùng Ông/bà'):'');
+}
+function dPartyB(src,withOthers){
+  const b=src.people[0],oth=src.people.slice(1);
+  const idd=i=>{const v=dV('idd_'+i,'');return v?esc(fmtDate(v)):'..................'};
+  let h=`<p>- ${dHon(b)}: ${dDots((b.name||'').trim(),48)} SN: ${dDots(dYear(b),14)}</p><p>CMND/CCCD: ${dDots(b.idNo,24)}, Ngày cấp ${idd(0)}</p>`;
+  if(withOthers)oth.forEach((p,j)=>{h+=`<p>+ Người ở cùng: ${dDots((p.name||'').trim(),40)} SN: ${dDots(dYear(p),14)}</p>`});
+  return h;
+}
+function docHD(src){
+  const sign=dV('sign',todayISO()),start=dV('start',src.moveIn||todayISO()),months=parseInt(dV('months','12'),10)||0;
+  const end=dV('end','')||addMonthsISO(start,months),nk=dV('nk','')||String(src.people.length),m2=dV('m2','');
+  const addr=`${dAddrNo(false)}, ${esc(dg('area'))}`;
+  return `${dHead()}<p class="dttl">HỢP ĐỒNG CHO Ở NHỜ NHÀ</p>
+  <p class="dind">Hôm nay, ${dText(sign)}. Tại: ${dAddrFull()}.</p><p>Chúng tôi gồm có:</p>
+  <p class="db">I. Bên cho ở nhờ nhà: (Gọi tắt là bên A):</p>${dOwners()}
+  <p>Là chủ sở hữu căn nhà tọa lạc tại số: ${addr}.</p>
+  <p class="db">II. Bên ở nhờ nhà : (Gọi tắt là bên B) :</p>${dPartyB(src,true)}
+  <p>- Hai bên tự nguyện thỏa thuận và thống nhất như sau :</p>
+  <p>+ Bên A đồng ý cho bên B được ở nhờ nhà tại địa chỉ: ${addr}.</p>
+  <p>+ Thời hạn: ${months?months:'…...'} tháng, kể từ ngày ${start?esc(fmtDate(start)):'....../......../20....'} đến ngày ${end?esc(fmtDate(end)):'....../......../20….'}.</p>
+  <p>+ Bên B gồm có : ${nk?esc(nk):'.......'} nhân khẩu được ở nhờ : ${m2?esc(m2):'.......'} m² nhà.</p>
+  <p>+ Bên B chỉ được quyền ở và đăng ký tạm trú vào địa chỉ trên.</p>
+  <p>Hợp đồng đã được đọc lại cho tất cả mọi người cùng nghe, thống nhất kí tên./.</p>
+  <table class="dsg"><tr><td>BÊN A</td><td>BÊN B</td></tr><tr><td class="dgap"></td><td class="dgap"></td></tr></table>`;
+}
+function docTL(src){
+  const sign=dV('sign',todayISO()),end=dV('tend',src.moveOut||todayISO());
+  const addr=`${dAddrNo(false)}, ${esc(dg('area'))}`;
+  return `${dHead()}<p class="dttl">THANH LÝ HỢP ĐỒNG CHO Ở NHỜ NHÀ</p>
+  <p class="dind">Hôm nay, ${dText(sign)}. Tại: ${dAddrFull()}.</p><p>Chúng tôi gồm có:</p>
+  <p class="db">I. Bên cho ở nhờ nhà: (Gọi tắt là bên A):</p>${dOwners()}
+  <p>Là chủ sở hữu căn nhà tọa lạc tại số: ${addr}.</p>
+  <p class="db">II. Bên ở nhờ nhà: (Gọi tắt là bên B) :</p>${dPartyB(src,true)}
+  <p>- Hai bên tự nguyện thỏa thuận và thống nhất như sau:</p>
+  <p>+ Bên B chấm dứt, không tiếp tục ở nhờ nhà do bên A là chủ sở hữu tại địa chỉ: ${addr} kể từ ${dText(end)}.</p>
+  <p>- Hai bên cam kết không tranh chấp, khiếu nại gì về sau.</p>
+  <p>Hợp đồng đã được đọc lại cho tất cả mọi người cùng nghe, thống nhất kí tên./.</p>
+  <table class="dsg"><tr><td>BÊN A</td><td>BÊN B</td></tr><tr><td class="dgap"></td><td class="dgap"></td></tr></table>`;
+}
+const dIdBoxes=(label,id)=>{const d=String(id||'').replace(/\D/g,'').slice(0,12).split('');return `<table class="dib"><tr><td class="dil">${label}</td>${Array.from({length:12},(_,i)=>`<td class="dbx">${d[i]||'&nbsp;'}</td>`).join('')}</tr></table>`};
+function docCT01(src,idx,withMembers){
+  const p=src.people[idx]||{},S=DB.settings;
+  const own=dg('a1n'),ownId=dg('a1id'),rel=dV('rel','Người ở nhờ');
+  const kind=dV('purpose','reg'),custom=dV('nd','').trim();
+  const verb={reg:'Đăng ký tạm trú',ext:'Gia hạn tạm trú',del:'Xóa đăng ký tạm trú'}[kind]||'Đăng ký tạm trú';
+  const nd=custom?esc(custom):`${verb} tại: ${dAddrFull()}`;
+  const dob=dparts(p.dob);
+  const single=withMembers&&dV('decl','0')!=='all';
+  const phone=(single?dV('dphone',''):'')||p.phone||'',email=single?dV('demail',''):'';
+  const mems=withMembers?src.people.map((q,j)=>({q,j})).filter(x=>x.j!==idx&&dV('mem_'+x.j,'1')==='1'):[];
+  const rows=Math.max(6,mems.length);
+  let tr='';for(let i=0;i<rows;i++){const m=mems[i];const q=m&&m.q;
+    tr+=`<tr><td>${m?i+1:''}</td><td class="dl">${q?esc((q.name||'').toUpperCase()):'&nbsp;'}</td><td>${q&&q.dob?esc(fmtDate(q.dob)):''}</td><td>${q?esc(q.sex||''):''}</td><td>${q?esc(q.idNo||''):''}</td><td>${q?esc(rel):''}</td></tr>`}
+  const ph=n=>'.'.repeat(n);
+  return `<div class="ct"><p class="dc dsm" style="margin:0 0 10pt">Mẫu CT01 ban hành kèm theo Thông tư số 116/2026/TT-BCA<br>ngày 29 tháng 6 năm 2026 của Bộ trưởng Bộ Công an</p>
+  ${dHead()}<p class="dc" style="margin:2pt 0 0">––––––––––––––</p>
+  <p class="dttl" style="margin:10pt 0 8pt">TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ</p>
+  <p class="dc" style="margin-bottom:8pt">Kính gửi<sup>(1)</sup>: ${esc(dg('police'))}</p>
+  <p style="text-align:left">1. Họ, chữ đệm và tên khai sinh: ${p.name?`<b>${esc(p.name.toUpperCase())}</b>`:ph(60)}</p>
+  <p style="text-align:left">2. Ngày, tháng, năm sinh: ${dob?`${dob.d} / ${dob.m} / ${dob.y}`:'....... / ....... / ..........'} &nbsp;&nbsp;&nbsp; 3. Giới tính: ${p.sex?esc(p.sex):ph(12)}</p>
+  ${dIdBoxes('4. Số định danh cá nhân:',p.idNo)}
+  <p style="text-align:left">5. Số điện thoại liên hệ: ${phone?esc(phone):ph(22)} &nbsp; 6. Email: ${email?esc(email):ph(26)}</p>
+  <p style="text-align:left">7. Họ, chữ đệm và tên chủ hộ<sup>(2)</sup>: ${own?esc(own.toUpperCase()):ph(32)} &nbsp; 8. Mối quan hệ với chủ hộ: ${esc(rel)}</p>
+  ${dIdBoxes('9. Số định danh cá nhân của chủ hộ:',ownId)}
+  <p style="text-align:left">10. Nội dung đề nghị<sup>(3)</sup>: ${nd}</p>
+  <p style="text-align:left">11. Những thành viên trong hộ gia đình cùng thay đổi:</p>
+  <table class="dg"><tr><th style="width:6%">TT</th><th style="width:25%">Họ, chữ đệm<br>và tên</th><th style="width:16%">Ngày, tháng,<br>năm sinh</th><th style="width:9%">Giới tính</th><th style="width:22%">Số định danh<br>cá nhân</th><th style="width:22%">Mối quan hệ<br>với chủ hộ</th></tr>${tr}</table>
+  <table class="dsg4"><tr>
+   <td>.....,ngày.......tháng....năm.......<br><b>Ý KIẾN CỦA CHỦ HỘ<sup>(4)</sup></b></td>
+   <td>.....,ngày.....tháng....năm...<br><b>Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP<sup>(5)</sup></b></td>
+   <td>.....,ngày......tháng...năm...<br><b>Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ<sup>(6)</sup></b></td>
+   <td>.....,ngày....tháng...năm...<br><b>NGƯỜI KÊ KHAI<sup>(7)</sup></b></td></tr>
+   <tr><td style="height:95pt"></td><td></td><td></td><td></td></tr>
+   <tr><td></td><td class="dsm" style="text-align:left"><sup>(8)</sup> Họ và tên: ..................<br><sup>(8)</sup> Số định danh cá nhân:................</td><td class="dsm" style="text-align:left"><sup>(8)</sup> Họ và tên: ..................<br><sup>(8)</sup> Số định danh cá nhân:...............</td><td></td></tr></table></div>`;
+}
+function docNotes(){
+  const L=['(1) Cơ quan đăng ký cư trú.','(2) Trường hợp đăng ký thường trú, đăng ký tạm trú, tách hộ ghi thông tin chủ hộ gia đình mới.',
+  '(3) Ghi rõ ràng, cụ thể nội dung đề nghị. Ví dụ: ghi chi tiết thông tin nơi đề nghị đăng ký thường trú hoặc nơi đề nghị đăng ký tạm trú hoặc nội dung đề nghị xác nhận thông tin về cư trú... Trường hợp đăng ký thường trú, đăng ký tạm trú, gia hạn tạm trú, tách hộ mà địa giới hành chính đã có sự thay đổi theo quyết định của cơ quan có thẩm quyền thì ghi thông tin theo địa giới hành chính mới, đồng thời ghi chú địa giới hành chính theo giấy tờ, tài liệu chứng minh chỗ ở hợp pháp.',
+  '(4) Áp dụng đối với các trường hợp quy định tại khoản 2 <i>(Trừ trường hợp người dưới 6 tuổi đăng ký về với cha, mẹ, người giám hộ)</i>, khoản 3, khoản 5, khoản 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú và các trường hợp khác theo quy định pháp luật. Việc lấy ý kiến của chủ hộ được thực hiện theo các phương thức sau:',
+  'a) Chủ hộ ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai.','b) Chủ hộ xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia hoặc các dịch vụ công trực tuyến khác.','c) Chủ hộ có văn bản riêng ghi rõ nội dung đồng ý (văn bản này không phải công chứng, chứng thực).',
+  '(5) Áp dụng đối với các trường hợp quy định tại khoản 2 <i>(Trừ trường hợp người dưới 6 tuổi đăng ký về với cha, mẹ, người giám hộ)</i>, khoản 3, khoản 4, khoản 5, khoản 6 Điều 20; khoản 1 Điều 25 Luật Cư trú; điểm a khoản 1 Điều 26 Luật Cư trú (trường hợp người đứng đầu cơ sở trợ giúp xã hội quyết định chủ hộ) và các trường hợp khác theo quy định pháp luật. Việc lấy ý kiến của chủ sở hữu chỗ ở hợp pháp được thực hiện theo các phương thức sau:',
+  'a) Chủ sở hữu chỗ ở hợp pháp ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai.','b) Chủ sở hữu chỗ ở hợp pháp xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID) hoặc các dịch vụ công trực tuyến khác.','c) Chủ sở hữu chỗ ở hợp pháp có văn bản riêng ghi rõ nội dung đồng ý (văn bản này không phải công chứng, chứng thực).',
+  '<b><i>Ghi chú:</i></b> Trường hợp chủ sở hữu hợp chỗ ở hợp pháp gồm nhiều cá nhân, tổ chức thì phải có ý kiến đồng ý của tất cả các đồng sở hữu, tổ chức trừ trường hợp đã có thỏa thuận về việc cử đại diện có ý kiến đồng ý hoặc trường hợp có quy định khác; Trường hợp chủ sở hữu chỗ ở hợp pháp xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia thì công dân phải kê khai thông tin về họ, chữ đệm, tên và số ĐDCN của chủ sở hữu chỗ ở hợp pháp. Trường hợp đăng ký thường trú theo quy định tại điểm a Khoản 2 Điều 20 Luật Cư trú mà chỗ ở hợp pháp có nhiều hơn một chủ sở hữu thì chỉ cần ý kiến đồng ý của ít nhất một chủ sở hữu.',
+  '(6) Áp dụng đối với trường hợp người chưa thành niên, người hạn chế hành vi dân sự, người không đủ năng lực hành vi dân sự có thay đổi thông tin về cư trú. Việc lấy ý kiến của cha, mẹ hoặc người giám hộ được thực hiện theo các phương thức sau:',
+  'a) Cha, mẹ hoặc người giám hộ ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai.','b) Cha, mẹ hoặc người giám hộ xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID) hoặc các dịch vụ công trực tuyến khác.','c) Cha, mẹ hoặc người giám hộ có văn bản riêng ghi rõ nội dung đồng ý (văn bản này không phải công chứng, chứng thực).',
+  '(7) Trường hợp nộp trực tiếp người kê khai ký, ghi rõ họ, chữ đệm và tên vào Tờ khai; Trường hợp nộp qua cổng dịch vụ công hoặc ứng dụng định danh quốc gia thì người kê khai không phải ký vào mục này. Trường hợp người kê khai đồng thời là chủ hộ hoặc chủ sở hữu chỗ ở hợp pháp hoặc cha, mẹ, người giám hộ của người thay đổi thì người kê khai không phải ký vào các mục (4), (5), (6), (7).',
+  '(8) Chỉ kê khai thông tin khi công dân đề nghị xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID).'];
+  return `<div class="dnt"><p><b>Chú thích:</b></p>${L.map(x=>`<p>${x}</p>`).join('')}</div>`;
+}
+function docPages(src,T){
+  if(!src)return [];
+  const out=[];
+  if(T==='hd')out.push(docHD(src));
+  else if(T==='tl')out.push(docTL(src));
+  else{
+    if(T==='set')out.push(docHD(src));
+    const decl=dV('decl','0'),idxs=decl==='all'?src.people.map((_,i)=>i):[Math.min(parseInt(decl,10)||0,src.people.length-1)];
+    idxs.forEach(i=>out.push(docCT01(src,i,decl!=='all')));
+    if(dV('fn','1')==='1')out.push(docNotes());
+  }
+  return out;
+}
+const docJoin=a=>a.map((h,i)=>`<div class="dpg"${i?' style="page-break-before:always"':''}>${h}</div>`).join('');
+function docEnsureCss(){if(!document.getElementById('docCss')){const s=document.createElement('style');s.id='docCss';s.textContent=DOC_CSS+`
+.docprev{overflow-x:auto;padding:4px 0}
+.docprev .dpg{width:794px;max-width:none;min-height:1000px;margin:0 auto 14px;padding:15mm 15mm 15mm 22mm;box-sizing:border-box;box-shadow:0 2px 12px rgba(0,0,0,.25);border-radius:2px}
+.docgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+`;document.head.appendChild(s)}}
+function docFileName(src,T,ext){const nm={hd:'Hop_dong_o_nho',tl:'Thanh_ly_hop_dong',ct01:'CT01',set:'Ho_so_tam_tru'}[T];return `${nm}_P${noAccent(src.roomId).replace(/\s+/g,'')}_${todayISO()}.${ext}`}
+function docPrint(){
+  const src=dSrc(),T=UI.doc.type,pages=docPages(src,T);if(!pages.length)return toast('Chưa có dữ liệu để in','bad');
+  docCollect();docEnsureCss();
+  const root=$('#print-root');root.className='doc';root.innerHTML=docJoin(pages);
+  const st=document.createElement('style');st.id='docPage';st.textContent='@page{size:A4 portrait;margin:14mm 14mm 14mm 22mm}';document.head.appendChild(st);
+  document.body.classList.add('printing');
+  const done=()=>{document.body.classList.remove('printing');root.innerHTML='';root.className='';st.remove();window.removeEventListener('afterprint',done)};
+  window.addEventListener('afterprint',done);setTimeout(()=>window.print(),80);
+}
+function docWord(){
+  const src=dSrc(),T=UI.doc.type,pages=docPages(src,T);if(!pages.length)return toast('Chưa có dữ liệu để xuất','bad');
+  docCollect();
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>${esc(DOC_TYPES.find(x=>x[0]===T)[1])}</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>@page Section1{size:21cm 29.7cm;margin:1.4cm 1.4cm 1.4cm 2.2cm}div.Section1{page:Section1}body{background:#fff}${DOC_CSS}</style></head><body><div class="Section1">${docJoin(pages)}</div></body></html>`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿',html],{type:'application/msword'}));a.download=docFileName(src,T,'doc');document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800);
+  toast('Đã tải file Word, mở bằng Word để chỉnh sửa tiếp');
+}
+function docCollect(){
+  const f=$('#docForm');if(!f||!UI.doc)return;
+  DB.docMeta=DB.docMeta||{};const m={};
+  $$('[data-df]',f).forEach(el=>{const v=el.type==='checkbox'?(el.checked?'1':'0'):el.value;if(v!==(el.dataset.def||''))m[el.dataset.df]=v});
+  DB.docMeta[UI.doc.src]=m;
+  DB.settings.doc=DB.settings.doc||{};$$('[data-dg]',f).forEach(el=>{DB.settings.doc[el.dataset.dg]=el.value.trim()});
+  scheduleSave();
+}
+function docRefresh(){
+  docCollect();const src=dSrc(),T=UI.doc.type,box=$('#docPrev');if(!box)return;
+  box.innerHTML=docJoin(docPages(src,T));
+}
+function vDocs(){DOC_NODOM=true;try{return vDocsInner()}finally{DOC_NODOM=false}}
+function vDocsInner(){
+  docEnsureCss();
+  const srcs=docSources();
+  if(!srcs.length)return `<div class="card"><p class="muted" style="margin:0">Chưa có phòng đang thuê hoặc người đã chuyển đi để lập giấy tờ. Hãy nhập khách ở mục <b>Phòng &amp; khách</b> trước.</p></div>`;
+  UI.doc=UI.doc||{type:'hd'};
+  if(!srcs.some(s=>s.key===UI.doc.src))UI.doc.src=srcs[0].key;
+  const src=dSrc(),T=UI.doc.type,isHD=T==='hd'||T==='set',isCT=T==='ct01'||T==='set';
+  const fi=(id,label,def,ex='',cls='')=>`<label class="f ${cls}">${label}<input type="text" data-df="${id}" data-def="${esc(def)}" value="${esc(dV(id,def))}" ${ex}></label>`;
+  const fd=(id,label,def,cls='')=>`<label class="f ${cls}">${label}<input type="date" data-df="${id}" data-def="${esc(def)}" value="${esc(dV(id,def))}"></label>`;
+  const gi=(k,label,ex='',cls='')=>`<label class="f ${cls}">${label}<input type="text" data-dg="${k}" value="${esc(dg(k))}" ${ex}></label>`;
+  const gd=(k,label)=>`<label class="f">${label}<input type="date" data-dg="${k}" value="${esc(dg(k))}"></label>`;
+  const miss=[['CCCD',p=>p.idNo],['ngày sinh',p=>p.dob],['giới tính',p=>p.sex]].map(([l,f])=>[l,src.people.filter(p=>!f(p)).length]).filter(x=>x[1]);
+  const grp=g=>srcs.filter(s=>s.grp===g);
+  const opt=s=>`<option value="${esc(s.key)}" ${s.key===src.key?'selected':''}>${esc(s.label)}</option>`;
+  const decl=dV('decl','0');
+  let sec='';
+  if(isHD||T==='tl')sec+=`<div class="fg"><div class="full"><b>Hợp đồng</b></div>${fd('sign','Ngày lập giấy',todayISO())}${T==='tl'?fd('tend','Chấm dứt ở nhờ kể từ ngày',src.moveOut||todayISO()):''}
+    ${isHD?`${fd('start','Bắt đầu từ ngày',src.moveIn||todayISO())}${fi('months','Thời hạn (số tháng)','12','inputmode="numeric"')}${fd('end','Đến ngày (để trống = tự tính: '+(fmtDate(addMonthsISO(dV('start',src.moveIn||todayISO()),parseInt(dV('months','12'),10)||0))||'…')+')','')}${fi('nk','Số nhân khẩu (để trống = đếm theo số người)','','inputmode="numeric"')}${fi('m2','Diện tích ở nhờ (m²)','','inputmode="decimal"')}`:''}</div>
+    <div class="fg" style="margin-top:8px"><div class="full"><b>Ngày cấp CCCD của người ở nhờ</b> <span class="muted sm">(app chưa lưu ngày cấp nên nhập ở đây, lần sau tự nhớ)</span></div>${src.people.map((p,i)=>fd('idd_'+i,`${esc(p.name||'(chưa tên)')} · ${esc(p.idNo||'chưa có CCCD')}`,'')).join('')}</div>`;
+  if(isCT)sec+=`<div class="fg" style="margin-top:8px"><div class="full"><b>Tờ khai CT01</b></div>
+    <label class="f">Người kê khai<select data-df="decl" data-def="0" data-change="docdecl">${src.people.map((p,i)=>`<option value="${i}" ${String(decl)===String(i)?'selected':''}>${esc(p.name||'(chưa tên)')}${p.rep?' (đại diện)':''}</option>`).join('')}<option value="all" ${decl==='all'?'selected':''}>Tất cả (mỗi người một tờ riêng)</option></select></label>
+    <label class="f">Nội dung đề nghị<select data-df="purpose" data-def="reg">${[['reg','Đăng ký tạm trú'],['ext','Gia hạn tạm trú'],['del','Xóa đăng ký tạm trú']].map(([v,l])=>`<option value="${v}" ${dV('purpose','reg')===v?'selected':''}>${l}</option>`).join('')}</select></label>
+    ${fi('nd','Hoặc tự ghi nội dung đề nghị (để trống = tự điền theo địa chỉ nhà)','','','full')}
+    ${fi('rel','Mối quan hệ với chủ hộ','Người ở nhờ')}${decl!=='all'?fi('dphone','Số điện thoại người kê khai (để trống = lấy trong hồ sơ)','','inputmode="tel"')+fi('demail','Email người kê khai',''):''}
+    ${decl!=='all'&&src.people.length>1?`<div class="full"><div class="muted sm" style="margin-bottom:4px">Thành viên cùng thay đổi (mục 11):</div><div class="row" style="gap:14px;flex-wrap:wrap">${src.people.map((p,j)=>j===(parseInt(decl,10)||0)?'':`<label class="row" style="gap:6px;flex-wrap:nowrap"><input type="checkbox" data-df="mem_${j}" data-def="1" ${dV('mem_'+j,'1')==='1'?'checked':''}><span>${esc(p.name||'(chưa tên)')}</span></label>`).join('')}</div></div>`:''}
+    <label class="row full" style="gap:8px;flex-wrap:nowrap"><input type="checkbox" data-df="fn" data-def="1" ${dV('fn','1')==='1'?'checked':''}><span>In kèm trang chú thích (như mẫu CT01)</span></label></div>`;
+  return `<div class="card"><div class="fg">
+      <label class="f">Loại giấy tờ<select data-change="doctype">${DOC_TYPES.map(([v,l])=>`<option value="${v}" ${v===T?'selected':''}>${l}</option>`).join('')}</select></label>
+      <label class="f">Phòng / người<select data-change="docsrc">${['Đang thuê','Đã chuyển đi'].map(g=>grp(g).length?`<optgroup label="${g}">${grp(g).map(opt).join('')}</optgroup>`:'').join('')}</select></label></div>
+    ${miss.length?`<div class="fl warn" style="margin-top:10px">${icon('alert',13)}Còn thiếu: ${esc(miss.map(x=>x[1]+' người chưa có '+x[0]).join(' · '))}. Chỗ thiếu sẽ để chấm chấm để viết tay; bổ sung ở mục Người ở &amp; tạm trú. <button class="btn sm" data-act="nav" data-v="people">Mở mục đó</button></div>`:''}
+    <div id="docForm" style="margin-top:12px">
+      <details class="mgr-sec" ${dg('a1n')&&dg('a1id')?'':'open'}><summary><b>Bên A: chủ nhà</b> <span class="muted sm">(nhập một lần, app nhớ cho mọi giấy tờ)</span></summary>
+        <div class="fg" style="margin-top:8px">${gi('a1n','Ông/bà (chủ sở hữu 1)')}${gi('a1sn','Sinh năm','inputmode="numeric"')}${gi('a1id','CMND/CCCD','inputmode="numeric"')}${gd('a1d','Ngày cấp')}
+        <div class="full muted sm">Đồng sở hữu thứ 2 (để trống nếu chỉ có một chủ sở hữu):</div>${gi('a2n','Cùng ông/bà')}${gi('a2sn','Sinh năm','inputmode="numeric"')}${gi('a2id','CMND/CCCD','inputmode="numeric"')}${gd('a2d','Ngày cấp')}
+        ${gi('house','Nhà số')}${gi('street','Đường')}${gi('area','Khu phố, phường, thành phố','','full')}${gi('police','Kính gửi (CT01)','','full')}</div></details>
+      <div style="margin-top:10px">${sec}</div></div>
+    <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn primary" data-act="docprint">${icon('file',16)}In / lưu PDF</button><button class="btn" data-act="docword">${icon('down',16)}Tải file Word (.doc)</button></div></div>
+  <h2 style="font-size:15px;margin:16px 0 8px">Xem trước</h2><div class="docprev" id="docPrev">${docJoin(docPages(src,T))}</div>`;
+}
+
 /* ---------- Báo cáo ---------- */
 function vReportMain(){
   const ks=monthKeys(),stats=ks.map(k=>({k,s:monthStats(k)})).reverse();
@@ -2501,6 +2741,7 @@ document.addEventListener('input',e=>{
   if(t.dataset.room&&t.dataset.f){setField(t.dataset.room,t.dataset.f,t.value);refreshCard(t.dataset.room);scheduleSave();return}
   if(t.dataset&&t.dataset.settle&&$('#settleForm')){if(t.dataset.money&&t.id==='mother'){}settleRefresh($('#settleForm').dataset.room);return}
   if(t.id==='mrefund'){t.dataset.touched='1'}
+  if(t.closest&&t.closest('#docForm')){docRefresh();return}
   if(t.id==='entryQ'){UI.entryQ=t.value;$('#cards').innerHTML=entryHTML(UI.month);refreshEntryHead()}
   if(t.id==='payQ'){UI.payQ=t.value;$('#payList').innerHTML=payListOnly()}
   if(t.id==='pplQ'){UI.peopleQ=t.value;const d=pplData();$('#pplRows').innerHTML=pplRowsHTML(d.list);$('#pplMob').innerHTML=pplMobHTML(d.list,d.so==='room');$('#pplSum').textContent=pplSummary(d)}
@@ -2539,6 +2780,9 @@ document.addEventListener('change',e=>{
   else if(c==='reproom'){UI.reportRoom=t.value;render()}
   else if(c==='towife'){const mm=DB.months[t.dataset.mk],p=mm&&(mm.payments[t.dataset.rid]||[]).find(x=>x.id===t.dataset.pid);if(p){p.toWife=t.checked;save();render()}}
   else if(c==='paybatch'){const mm=DB.months[t.dataset.mk],p=mm&&(mm.payments[t.dataset.rid]||[]).find(x=>x.id===t.dataset.pid);if(p){p.batch=+t.value;save();render()}}
+  else if(c==='doctype'){docCollect();UI.doc=UI.doc||{};UI.doc.type=t.value;render()}
+  else if(c==='docsrc'){docCollect();UI.doc=UI.doc||{type:'hd'};UI.doc.src=t.value;render()}
+  else if(c==='docdecl'){docCollect();render()}
   else if(c==='rtmode'){DB.settings.rtMode=t.value;save();render()}
   else if(c==='dedkind'){const mm=DB.months[UI.month],b=+t.dataset.bt,kd=t.dataset.kind,raw=t.value.trim();if(mm){if(raw==='')setDed(mm,b,kd,null);else{const v=parseInt0(t.value);setDed(mm,b,kd,v==null?0:v)}save();render()}}
   else if(c==='elecreal'){const mm=DB.months[t.dataset.mk];if(mm){const v=parseInt0(t.value)||0,oth=(mm.deductions||[]).filter(d=>dedKind(d)==='elec'&&(d.batch||1)!==1).reduce((a,d)=>a+d.amount,0);if(v>0){mm.deductions=(mm.deductions||[]).filter(d=>!(dedKind(d)==='elec'&&(d.batch||1)===1));mm.deductions.push({id:uid(),batch:1,kind:'elec',label:'Tiền điện thực chi',amount:Math.max(0,v-oth)});syncElec(mm)}else{mm.deductions=(mm.deductions||[]).filter(d=>dedKind(d)!=='elec');mm.expenses=(mm.expenses||[]).filter(y=>y.cat!=='elec')}save();render()}}
@@ -2673,6 +2917,8 @@ document.addEventListener('click',async e=>{
    case 'peopleimport':{const fi=$('#filePeople');if(fi)fi.click();break}
    case 'peopletpl':peopleTemplate();break;
    case 'policerep':policeModal();break;
+   case 'docprint':docPrint();break;
+   case 'docword':docWord();break;
    case 'peopledup':dupModal();break;
    case 'importxlsx':$('#fileXlsx').click();break;
    case 'snaprestore':{const v=await idb.get(el.dataset.key);if(!v)break;confirmBox('Khôi phục bản lưu','Thay dữ liệu hiện tại bằng bản lưu lúc '+new Date(v.t).toLocaleString('vi-VN')+'?','Khôi phục',async()=>{await snapshot('Trước khi khôi phục bản lưu');DB=normalizeDB(JSON.parse(v.json));DB.rev+=1;persistLocal();ensureMonthSelected();save();await loadSnaps();render();toast('Đã khôi phục')},false);break}
