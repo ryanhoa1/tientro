@@ -1746,7 +1746,7 @@ const dNbsp=s=>s;
 let DOC_NODOM=false;
 function dV(id,def){const el=DOC_NODOM?null:document.querySelector(`#docForm [data-df="${id}"]`);if(el)return el.type==='checkbox'?(el.checked?'1':'0'):el.value;const m=((DB.docMeta||{})[UI.doc&&UI.doc.src])||{};return m[id]!=null?m[id]:def}
 function dG(k,def=''){const el=DOC_NODOM?null:document.querySelector(`#docForm [data-dg="${k}"]`);if(el)return el.value.trim();const g=DB.settings.doc||{};return g[k]!=null?g[k]:def}
-const dGdef={house:()=>(DB.settings.address||'').split(/\s+/)[0]||'',area:()=>DOC_AREA,police:()=>CFG.policeTo||'Công an phường An Phú, TP Hồ Chí Minh',a1n:()=>DB.settings.manager||'Bùi Văn Hòa',a1id:()=>'074087000932'};
+const dGdef={house:()=>(DB.settings.address||'').split(/\s+/)[0]||'',area:()=>DOC_AREA,police:()=>CFG.policeTo||'Công an phường An Phú, TP Hồ Chí Minh',a1n:()=>DB.settings.manager||'Bùi Văn Hòa',a1id:()=>'074087000932',a1sn:()=>'1987',a1d:()=>'2021-04-13'};
 const dg=k=>{const d=dGdef[k]?dGdef[k]():'';return dG(k,d)||d};
 function docSources(){
   const out=[];
@@ -1761,7 +1761,24 @@ function docSources(){
   });
   return out;
 }
-const dSrc=()=>{const s=docSources();return s.find(x=>x.key===(UI.doc||{}).src)||s[0]||null};
+function docAllSrc(){const items=[];DB.rooms.filter(r=>r.status==='occupied').forEach(r=>{const ppl=peopleOf(r).filter(p=>p.name||p.idNo);ppl.forEach((p,i)=>items.push({p,rid:r.id,room:ppl,i}))});return {key:'ALL',all:true,roomId:'tatca',people:items.map(x=>x.p),items,moveIn:'',moveOut:''}}
+function docAllForm(src){
+  const dv=(id,d)=>dV(id,d);let last='';
+  const rows=src.items.map((x,k)=>{const head=x.rid!==last?(last=x.rid,`<div class="full" data-room="${esc(x.rid)}" style="font-weight:600;margin-top:6px">Phòng ${esc(x.rid)}</div>`):'';
+    const warn=!x.p.idNo?' <span class="muted sm">(chưa có CCCD)</span>':'';
+    return head+`<label class="row" data-q="${esc((x.p.name+' '+x.rid).toLowerCase())}" style="gap:6px;flex-wrap:nowrap;padding:3px 0"><input type="checkbox" data-df="sel_${k}" data-def="0" ${dv('sel_'+k,'0')==='1'?'checked':''}><span>${esc(x.p.name||'(chưa tên)')}${x.p.rep?' <span class="muted sm">(đại diện)</span>':''}${warn}</span></label>`}).join('');
+  const n=src.items.filter((_,k)=>dv('sel_'+k,'0')==='1').length;
+  return `<div class="fg" style="margin-top:8px"><div class="full"><b>Tờ khai CT01: tất cả người đang ở</b> <span class="muted sm">(${src.items.length} người · mỗi người được chọn ra một tờ riêng)</span></div>
+    <label class="f full">Tìm theo tên hoặc phòng<input type="text" id="docQ" placeholder="Gõ tên hoặc số phòng..."></label>
+    <div class="full row" style="gap:8px"><button class="btn sm" data-act="docsel" data-v="1">Chọn tất cả</button><button class="btn sm" data-act="docsel" data-v="0">Bỏ chọn hết</button><span class="muted sm" id="docSelN">Đã chọn ${n} người</span></div>
+    <div class="full" id="docList" style="max-height:340px;overflow:auto;border:1px solid var(--line,#ddd);border-radius:8px;padding:6px 10px">${rows||'<span class="muted">Chưa có người nào.</span>'}</div>
+    <label class="f">Nội dung đề nghị<select data-df="purpose" data-def="reg">${[['reg','Đăng ký tạm trú'],['ext','Gia hạn tạm trú'],['del','Xóa đăng ký tạm trú']].map(([v,l])=>`<option value="${v}" ${dv('purpose','reg')===v?'selected':''}>${l}</option>`).join('')}</select></label>
+    <label class="f">Mối quan hệ với chủ hộ<input type="text" data-df="rel" data-def="Người ở nhờ" value="${esc(dv('rel','Người ở nhờ'))}"></label>
+    <label class="f full">Hoặc tự ghi nội dung đề nghị (để trống = tự điền theo địa chỉ nhà)<input type="text" data-df="nd" data-def="" value="${esc(dv('nd',''))}"></label>
+    <label class="row full" style="gap:8px;flex-wrap:nowrap"><input type="checkbox" data-df="withroom" data-def="0" ${dv('withroom','0')==='1'?'checked':''}><span>Ghi thêm những người cùng phòng vào mục 11 của mỗi tờ</span></label>
+    <label class="row full" style="gap:8px;flex-wrap:nowrap"><input type="checkbox" data-df="fn" data-def="1" ${dv('fn','1')==='1'?'checked':''}><span>In kèm trang chú thích (như mẫu CT01)</span></label></div>`;
+}
+const dSrc=()=>{if((UI.doc||{}).src==='ALL')return docAllSrc();const s=docSources();return s.find(x=>x.key===(UI.doc||{}).src)||s[0]||null};
 const dHon=p=>p.sex==='Nữ'?'Bà':p.sex==='Nam'?'Ông':'Ông/bà';
 const dYear=p=>(p.dob||'').slice(0,4);
 const dAddrNo=(dotStreet)=>{const h=dg('house'),st=dg('street');return `${h?esc(h):'..........'}${st?' đường '+esc(st):(dotStreet?' đường ................':'')}`};
@@ -1794,7 +1811,7 @@ function docHD(src){
   <p>+ Bên B gồm có : ${nk?esc(nk):'.......'} nhân khẩu được ở nhờ : ${m2?esc(m2):'.......'} m² nhà.</p>
   <p>+ Bên B chỉ được quyền ở và đăng ký tạm trú vào địa chỉ trên.</p>
   <p>Hợp đồng đã được đọc lại cho tất cả mọi người cùng nghe, thống nhất kí tên./.</p>
-  <table class="dsg"><tr><td>BÊN A</td><td>BÊN B</td></tr><tr><td class="dgap"></td><td class="dgap"></td></tr></table>`;
+  <table class="dsg"><tr><td>BÊN A</td><td>BÊN B</td></tr><tr><td class="dgap"></td><td class="dgap"></td></tr><tr><td>${esc(dg('a1n'))}</td><td></td></tr></table>`;
 }
 function docTL(src){
   const sign=dV('sign',todayISO()),end=dV('tend',src.moveOut||todayISO());
@@ -1808,7 +1825,7 @@ function docTL(src){
   <p>+ Bên B chấm dứt, không tiếp tục ở nhờ nhà do bên A là chủ sở hữu tại địa chỉ: ${addr} kể từ ${dText(end)}.</p>
   <p>- Hai bên cam kết không tranh chấp, khiếu nại gì về sau.</p>
   <p>Hợp đồng đã được đọc lại cho tất cả mọi người cùng nghe, thống nhất kí tên./.</p>
-  <table class="dsg"><tr><td>BÊN A</td><td>BÊN B</td></tr><tr><td class="dgap"></td><td class="dgap"></td></tr></table>`;
+  <table class="dsg"><tr><td>BÊN A</td><td>BÊN B</td></tr><tr><td class="dgap"></td><td class="dgap"></td></tr><tr><td>${esc(dg('a1n'))}</td><td></td></tr></table>`;
 }
 const dIdBoxes=(label,id)=>{const d=String(id||'').replace(/\D/g,'').slice(0,12).split('');return `<table class="dib"><tr><td class="dil">${label}</td>${Array.from({length:12},(_,i)=>`<td class="dbx">${d[i]||'&nbsp;'}</td>`).join('')}</tr></table>`};
 function docCT01(src,idx,withMembers){
@@ -1867,6 +1884,7 @@ function docPages(src,T){
   else if(T==='tl')out.push(docTL(src));
   else{
     if(T==='set')out.push(docHD(src));
+    if(src.all){src.items.forEach((x,k)=>{if(dV('sel_'+k,'0')==='1')out.push(docCT01({people:x.room,roomId:x.rid},x.i,dV('withroom','0')==='1'))});if(!out.length)out.push('<p class="dc" style="padding:40px 0">Hãy tick chọn người cần làm tờ khai ở danh sách phía trên.</p>');else if(dV('fn','1')==='1')out.push(docNotes());return out}
     const decl=dV('decl','0'),idxs=decl==='all'?src.people.map((_,i)=>i):[Math.min(parseInt(decl,10)||0,src.people.length-1)];
     idxs.forEach(i=>out.push(docCT01(src,i,decl!=='all')));
     if(dV('fn','1')==='1')out.push(docNotes());
@@ -1907,6 +1925,7 @@ function docCollect(){
 function docRefresh(){
   docCollect();const src=dSrc(),T=UI.doc.type,box=$('#docPrev');if(!box)return;
   box.innerHTML=docJoin(docPages(src,T));
+  const sn=$('#docSelN');if(sn)sn.textContent='Đã chọn '+$$('#docList input:checked').length+' người';
 }
 function vDocs(){DOC_NODOM=true;try{return vDocsInner()}finally{DOC_NODOM=false}}
 function vDocsInner(){
@@ -1914,7 +1933,8 @@ function vDocsInner(){
   const srcs=docSources();
   if(!srcs.length)return `<div class="card"><p class="muted" style="margin:0">Chưa có phòng đang thuê hoặc người đã chuyển đi để lập giấy tờ. Hãy nhập khách ở mục <b>Phòng &amp; khách</b> trước.</p></div>`;
   UI.doc=UI.doc||{type:'hd'};
-  if(!srcs.some(s=>s.key===UI.doc.src))UI.doc.src=srcs[0].key;
+  if(UI.doc.src!=='ALL'&&!srcs.some(s=>s.key===UI.doc.src))UI.doc.src=srcs[0].key;
+  if(UI.doc.src==='ALL')UI.doc.type='ct01';
   const src=dSrc(),T=UI.doc.type,isHD=T==='hd'||T==='set',isCT=T==='ct01'||T==='set';
   const fi=(id,label,def,ex='',cls='')=>`<label class="f ${cls}">${label}<input type="text" data-df="${id}" data-def="${esc(def)}" value="${esc(dV(id,def))}" ${ex}></label>`;
   const fd=(id,label,def,cls='')=>`<label class="f ${cls}">${label}<input type="date" data-df="${id}" data-def="${esc(def)}" value="${esc(dV(id,def))}"></label>`;
@@ -1928,7 +1948,8 @@ function vDocsInner(){
   if(isHD||T==='tl')sec+=`<div class="fg"><div class="full"><b>Hợp đồng</b></div>${fd('sign','Ngày lập giấy',todayISO())}${T==='tl'?fd('tend','Chấm dứt ở nhờ kể từ ngày',src.moveOut||todayISO()):''}
     ${isHD?`${fd('start','Bắt đầu từ ngày',src.moveIn||todayISO())}${fi('months','Thời hạn (số tháng)','12','inputmode="numeric"')}${fd('end','Đến ngày (để trống = tự tính: '+(fmtDate(addMonthsISO(dV('start',src.moveIn||todayISO()),parseInt(dV('months','12'),10)||0))||'…')+')','')}${fi('nk','Số nhân khẩu (để trống = đếm theo số người)','','inputmode="numeric"')}${fi('m2','Diện tích ở nhờ (m²)','','inputmode="decimal"')}`:''}</div>
     <div class="fg" style="margin-top:8px"><div class="full"><b>Ngày cấp CCCD của người ở nhờ</b> <span class="muted sm">(app chưa lưu ngày cấp nên nhập ở đây, lần sau tự nhớ)</span></div>${src.people.map((p,i)=>fd('idd_'+i,`${esc(p.name||'(chưa tên)')} · ${esc(p.idNo||'chưa có CCCD')}`,'')).join('')}</div>`;
-  if(isCT)sec+=`<div class="fg" style="margin-top:8px"><div class="full"><b>Tờ khai CT01</b></div>
+  if(isCT&&src.all)sec+=docAllForm(src);
+  else if(isCT)sec+=`<div class="fg" style="margin-top:8px"><div class="full"><b>Tờ khai CT01</b></div>
     <label class="f">Người kê khai<select data-df="decl" data-def="0" data-change="docdecl">${src.people.map((p,i)=>`<option value="${i}" ${String(decl)===String(i)?'selected':''}>${esc(p.name||'(chưa tên)')}${p.rep?' (đại diện)':''}</option>`).join('')}<option value="all" ${decl==='all'?'selected':''}>Tất cả (mỗi người một tờ riêng)</option></select></label>
     <label class="f">Nội dung đề nghị<select data-df="purpose" data-def="reg">${[['reg','Đăng ký tạm trú'],['ext','Gia hạn tạm trú'],['del','Xóa đăng ký tạm trú']].map(([v,l])=>`<option value="${v}" ${dV('purpose','reg')===v?'selected':''}>${l}</option>`).join('')}</select></label>
     ${fi('nd','Hoặc tự ghi nội dung đề nghị (để trống = tự điền theo địa chỉ nhà)','','','full')}
@@ -1937,8 +1958,8 @@ function vDocsInner(){
     <label class="row full" style="gap:8px;flex-wrap:nowrap"><input type="checkbox" data-df="fn" data-def="1" ${dV('fn','1')==='1'?'checked':''}><span>In kèm trang chú thích (như mẫu CT01)</span></label></div>`;
   return `<div class="card"><div class="fg">
       <label class="f">Loại giấy tờ<select data-change="doctype">${DOC_TYPES.map(([v,l])=>`<option value="${v}" ${v===T?'selected':''}>${l}</option>`).join('')}</select></label>
-      <label class="f">Phòng / người<select data-change="docsrc">${['Đang thuê','Đã chuyển đi'].map(g=>grp(g).length?`<optgroup label="${g}">${grp(g).map(opt).join('')}</optgroup>`:'').join('')}</select></label></div>
-    ${miss.length?`<div class="fl warn" style="margin-top:10px">${icon('alert',13)}Còn thiếu: ${esc(miss.map(x=>x[1]+' người chưa có '+x[0]).join(' · '))}. Chỗ thiếu sẽ để chấm chấm để viết tay; bổ sung ở mục Người ở &amp; tạm trú. <button class="btn sm" data-act="nav" data-v="people">Mở mục đó</button></div>`:''}
+      <label class="f">Phòng / người<select data-change="docsrc"><option value="ALL" ${src.all?'selected':''}>★ Tất cả người đang ở (tick chọn nhiều người)</option>${['Đang thuê','Đã chuyển đi'].map(g=>grp(g).length?`<optgroup label="${g}">${grp(g).map(opt).join('')}</optgroup>`:'').join('')}</select></label></div>
+    ${miss.length&&!src.all?`<div class="fl warn" style="margin-top:10px">${icon('alert',13)}Còn thiếu: ${esc(miss.map(x=>x[1]+' người chưa có '+x[0]).join(' · '))}. Chỗ thiếu sẽ để chấm chấm để viết tay; bổ sung ở mục Người ở &amp; tạm trú. <button class="btn sm" data-act="nav" data-v="people">Mở mục đó</button></div>`:''}
     <div id="docForm" style="margin-top:12px">
       <details class="mgr-sec" ${dg('a1n')&&dg('a1id')?'':'open'}><summary><b>Bên A: chủ nhà</b> <span class="muted sm">(nhập một lần, app nhớ cho mọi giấy tờ)</span></summary>
         <div class="fg" style="margin-top:8px">${gi('a1n','Ông/bà (chủ sở hữu 1)')}${gi('a1sn','Sinh năm','inputmode="numeric"')}${gi('a1id','CMND/CCCD','inputmode="numeric"')}${gd('a1d','Ngày cấp')}
@@ -2741,6 +2762,7 @@ document.addEventListener('input',e=>{
   if(t.dataset.room&&t.dataset.f){setField(t.dataset.room,t.dataset.f,t.value);refreshCard(t.dataset.room);scheduleSave();return}
   if(t.dataset&&t.dataset.settle&&$('#settleForm')){if(t.dataset.money&&t.id==='mother'){}settleRefresh($('#settleForm').dataset.room);return}
   if(t.id==='mrefund'){t.dataset.touched='1'}
+  if(t.id==='docQ'){const q=t.value.trim().toLowerCase();$$('#docList [data-q]').forEach(l=>{l.style.display=!q||l.dataset.q.includes(q)?'':'none'});$$('#docList [data-room]').forEach(h=>{let n=h.nextElementSibling,any=false;while(n&&!n.dataset.room){if(n.style.display!=='none')any=true;n=n.nextElementSibling}h.style.display=any?'':'none'});return}
   if(t.closest&&t.closest('#docForm')){docRefresh();return}
   if(t.id==='entryQ'){UI.entryQ=t.value;$('#cards').innerHTML=entryHTML(UI.month);refreshEntryHead()}
   if(t.id==='payQ'){UI.payQ=t.value;$('#payList').innerHTML=payListOnly()}
@@ -2780,7 +2802,7 @@ document.addEventListener('change',e=>{
   else if(c==='reproom'){UI.reportRoom=t.value;render()}
   else if(c==='towife'){const mm=DB.months[t.dataset.mk],p=mm&&(mm.payments[t.dataset.rid]||[]).find(x=>x.id===t.dataset.pid);if(p){p.toWife=t.checked;save();render()}}
   else if(c==='paybatch'){const mm=DB.months[t.dataset.mk],p=mm&&(mm.payments[t.dataset.rid]||[]).find(x=>x.id===t.dataset.pid);if(p){p.batch=+t.value;save();render()}}
-  else if(c==='doctype'){docCollect();UI.doc=UI.doc||{};UI.doc.type=t.value;render()}
+  else if(c==='doctype'){docCollect();UI.doc=UI.doc||{};UI.doc.type=t.value;if(t.value!=='ct01'&&UI.doc.src==='ALL')UI.doc.src='';render()}
   else if(c==='docsrc'){docCollect();UI.doc=UI.doc||{type:'hd'};UI.doc.src=t.value;render()}
   else if(c==='docdecl'){docCollect();render()}
   else if(c==='rtmode'){DB.settings.rtMode=t.value;save();render()}
@@ -2919,6 +2941,7 @@ document.addEventListener('click',async e=>{
    case 'policerep':policeModal();break;
    case 'docprint':docPrint();break;
    case 'docword':docWord();break;
+   case 'docsel':{$$('#docList [data-q]').forEach(l=>{if(l.style.display!=='none'){const c=l.querySelector('input');if(c)c.checked=el.dataset.v==='1'}});docRefresh();break}
    case 'peopledup':dupModal();break;
    case 'importxlsx':$('#fileXlsx').click();break;
    case 'snaprestore':{const v=await idb.get(el.dataset.key);if(!v)break;confirmBox('Khôi phục bản lưu','Thay dữ liệu hiện tại bằng bản lưu lúc '+new Date(v.t).toLocaleString('vi-VN')+'?','Khôi phục',async()=>{await snapshot('Trước khi khôi phục bản lưu');DB=normalizeDB(JSON.parse(v.json));DB.rev+=1;persistLocal();ensureMonthSelected();save();await loadSnaps();render();toast('Đã khôi phục')},false);break}
