@@ -777,7 +777,7 @@ function renderChrome(){
   const cur=NAV.find(n=>n.id===UI.view);
   $('#side').innerHTML=`<div class="brand"><div class="logo" style="background:none"><svg viewBox="0 0 240 240" width="34" height="34" aria-hidden="true"><rect width="240" height="240" rx="52" fill="#0a6c5a"/><path d="M32 112L120 36l88 76" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 100v96h124v-96" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><rect x="102" y="140" width="36" height="56" rx="6" fill="#f2b84b"/></svg></div><div><b>${esc(DB.settings.propertyName||'Nhà trọ')}</b><span>Quản lý tiền trọ</span>${DB.settings.address?`<span style="display:block;font-size:10.5px;line-height:1.3;margin-top:2px">${esc(DB.settings.address)}</span>`:''}</div></div>`+
     NAV.map(n=>`<button class="nav" data-act="nav" data-v="${n.id}" ${n.id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`).join('')+
-    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.25 · Hợp đồng ở nhờ, thanh lý, tờ khai CT01</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
+    `<div class="side-foot"><div class="syncslot">${syncChip()}</div><p>Mọi thay đổi tự lưu. Dữ liệu nằm trong tệp JSON của riêng bạn.</p><p style="opacity:.7">Phiên bản v5.25.1 · Nút + thêm người, biển số xe</p><button class="btn sm" data-act="logout" style="margin-top:8px">Đăng xuất</button></div>`;
   $('#tabbar').innerHTML=TAB_IDS.map(id=>{const n=NAV.find(x=>x.id===id);return `<button data-act="nav" data-v="${id}" ${id===UI.view?'aria-current="page"':''}>${icon(n.icon)}${n.label}</button>`}).join('')+
     `<button data-act="menu">${icon('menu')}Thêm</button>`;
   const ks=monthKeys(),k=UI.month,i=ks.indexOf(k),m=DB.months[k],showM=!['settings','leave','tax','docs'].includes(UI.view);
@@ -1274,7 +1274,7 @@ function monthsSince(d){if(!d)return '';const a=new Date(d+'T00:00:00'),b=new Da
 const RES_WARN=()=>DB.settings.resWarnDays||30;
 const dLeft=iso=>Math.round((new Date(iso+'T00:00:00')-new Date(todayISO()+'T00:00:00'))/864e5);
 function peopleOf(r){
-  const t=r.tenant||{},mk=(x,rep,i)=>({rep,i,name:x.name||'',idNo:x.idNo||'',tt1:x.tt1||'',tt2:x.tt2||'',tv1:x.tv1||'',tv2:x.tv2||'',dob:x.dob||'',sex:x.sex||'',hk:x.hk||'',hkOwner:x.hkOwner||'',group:x.group||'',ttPlace:x.ttPlace||'',phone:x.phone||'',note:rep?'':(x.note||'')});
+  const t=r.tenant||{},mk=(x,rep,i)=>({rep,i,name:x.name||'',idNo:x.idNo||'',tt1:x.tt1||'',tt2:x.tt2||'',tv1:x.tv1||'',tv2:x.tv2||'',dob:x.dob||'',sex:x.sex||'',hk:x.hk||'',hkOwner:x.hkOwner||'',group:x.group||'',ttPlace:x.ttPlace||'',phone:x.phone||'',plate:x.plate||'',note:rep?'':(x.note||'')});
   const list=[];if(t.name||t.idNo||t.tt1||t.tt2||t.tv1||t.tv2)list.push(mk(t,true,-1));
   (r.members||[]).forEach((x,i)=>list.push(mk(x,false,i)));return list;
 }
@@ -1308,19 +1308,19 @@ function pplData(){
   const f=UI.peopleFilter||'all',q=normTxt(UI.peopleQ||''),so=UI.peopleSort||'room';
   const all=[];DB.rooms.filter(r=>r.status==='occupied').forEach(r=>peopleOf(r).forEach(p=>all.push({r,p,tt:resTT(p),tv:resTV(p)})));
   const bad=x=>(x.tt.lv==='bad'||x.tt.lv==='warn')||(x.tv&&(x.tv.lv==='bad'||x.tv.lv==='warn'));
-  let list=all.filter(x=>(f==='alert'?bad(x):f==='none'?x.tt.lv==='none':true)&&(!q||normTxt([x.r.id,x.p.name,x.p.idNo,x.p.phone].join(' ')).includes(q)));
+  let list=all.filter(x=>(f==='alert'?bad(x):f==='none'?x.tt.lv==='none':true)&&(!q||normTxt([x.r.id,x.p.name,x.p.idNo,x.p.phone,x.p.plate].join(' ')).includes(q)));
   if(so==='expiry'){const k=x=>x.tt.d==null?1e9:x.tt.d;list=list.slice().sort((a,b)=>k(a)-k(b))}
   return {f,so,all,list,bad};
 }
 function pplRowsHTML(list){
   return list.map(({r,p,tt,tv})=>`<tr><td class="l"><b class="mono">${esc(r.id)}</b></td><td class="l"><b>${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}</b> ${p.rep?chip('acc','Đại diện'):''}${(p.dob||p.sex||p.hk)?`<div class="muted sm">${esc([p.dob?'sinh '+fmtDate(p.dob):'',p.sex,p.hk?'HKTT: '+p.hk:''].filter(Boolean).join(' · '))}</div>`:''}${(p.hkOwner||p.group||p.ttPlace||p.phone)?`<div class="muted sm" title="${esc(p.ttPlace?'Đăng ký tạm trú tại: '+p.ttPlace:'')}">${esc([p.hkOwner?'Chủ hộ HKTT: '+p.hkOwner:'',p.group?'Nhóm ở trọ: '+p.group:'',p.phone?'ĐT: '+p.phone:''].filter(Boolean).join(' · '))}</div>`:''}</td>
-    <td class="num">${esc(p.idNo)||'–'}</td><td>${p.rep?fmtDate(r.tenant.moveIn)||'–':'<span class="muted">–</span>'}</td><td class="num">${p.rep&&r.tenant.deposit?money(r.tenant.deposit):'<span class="muted">–</span>'}</td>
+    <td class="num">${esc(p.idNo)||'–'}</td><td class="mono">${esc(p.plate)||'–'}</td><td>${p.rep?fmtDate(r.tenant.moveIn)||'–':'<span class="muted">–</span>'}</td><td class="num">${p.rep&&r.tenant.deposit?money(r.tenant.deposit):'<span class="muted">–</span>'}</td>
     <td>${p.tt1||p.tt2?`${fmtDate(p.tt1)||'…'} → ${fmtDate(p.tt2)||'…'}`:'–'}</td><td class="l">${lvChip(tt)}</td>
     <td>${p.tv1||p.tv2?`${fmtDate(p.tv1)||'…'} → ${fmtDate(p.tv2)||'…'}`:'–'}</td><td class="l">${lvChip(tv)}</td>
-    <td><button class="btn sm ghost" data-act="roomedit" data-room="${esc(r.id)}" aria-label="Sửa phòng ${esc(r.id)}">${icon('edit',14)}</button></td></tr>`).join('')||'<tr><td class="l muted" colspan="10">Không có ai phù hợp.</td></tr>';
+    <td style="white-space:nowrap"><button class="btn sm ghost" data-act="memquick" data-room="${esc(r.id)}" aria-label="Thêm người vào phòng ${esc(r.id)}" title="Thêm người vào phòng ${esc(r.id)}">${icon('plus',14)}</button><button class="btn sm ghost" data-act="roomedit" data-room="${esc(r.id)}" aria-label="Sửa phòng ${esc(r.id)}">${icon('edit',14)}</button></td></tr>`).join('')||'<tr><td class="l muted" colspan="11">Không có ai phù hợp.</td></tr>';
 }
 function pplMobHTML(list,byRoom){
-  const row=({r,p,tt,tv},showId)=>`<div class="pm-row" data-act="roomedit" data-room="${esc(r.id)}" role="button" tabindex="0" aria-label="Sửa phòng ${esc(r.id)}">${showId?`<b class="pm-rid mono">${esc(r.id)}</b>`:''}<div class="pm-name">${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}${p.rep?'<span class="pm-rep">Đại diện</span>':''}${p.tt2?`<span class="pm-sub">Hạn tạm trú ${esc(fmtDate(p.tt2))}</span>`:''}</div><div class="pm-st">${lvChip(tt)}${tv?lvChip(tv):''}</div></div>`;
+  const row=({r,p,tt,tv},showId)=>`<div class="pm-row" data-act="roomedit" data-room="${esc(r.id)}" role="button" tabindex="0" aria-label="Sửa phòng ${esc(r.id)}">${showId?`<b class="pm-rid mono">${esc(r.id)}</b>`:''}<div class="pm-name">${esc(p.name)||'<span class="muted">(chưa nhập tên)</span>'}${p.rep?'<span class="pm-rep">Đại diện</span>':''}${p.tt2?`<span class="pm-sub">Hạn tạm trú ${esc(fmtDate(p.tt2))}</span>`:''}${p.plate?`<span class="pm-sub">Biển số ${esc(p.plate)}</span>`:''}</div><div class="pm-st">${lvChip(tt)}${tv?lvChip(tv):''}</div></div>`;
   if(!list.length)return '<p class="muted sm">Không có ai phù hợp.</p>';
   if(!byRoom)return `<div class="pm-room pm-flat"><div class="pm-list">${list.map(x=>row(x,true)).join('')}</div></div>`;
   const grp=[];list.forEach(x=>{const g=grp[grp.length-1];if(g&&g.r.id===x.r.id)g.items.push(x);else grp.push({r:x.r,items:[x]})});
@@ -1330,12 +1330,12 @@ function pplSummary(d){const n=d.all.filter(d.bad).length,nn=d.all.filter(x=>x.t
 function vPeople(){
   const d=pplData(),{f,so,list}=d,nDup=findDupGroups().length;
   return `<div class="tools"><span class="muted grow" id="pplSum">${pplSummary(d)}</span>
-    <button class="btn" data-act="peopleimport">${icon('down',16)}Nhập từ Excel</button><button class="btn${nDup?' primary':' ghost'}" data-act="peopledup" title="Tìm và gộp người bị nhập trùng trong cùng phòng">Gộp người trùng${nDup?` (${nDup})`:''}</button><button class="btn ghost" data-act="peopletpl" title="Tải file Excel mẫu đúng định dạng">File mẫu</button><button class="btn primary" data-act="policerep" title="Xuất danh sách để gửi công an (Excel hoặc in PDF)">${icon('down',16)}Báo cáo công an</button><input type="file" id="filePeople" accept=".xlsx,.xls" hidden></div>
-  <div class="tools ppl-bar"><input type="search" id="pplQ" placeholder="Tìm phòng, tên, CCCD, số điện thoại" value="${esc(UI.peopleQ||'')}" aria-label="Tìm người ở" class="grow">
+    <button class="btn" data-act="peopleimport">${icon('down',16)}Nhập từ Excel</button><button class="btn${nDup?' primary':' ghost'}" data-act="peopledup" title="Tìm và gộp người bị nhập trùng trong cùng phòng">Gộp người trùng${nDup?` (${nDup})`:''}</button><button class="btn ghost" data-act="peopletpl" title="Tải file Excel mẫu đúng định dạng">File mẫu</button><button class="btn primary" data-act="policerep" title="Xuất danh sách để gửi công an (Excel hoặc in PDF)">${icon('down',16)}Báo cáo công an</button><button class="btn" data-act="plateimport" title="Nhập danh sách biển số xe theo phòng từ Excel">${icon('down',16)}Nhập biển số xe</button><input type="file" id="filePeople" accept=".xlsx,.xls" hidden><input type="file" id="filePlates" accept=".xlsx,.xls" hidden></div>
+  <div class="tools ppl-bar"><input type="search" id="pplQ" placeholder="Tìm phòng, tên, CCCD, SĐT, biển số xe" value="${esc(UI.peopleQ||'')}" aria-label="Tìm người ở" class="grow">
     <select data-change="peoplesort" aria-label="Sắp xếp" style="width:auto"><option value="room" ${so==='room'?'selected':''}>Xếp theo phòng</option><option value="expiry" ${so==='expiry'?'selected':''}>Hết hạn trước</option></select>
     <div class="seg" role="group" aria-label="Lọc">${[['all','Tất cả'],['alert','Cần chú ý'],['none','Chưa có hạn tạm trú']].map(([v,l])=>`<button data-act="rfilter" data-v="${v}" aria-pressed="${f===v}">${l}</button>`).join('')}</div></div>
   <div class="ppl-m" id="pplMob">${pplMobHTML(list,so==='room')}</div>
-  <div class="tw fit ppl"><table><thead><tr><th class="l">Phòng</th><th class="l">Họ và tên</th><th>CMND/CCCD</th><th>Ngày thuê</th><th>Tiền cọc</th><th>Tạm trú (từ → đến)</th><th class="l">Tình trạng</th><th>Tạm vắng (từ → đến)</th><th class="l">Tình trạng</th><th></th></tr></thead>
+  <div class="tw fit ppl"><table><thead><tr><th class="l">Phòng</th><th class="l">Họ và tên</th><th>CMND/CCCD</th><th>Biển số xe</th><th>Ngày thuê</th><th>Tiền cọc</th><th>Tạm trú (từ → đến)</th><th class="l">Tình trạng</th><th>Tạm vắng (từ → đến)</th><th class="l">Tình trạng</th><th></th></tr></thead>
   <tbody id="pplRows">${pplRowsHTML(list)}</tbody></table></div>
   <p class="muted sm" style="margin:0">Người đứng tên thuê là <b>đại diện phòng</b>, ngày thuê và tiền cọc tính theo đại diện. Thêm hoặc sửa người ở cùng phòng ở nút sửa (bút chì) hoặc mục Phòng &amp; khách. Khác với khoản “Tiền giấy tạm trú” (phí thu hằng tháng).</p>`;
 }
@@ -1343,7 +1343,7 @@ const memRowHTML=m=>`<div class="memrow"><label class="f">Họ và tên<input ty
   <label class="f">Tạm trú từ<input type="date" class="m-tt1" value="${m.tt1||''}"></label><label class="f">Tạm trú đến (hạn)<input type="date" class="m-tt2" value="${m.tt2||''}"></label>
   <label class="f">Tạm vắng từ<input type="date" class="m-tv1" value="${m.tv1||''}"></label><label class="f">Tạm vắng đến<input type="date" class="m-tv2" value="${m.tv2||''}"></label>
   <label class="f">Ngày sinh<input type="date" class="m-dob" value="${m.dob||''}"></label><label class="f">Giới tính<select class="m-sex"><option value=""></option>${['Nam','Nữ'].map(x=>`<option ${m.sex===x?'selected':''}>${x}</option>`).join('')}</select></label>
-  <label class="f" style="grid-column:1/-1">Thường trú (HKTT)<input type="text" class="m-hk" value="${esc(m.hk||'')}"></label><label class="f">Chủ hộ (HKTT)<input type="text" class="m-hko" value="${esc(m.hkOwner||'')}"></label><label class="f">Nhóm / hộ ở trọ<input type="text" class="m-grp" value="${esc(m.group||'')}"></label><label class="f">Số điện thoại<input type="text" class="m-ph" inputmode="tel" value="${esc(m.phone||'')}"></label><label class="f">Nơi đăng ký tạm trú<input type="text" class="m-tpl" value="${esc(m.ttPlace||'')}"></label><label class="f" style="grid-column:1/-1">Ghi chú<input type="text" class="m-note" value="${esc(m.note||'')}"></label>
+  <label class="f" style="grid-column:1/-1">Thường trú (HKTT)<input type="text" class="m-hk" value="${esc(m.hk||'')}"></label><label class="f">Chủ hộ (HKTT)<input type="text" class="m-hko" value="${esc(m.hkOwner||'')}"></label><label class="f">Nhóm / hộ ở trọ<input type="text" class="m-grp" value="${esc(m.group||'')}"></label><label class="f">Số điện thoại<input type="text" class="m-ph" inputmode="tel" value="${esc(m.phone||'')}"></label><label class="f">Biển số xe<input type="text" class="m-plate" autocapitalize="characters" placeholder="vd: 59X1-123.45" value="${esc(m.plate||'')}"></label><label class="f">Nơi đăng ký tạm trú<input type="text" class="m-tpl" value="${esc(m.ttPlace||'')}"></label><label class="f" style="grid-column:1/-1">Ghi chú<input type="text" class="m-note" value="${esc(m.note||'')}"></label>
   <button class="btn sm danger memdel" type="button" data-act="memdel">${icon('trash',14)}Xóa người này</button></div>`;
 function roomResLine(r){
   const ms=(r.members||[]).filter(x=>x.name),al=resAlerts().filter(a=>a.r.id===r.id);
@@ -1377,12 +1377,12 @@ async function parsePeopleXLSX(file){
     for(let hi=0;hi<Math.min(aoa.length,15);hi++){
       const H=aoa[hi].map(normTxt),col=f=>H.findIndex(f);
       const c={room:col(h=>h==='phong'),name:col(h=>/^ho (va )?ten$/.test(h)),dob:col(h=>h==='ngay sinh'),sex:col(h=>h==='gioi tinh'),id:col(h=>/cccd|cmnd|can cuoc/.test(h)),
-        tt1:col(h=>h==='ngay dang ky'),tt2:col(h=>h==='thoi han'||h==='han tam tru'),hk:col(h=>h==='hktt'||h==='thuong tru'),note:col(h=>h==='ghi chu'),phone:col(h=>/^sdt|dien thoai/.test(h)),hkOwner:col(h=>/^chu ho/.test(h)),group:col(h=>h==='nhom ho o tro'||h==='nhom o tro'||h==='ho o tro'),ttPlace:col(h=>h==='tam tru'||h==='noi tam tru'||h==='noi dang ky tam tru')};
+        tt1:col(h=>h==='ngay dang ky'),tt2:col(h=>h==='thoi han'||h==='han tam tru'),hk:col(h=>h==='hktt'||h==='thuong tru'),note:col(h=>h==='ghi chu'),phone:col(h=>/^sdt|dien thoai/.test(h)),hkOwner:col(h=>/^chu ho/.test(h)),group:col(h=>h==='nhom ho o tro'||h==='nhom o tro'||h==='ho o tro'),ttPlace:col(h=>h==='tam tru'||h==='noi tam tru'||h==='noi dang ky tam tru'),plate:col(h=>/^bien so|^bsx$|^bks$/.test(h))};
       if(c.room<0||c.name<0)continue;
       const rows=[];
       for(let i=hi+1;i<aoa.length;i++){const r=aoa[i],g=k=>c[k]>=0?r[c[k]]:'';const name=String(g('name')||'').trim();if(!name||!String(g('room')||'').trim())continue;
         rows.push({roomRaw:String(g('room')).trim(),room:importRoomId(g('room')),name,idNo:idStr(g('id')),dob:anyDate(g('dob')),sex:/^nam$/i.test(String(g('sex')).trim())?'Nam':/^n[ữu]$/i.test(String(g('sex')).trim())?'Nữ':'',
-          tt1:anyDate(g('tt1')),tt2:anyDate(g('tt2')),hk:String(g('hk')||'').trim(),note:String(g('note')||'').trim(),phone:String(g('phone')||'').trim(),hkOwner:toTitle(g('hkOwner')),group:toTitle(g('group')),ttPlace:String(g('ttPlace')||'').trim()})}
+          tt1:anyDate(g('tt1')),tt2:anyDate(g('tt2')),hk:String(g('hk')||'').trim(),note:String(g('note')||'').trim(),phone:String(g('phone')||'').trim(),hkOwner:toTitle(g('hkOwner')),group:toTitle(g('group')),ttPlace:String(g('ttPlace')||'').trim(),plate:String(g('plate')||'').trim().toUpperCase()})}
       if(rows.length)return {sheet:sn,rows};
     }
   }
@@ -1428,20 +1428,21 @@ function applyPeoplePlan(plan,opt){
     room.members=room.members||[];
     items.forEach(({r,target,kind})=>{
       if(kind==='dup')return;
-      if(kind==='add'){room.members.push({name:toTitle(r.name),idNo:r.idNo,tt1:r.tt1,tt2:r.tt2,tv1:'',tv2:'',dob:r.dob,sex:r.sex,hk:r.hk,hkOwner:r.hkOwner,group:r.group,ttPlace:r.ttPlace,phone:r.phone,note:r.note});return}
+      if(kind==='add'){room.members.push({name:toTitle(r.name),idNo:r.idNo,tt1:r.tt1,tt2:r.tt2,tv1:'',tv2:'',dob:r.dob,sex:r.sex,hk:r.hk,hkOwner:r.hkOwner,group:r.group,ttPlace:r.ttPlace,phone:r.phone,plate:r.plate||'',note:r.note});return}
       if(!opt.update)return;
       const t=target==='rep'?room.tenant:room.members[target];
       if(opt.name&&r.name){const nn=toTitle(r.name);if(nn)t.name=nn}   // họ tên đầy đủ (cả đại diện và người ở cùng)
       if(!t.idNo&&r.idNo)t.idNo=r.idNo;
       ['dob','sex','hk','hkOwner','group','ttPlace','tt1','tt2'].forEach(f=>{if(r[f])t[f]=r[f]});
       if(r.phone&&!t.phone)t.phone=r.phone;
+      if(r.plate)t.plate=r.plate;
       if(r.note&&!t.note)t.note=r.note;
     });
     if(opt.occ&&total>0)room.occupants=total;
   });
 }
 /* ---------- Gộp người trùng (cùng phòng) ---------- */
-const MERGE_F=['name','idNo','dob','sex','hk','hkOwner','group','ttPlace','phone','tt1','tt2','tv1','tv2','note'];
+const MERGE_F=['name','idNo','dob','sex','hk','hkOwner','group','ttPlace','phone','plate','tt1','tt2','tv1','tv2','note'];
 function findDupGroups(){
   const groups=[];
   DB.rooms.filter(r=>r.status==='occupied').forEach(room=>{
@@ -1480,6 +1481,29 @@ function dupModal(){
     `<button class="btn" data-act="mclose">Hủy</button><button class="btn primary" id="dpGo">Gộp ${gs.length} nhóm</button>`,{wide:true});
   $('#dpGo').onclick=async()=>{closeModal(true);await snapshot('Trước khi gộp người trùng');const n=mergeDupGroups(findDupGroups());save();render();toast(`Đã gộp, xóa ${n} bản trùng. Kiểm tra “Số người ở mặc định” của phòng nếu cần.`)};
 }
+/* v5.25.1: nhập biển số xe theo phòng (cột: Phòng / Kiot, Biển số 1, Biển số 2, Xe đạp điện, Ghi chú) */
+async function importPlatesXLSX(file){
+  try{await ensureXLSX()}catch(e){return toast(e.message,'bad')}
+  let aoa;try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''})}catch(e){return toast('Không đọc được file Excel','bad')}
+  let hi=aoa.findIndex(r=>r.some(c=>/^phong|^kiot/.test(normTxt(c))&&/phong|kiot/.test(normTxt(c)))&&r.some(c=>/bien so/.test(normTxt(c))));
+  if(hi<0)return toast('Không thấy cột “Phòng / Kiot” và “Biển số” trong file','bad');
+  const H=aoa[hi].map(normTxt),cRoom=H.findIndex(h=>/phong|kiot/.test(h)),cPl=H.map((h,i)=>/bien so/.test(h)?i:-1).filter(i=>i>=0),cEb=H.findIndex(h=>/xe dap|xe may dien/.test(h)),cNote=H.findIndex(h=>h==='ghi chu');
+  const roomId=v=>{const t=normTxt(v);let m;if(m=/^(?:phong|p)\s*0*(\d+)$/.exec(t))return m[1]+' H';if(m=/^kiot\s*0*(\d+)$/.exec(t))return 'KIOT'+m[1];return importRoomId(v)};
+  const items=[],missing=[];
+  aoa.slice(hi+1).forEach(r=>{
+    const raw=String(r[cRoom]||'').trim();if(!raw)return;
+    const pl=cPl.map(i=>String(r[i]||'').trim().toUpperCase()).filter(Boolean);
+    if(cEb>=0&&/^(co|x|1|yes)$/.test(normTxt(r[cEb])))pl.push('Xe đạp điện');
+    if(!pl.length)return;
+    const id=roomId(raw),room=DB.rooms.find(x=>x.id===id);
+    if(!room){missing.push(raw);return}
+    items.push({room,text:pl.join('; ')});
+  });
+  if(!items.length)return toast('Không có biển số nào khớp với phòng trong app','bad');
+  const li=items.map(x=>`<li><b class="mono">${esc(x.room.id)}</b>: ${esc(x.text)}${x.room.tenant.plate&&x.room.tenant.plate!==x.text?` <span class="muted sm">(thay “${esc(x.room.tenant.plate)}”)</span>`:''}</li>`).join('');
+  confirmBox('Nhập biển số xe',`Gán biển số cho <b>${items.length}</b> phòng (ghi vào người đại diện phòng):<ul style="margin:8px 0;padding-left:18px;max-height:42vh;overflow:auto">${li}</ul>${missing.length?`<p class="muted sm">Không tìm thấy phòng trong app: ${esc(missing.join(', '))}</p>`:''}`,'Nhập vào',()=>{
+    items.forEach(x=>{x.room.tenant.plate=x.text});save();render();toast(`Đã nhập biển số cho ${items.length} phòng`)},false);
+}
 async function importPeopleXLSX(file){
   let parsed;try{parsed=await parsePeopleXLSX(file)}catch(e){return toast(e.message||String(e),'bad')}
   const plan=planPeopleImport(parsed.rows);
@@ -1506,9 +1530,9 @@ async function importPeopleXLSX(file){
 }
 async function peopleTemplate(){
   try{await ensureXLSX()}catch(e){return toast(e.message,'bad')}
-  const H=['STT','PHÒNG','HỌ TÊN','NGÀY SINH','GIỚI TÍNH','CCCD','CHỦ HỘ (HKTT)','NHÓM / HỘ Ở TRỌ','TẠM TRÚ','SĐT','NGÀY ĐĂNG KÝ','THỜI HẠN','HKTT','GHI CHÚ'];
-  const ws=XLSX.utils.aoa_to_sheet([H,[1,'P1','NGUYỄN VĂN A','01/02/1990','Nam','012345678901','NGUYỄN VĂN A','NGUYỄN VĂN A','Nhà trọ - 22C/20 ...','0900000000','01/03/2026','01/03/2028','Xã A, Tỉnh B','Người ví dụ, xóa dòng này']]);
-  ws['!cols']=[6,10,26,13,11,16,22,22,30,13,15,13,36,30].map(w=>({wch:w}));
+  const H=['STT','PHÒNG','HỌ TÊN','NGÀY SINH','GIỚI TÍNH','CCCD','CHỦ HỘ (HKTT)','NHÓM / HỘ Ở TRỌ','TẠM TRÚ','SĐT','NGÀY ĐĂNG KÝ','THỜI HẠN','HKTT','GHI CHÚ','BIỂN SỐ XE'];
+  const ws=XLSX.utils.aoa_to_sheet([H,[1,'P1','NGUYỄN VĂN A','01/02/1990','Nam','012345678901','NGUYỄN VĂN A','NGUYỄN VĂN A','Nhà trọ - 22C/20 ...','0900000000','01/03/2026','01/03/2028','Xã A, Tỉnh B','Người ví dụ, xóa dòng này','59X1-123.45']]);
+  ws['!cols']=[6,10,26,13,11,16,22,22,30,13,15,13,36,30,15].map(w=>({wch:w}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Danh sach Khach Tro');XLSX.writeFile(wb,'Mau_danh_sach_nguoi_o.xlsx');
 }
 
@@ -1541,6 +1565,7 @@ function policeCols(o){
     {h:'Ngày sinh',w:12,c:1,f:x=>fmtDate(x.p.dob)},
     {h:'Giới tính',w:9,c:1,f:x=>x.p.sex},
     {h:'Số CCCD / CMND',w:16,c:1,f:x=>x.p.idNo},
+    {h:'Biển số xe',w:14,c:1,f:x=>x.p.plate||''},
     {h:'Nơi thường trú (HKTT)',w:40,f:x=>x.p.hk},
     {h:'Chủ hộ (HKTT)',w:22,f:x=>x.p.hkOwner},
     {h:'Ngày đăng ký tạm trú',w:13,c:1,f:x=>fmtDate(x.p.tt1)},
@@ -1679,7 +1704,7 @@ function vRooms(){
     <div class="num right"><span class="cell-l">Tiền cọc</span>${r.tenant.deposit?money(r.tenant.deposit):'–'}</div>
     <div class="sm"><span class="cell-l">Tiền phòng</span>${ruleText(r)}</div><div class="num right"><span class="cell-l">Người</span>${r.status==='occupied'?r.occupants:'–'}</div>
     <div><span class="chip ${r.status==='occupied'?'ok':''}">${r.status==='occupied'?'Đang thuê':'Trống'}</span></div>
-    <div class="row full" style="gap:5px;justify-content:flex-end"><button class="btn sm" data-act="roomedit" data-room="${esc(r.id)}">${icon('edit',14)}Sửa</button>${r.status==='occupied'?`<button class="btn sm" data-act="moveout" data-room="${esc(r.id)}">Trả phòng</button>`:''}</div></div>`).join('');
+    <div class="row full" style="gap:5px;justify-content:flex-end">${r.status==='occupied'?`<button class="btn sm" data-act="memquick" data-room="${esc(r.id)}" title="Thêm người vào phòng ${esc(r.id)}" aria-label="Thêm người vào phòng ${esc(r.id)}">${icon('plus',14)}Người</button>`:''}<button class="btn sm" data-act="roomedit" data-room="${esc(r.id)}">${icon('edit',14)}Sửa</button>${r.status==='occupied'?`<button class="btn sm" data-act="moveout" data-room="${esc(r.id)}">Trả phòng</button>`:''}</div></div>`).join('');
   const hist=DB.history.slice().reverse().map(h=>`<tr><td class="l"><b class="mono">${esc(h.roomId)}</b></td><td class="l">${esc(h.name)}${(h.members||[]).length?` <span class="muted sm">+ ${h.members.length} người ở cùng</span>`:''}</td><td>${fmtDate(h.moveIn)||'–'}</td><td>${fmtDate(h.moveOut)}</td><td class="num">${money(h.deposit)}</td><td class="num">${money(h.refund)}${h.settle&&h.settle.collect>0?`<div class="sm" style="color:var(--bad)">khách trả ${money(h.settle.collect)}</div>`:''}</td><td class="l">${esc(h.note||'')}${h.settle?`<div class="muted sm">Quyết toán ${esc(monthLabel(h.settle.month).toLowerCase())}: ${money(h.settle.total)}đ${h.settle.prorate?' ('+h.settle.days+'/'+h.settle.dim+' ngày)':''}</div>`:''}</td></tr>`).join('');
   return `<div class="tools"><span class="muted grow">${occ} phòng đang thuê · ${DB.rooms.length-occ} trống · tổng tiền cọc ${money(DB.rooms.reduce((a,r)=>a+(r.status==='occupied'?r.tenant.deposit||0:0),0))}đ</span><button class="btn primary" data-act="roomedit" data-room="">${icon('plus',16)}Thêm phòng</button></div>
   <div class="lst"><div class="lrow head room-g"><div>Phòng</div><div>Khách thuê</div><div>Ngày thuê</div><div class="right">Tiền cọc</div><div>Tiền phòng</div><div class="right">Người</div><div>Tình trạng</div><div></div></div>${rows}</div>
@@ -1698,7 +1723,7 @@ function roomModal(id){
     ${mi('rtrash','Tiền rác mặc định',r.trash)}${mi('ranqp','Tiền ANQP mặc định',r.anqp)}${mi('rnet','Tiền internet mặc định',r.internet)}${mi('rcable','Tiền cáp TV mặc định',r.cable)}
     <label class="f">Họ và tên khách<input id="tname" type="text" value="${esc(t.name)}"></label><label class="f">Số điện thoại<input id="tphone" type="text" inputmode="tel" value="${esc(t.phone||'')}"></label>
     <label class="f">CMND/CCCD<input id="tid" type="text" value="${esc(t.idNo||'')}"></label><label class="f">Ngày thuê<input id="tdate" type="date" value="${t.moveIn||''}"></label>
-    ${mi('tdep','Tiền cọc (đ)',t.deposit)}<label class="f full">Ghi chú<textarea id="tnote">${esc(t.note||'')}</textarea></label>
+    ${mi('tdep','Tiền cọc (đ)',t.deposit)}<label class="f">Biển số xe<input id="tplate" type="text" autocapitalize="characters" placeholder="vd: 59X1-123.45" value="${esc(t.plate||'')}"></label><label class="f full">Ghi chú<textarea id="tnote">${esc(t.note||'')}</textarea></label>
     <div class="full" style="margin-top:4px"><b>Tạm trú / tạm vắng của người đại diện</b><div class="muted sm">Nhập hạn để app tự cảnh báo trước ${RES_WARN()} ngày.</div></div>
     <label class="f">Tạm trú từ<input id="ttf" type="date" value="${t.tt1||''}"></label><label class="f">Tạm trú đến (hạn)<input id="ttt" type="date" value="${t.tt2||''}"></label>
     <label class="f">Tạm vắng từ<input id="tvf" type="date" value="${t.tv1||''}"></label><label class="f">Tạm vắng đến<input id="tvt" type="date" value="${t.tv2||''}"></label>
@@ -2816,6 +2841,7 @@ document.addEventListener('change',e=>{
   else if(t.id==='fileJson'&&t.files[0]){importJSON(t.files[0]);t.value=''}
   else if(t.id==='fileXlsx'&&t.files[0]){importXLSX(t.files[0]);t.value=''}
   else if(t.id==='filePeople'&&t.files[0]){importPeopleXLSX(t.files[0]);t.value=''}
+  else if(t.id==='filePlates'&&t.files[0]){importPlatesXLSX(t.files[0]);t.value=''}
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&$('#modal-root').classList.contains('open'))closeModal();
@@ -2840,6 +2866,7 @@ document.addEventListener('click',async e=>{
       DB.rooms.forEach(r=>{const rec=m.recs[r.id];if(rec&&rec.rent==null)rec.rent=rentAuto(r,rec.people,m)});m.locked=true;save();render();toast('Đã chốt tháng');if(CFG.driver&&Sync.driver)Sync.driver.backup(JSON.stringify(DB),`TienTro_backup_${UI.month}_chot.json`,true).catch(()=>{})},false);break;
    case 'unlock':m.locked=false;save();render();toast('Đã mở khóa tháng');break;
    case 'memadd':{const box=$('#memRows');if(box){box.insertAdjacentHTML('beforeend',memRowHTML({}));const l=box.lastElementChild;l.scrollIntoView({block:'nearest'});$('.m-name',l).focus()}break}
+   case 'memquick':{roomModal(id);const box=$('#memRows');if(box){box.insertAdjacentHTML('beforeend',memRowHTML({}));const l=box.lastElementChild;l.scrollIntoView({block:'nearest'});$('.m-name',l).focus()}break}
    case 'memdel':{const row=el.closest('.memrow');if(row)row.remove();break}
    case 'leavexlsx':leaveXLSX();break;
    case 'syncwarnoff':UI.syncWarnOff=true;renderSyncChips();break;
@@ -2915,7 +2942,7 @@ document.addEventListener('click',async e=>{
    case 'moveoutsave':{await snapshot('Trước khi trả phòng '+id);const r=roomById(id),dep=r.tenant.deposit||0,refund=parseInt0($('#mrefund').value)||0,v=settleRead(),S=settleCalc(id,v);
       DB.history.push({roomId:id,name:r.tenant.name,moveIn:r.tenant.moveIn,moveOut:v.date,deposit:dep,refund,note:$('#mnote').value.trim(),members:(r.members||[]).map(x=>x.name).filter(Boolean),
         settle:{month:S.mk,days:S.days,dim:S.dim,prorate:v.prorate,lines:S.lines.map(x=>({label:x.label,amt:x.amt})),total:S.total,paid:S.paid,need:S.need,collect:S.collect},
-        people:peopleOf(r).filter(p=>p.name||p.idNo).map(p=>({rep:p.rep,name:p.name,idNo:p.idNo,dob:p.dob,sex:p.sex,hk:p.hk,hkOwner:p.hkOwner,group:p.group,ttPlace:p.ttPlace,phone:p.phone,tt1:p.tt1,tt2:p.tt2,note:p.note}))});
+        people:peopleOf(r).filter(p=>p.name||p.idNo).map(p=>({rep:p.rep,name:p.name,idNo:p.idNo,dob:p.dob,sex:p.sex,hk:p.hk,hkOwner:p.hkOwner,group:p.group,ttPlace:p.ttPlace,phone:p.phone,plate:p.plate,tt1:p.tt1,tt2:p.tt2,note:p.note}))});
       if(!S.m.locked){const rc=S.rec;if(v.e!=null)rc.eNew=v.e;if(v.w!=null)rc.wNew=v.w;S.lines.forEach(x=>{if(['rent','trash','internet','cable','anqp'].includes(x.k))rc[x.k]=x.amt})}
       r.tenant={name:'',phone:'',idNo:'',moveIn:'',deposit:0,note:''};r.members=[];r.status='vacant';save();closeModal(true);render();toast('Đã quyết toán và trả phòng '+id+(S.collect>0?' · khách cần thanh toán '+money(S.collect)+'đ':(refund>0?' · hoàn lại khách '+money(refund)+'đ':' · không phát sinh')));break}
    case 'settleprint':{const html=settleSlipHTML(id,settleRead()),root=$('#print-root');root.className='per1';root.innerHTML=html;document.body.classList.add('printing');
@@ -2936,6 +2963,7 @@ document.addEventListener('click',async e=>{
    case 'logout':authClear();try{GD.token=null;GD.exp=0;localStorage.removeItem('tientro.gd')}catch(e){}location.reload();break;
    case 'importjson':$('#fileJson').click();break;
    case 'exportxlsx':exportXLSX();break;
+   case 'plateimport':{const fi=$('#filePlates');if(fi)fi.click();break}
    case 'peopleimport':{const fi=$('#filePeople');if(fi)fi.click();break}
    case 'peopletpl':peopleTemplate();break;
    case 'policerep':policeModal();break;
@@ -3037,8 +3065,8 @@ function saveRoom(oldId){
   const g=i=>parseInt0($('#'+i).value)||0;
   const r=isNew?{id,tenant:{}}:roomById(id);
   Object.assign(r,{type:$('#rtype').value,rentMode:$('#rmode').value,base:g('rbase'),fixed:g('rfixed'),trash:g('rtrash'),anqp:g('ranqp'),internet:g('rnet'),cable:g('rcable'),occupants:Math.max(0,g('rocc')),status:$('#rstatus').value});
-  r.tenant=Object.assign({},r.tenant,{name:$('#tname').value.trim(),phone:$('#tphone').value.trim(),idNo:$('#tid').value.trim(),moveIn:$('#tdate').value,deposit:g('tdep'),note:$('#tnote').value.trim(),tt1:$('#ttf').value,tt2:$('#ttt').value,tv1:$('#tvf').value,tv2:$('#tvt').value,dob:$('#tdob').value,sex:$('#tsex').value,hk:$('#thk').value.trim(),hkOwner:$('#thko').value.trim(),group:$('#tgrp').value.trim(),ttPlace:$('#ttpl').value.trim()});
-  r.members=$$('#memRows .memrow').map(row=>({name:$('.m-name',row).value.trim(),idNo:$('.m-id',row).value.trim(),tt1:$('.m-tt1',row).value,tt2:$('.m-tt2',row).value,tv1:$('.m-tv1',row).value,tv2:$('.m-tv2',row).value,dob:$('.m-dob',row).value,sex:$('.m-sex',row).value,hk:$('.m-hk',row).value.trim(),hkOwner:$('.m-hko',row).value.trim(),group:$('.m-grp',row).value.trim(),phone:$('.m-ph',row).value.trim(),ttPlace:$('.m-tpl',row).value.trim(),note:$('.m-note',row).value.trim()})).filter(x=>x.name||x.idNo||x.tt1||x.tt2||x.tv1||x.tv2);
+  r.tenant=Object.assign({},r.tenant,{name:$('#tname').value.trim(),phone:$('#tphone').value.trim(),idNo:$('#tid').value.trim(),moveIn:$('#tdate').value,deposit:g('tdep'),note:$('#tnote').value.trim(),tt1:$('#ttf').value,tt2:$('#ttt').value,tv1:$('#tvf').value,tv2:$('#tvt').value,dob:$('#tdob').value,sex:$('#tsex').value,hk:$('#thk').value.trim(),hkOwner:$('#thko').value.trim(),group:$('#tgrp').value.trim(),ttPlace:$('#ttpl').value.trim(),plate:$('#tplate').value.trim().toUpperCase()});
+  r.members=$$('#memRows .memrow').map(row=>({name:$('.m-name',row).value.trim(),idNo:$('.m-id',row).value.trim(),tt1:$('.m-tt1',row).value,tt2:$('.m-tt2',row).value,tv1:$('.m-tv1',row).value,tv2:$('.m-tv2',row).value,dob:$('.m-dob',row).value,sex:$('.m-sex',row).value,hk:$('.m-hk',row).value.trim(),hkOwner:$('.m-hko',row).value.trim(),group:$('.m-grp',row).value.trim(),phone:$('.m-ph',row).value.trim(),ttPlace:$('.m-tpl',row).value.trim(),plate:$('.m-plate',row).value.trim().toUpperCase(),note:$('.m-note',row).value.trim()})).filter(x=>x.name||x.idNo||x.tt1||x.tt2||x.tv1||x.tv2);
   const nPeople=1+r.members.length;
   if(isNew)DB.rooms.push(r);sortRooms();syncRecs(UI.month);save();closeModal(true);render();toast(isNew?'Đã thêm phòng '+id:'Đã lưu phòng '+id);
   if(r.members.length&&nPeople!==r.occupants)setTimeout(()=>toast(`Lưu ý: danh sách ghi ${nPeople} người nhưng “Số người ở mặc định” là ${r.occupants}. Chỉnh nếu cần tính phụ thu.`),600);
